@@ -1,14 +1,14 @@
 {
-  "name": "zotero-addon-template",
+  "name": "zotero-ra",
   "version": "0.1.6",
-  "description": "Zotero Addon Template",
+  "description": "Zotero Research Assistant Powered by Large Language Models",
   "config": {
-    "addonName": "Zotero Addon Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "releasepage": "https://github.com/windingwind/zotero-addon-template/releases/latest/download/zotero-addon-template.xpi",
-    "updaterdf": "https://raw.githubusercontent.com/windingwind/zotero-addon-template/bootstrap/update.json"
+    "addonName": "Zotero RA",
+    "addonID": "zotero.ra@apex974.com",
+    "addonRef": "zoteroRa",
+    "addonInstance": "ZoteroRA",
+    "releasepage": "https://github.com/lifan0127/zotero-research-assistant/releases/latest/download/zotero-ra.xpi",
+    "updaterdf": "https://raw.githubusercontent.com/lifan0127/zotero-research-assistant/bootstrap/update.json"
   },
   "main": "src/index.ts",
   "scripts": {
@@ -28,27 +28,28 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-addon-template.git"
+    "url": "git+https://github.com/lifan0127/zotero-research-assistant.git"
   },
-  "author": "windingwind",
+  "author": "Fan Li",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-addon-template/issues"
+    "url": "https://github.com/lifan0127/zotero-research-assistant/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-addon-template#readme",
+  "homepage": "https://github.com/lifan0127/zotero-research-assistant#readme",
   "dependencies": {
-    "zotero-plugin-toolkit": "^2.0.1"
+    "patch-package": "^6.5.1",
+    "zotero-plugin-toolkit": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^18.11.17",
-    "compressing": "^1.6.3",
+    "@types/node": "^18.15.10",
+    "compressing": "^1.9.0",
     "concurrently": "^7.6.0",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.17.4",
-    "minimist": "^1.2.7",
-    "release-it": "^15.6.0",
+    "esbuild": "^0.17.14",
+    "minimist": "^1.2.8",
+    "release-it": "^15.9.3",
     "replace-in-file": "^6.3.5",
-    "typescript": "^4.9.4",
+    "typescript": "^5.0.2",
     "zotero-types": "^1.0.12"
   }
 }
