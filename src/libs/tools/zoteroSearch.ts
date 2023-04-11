@@ -14,6 +14,7 @@ export class ZoteroSearch extends Tool {
       s.addCondition('itemType', 'isNot', 'attachment')
       s.set
       const ids: number[] = await await s.search()
+
       const results = await Promise.all(
         ids.map(async id => {
           return await Zotero.Items.getAsync(id)
@@ -28,9 +29,15 @@ export class ZoteroSearch extends Tool {
           const title = item.getField('title', false, true)
           const author = item.getField('firstCreator', false, true)
           const date = item.getField('date', true, true) as string
-          return { id, itemType, title, author, date }
+          return `
+          id: ${id}
+          itemType: ${itemType}
+          title: ${title}
+          author: ${author}
+          date: ${date}
+          `
         })
-      return JSON.stringify(output, null, 2)
+      return output.join('------------------------')
     } catch (error) {
       console.log({ zoteroSearchError: error })
       return "I don't know how to do that."
