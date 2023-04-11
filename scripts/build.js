@@ -1,9 +1,12 @@
-const esbuild = require("esbuild");
-const compressing = require("compressing");
-const path = require("path");
-const fs = require("fs");
-const process = require("process");
-const replace = require("replace-in-file");
+const esbuild = require("esbuild")
+const compressing = require("compressing")
+const path = require("path")
+const fs = require("fs")
+const process = require("process")
+const replace = require("replace-in-file")
+const { NodeGlobalsPolyfillPlugin } = require('@esbuild-plugins/node-globals-polyfill')
+const { NodeModulesPolyfillPlugin } = require('@esbuild-plugins/node-modules-polyfill')
+
 const {
   name,
   author,
@@ -11,54 +14,54 @@ const {
   homepage,
   version,
   config,
-} = require("../package.json");
+} = require("../package.json")
 
 function copyFileSync(source, target) {
-  var targetFile = target;
+  var targetFile = target
 
   // If target is a directory, a new file with the same name will be created
   if (fs.existsSync(target)) {
     if (fs.lstatSync(target).isDirectory()) {
-      targetFile = path.join(target, path.basename(source));
+      targetFile = path.join(target, path.basename(source))
     }
   }
 
-  fs.writeFileSync(targetFile, fs.readFileSync(source));
+  fs.writeFileSync(targetFile, fs.readFileSync(source))
 }
 
 function copyFolderRecursiveSync(source, target) {
-  var files = [];
+  var files = []
 
   // Check if folder needs to be created or integrated
-  var targetFolder = path.join(target, path.basename(source));
+  var targetFolder = path.join(target, path.basename(source))
   if (!fs.existsSync(targetFolder)) {
-    fs.mkdirSync(targetFolder);
+    fs.mkdirSync(targetFolder)
   }
 
   // Copy
   if (fs.lstatSync(source).isDirectory()) {
-    files = fs.readdirSync(source);
+    files = fs.readdirSync(source)
     files.forEach(function (file) {
-      var curSource = path.join(source, file);
+      var curSource = path.join(source, file)
       if (fs.lstatSync(curSource).isDirectory()) {
-        copyFolderRecursiveSync(curSource, targetFolder);
+        copyFolderRecursiveSync(curSource, targetFolder)
       } else {
-        copyFileSync(curSource, targetFolder);
+        copyFileSync(curSource, targetFolder)
       }
-    });
+    })
   }
 }
 
 function clearFolder(target) {
   if (fs.existsSync(target)) {
-    fs.rmSync(target, { recursive: true, force: true });
+    fs.rmSync(target, { recursive: true, force: true })
   }
 
-  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(target, { recursive: true })
 }
 
 function dateFormat(fmt, date) {
-  let ret;
+  let ret
   const opt = {
     "Y+": date.getFullYear().toString(),
     "m+": (date.getMonth() + 1).toString(),
@@ -66,51 +69,63 @@ function dateFormat(fmt, date) {
     "H+": date.getHours().toString(),
     "M+": date.getMinutes().toString(),
     "S+": date.getSeconds().toString(),
-  };
+  }
   for (let k in opt) {
-    ret = new RegExp("(" + k + ")").exec(fmt);
+    ret = new RegExp("(" + k + ")").exec(fmt)
     if (ret) {
       fmt = fmt.replace(
         ret[1],
         ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
-      );
+      )
     }
   }
-  return fmt;
+  return fmt
 }
 
 async function main() {
-  const t = new Date();
-  const buildTime = dateFormat("YYYY-mm-dd HH:MM:SS", t);
-  const buildDir = "builds";
+  const t = new Date()
+  const buildTime = dateFormat("YYYY-mm-dd HH:MM:SS", t)
+  const buildDir = "builds"
 
   console.log(
     `[Build] BUILD_DIR=${buildDir}, VERSION=${version}, BUILD_TIME=${buildTime}, ENV=${[
       process.env.NODE_ENV,
     ]}`
-  );
+  )
 
-  clearFolder(buildDir);
+  clearFolder(buildDir)
 
-  copyFolderRecursiveSync("addon", buildDir);
+  copyFolderRecursiveSync("addon", buildDir)
 
-  copyFileSync("update-template.json", "update.json");
-  copyFileSync("update-template.rdf", "update.rdf");
+  copyFileSync("update-template.json", "update.json")
+  copyFileSync("update-template.rdf", "update.rdf")
 
   await esbuild
     .build({
       entryPoints: ["src/index.ts"],
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          process: true,
+          buffer: true,
+          define: {
+            'process.env.NODE_ENV': `"${process.env.NODE_ENV}"`
+          },
+        }),
+        NodeModulesPolyfillPlugin(),
+      ],
       define: {
+        global: '_globalThis',
         __env__: `"${process.env.NODE_ENV}"`,
       },
       bundle: true,
+      platform: 'node',
+      target: 'es2018',
       outfile: path.join(buildDir, "addon/chrome/content/scripts/index.js"),
-      // Don't turn minify on
       // minify: true,
     })
-    .catch(() => process.exit(1));
+    .catch(() => process.exit(1))
 
-  console.log("[Build] Run esbuild OK");
+  console.log("[Build] Run esbuild OK")
 
   const replaceFrom = [
     /__author__/g,
@@ -118,14 +133,14 @@ async function main() {
     /__homepage__/g,
     /__buildVersion__/g,
     /__buildTime__/g,
-  ];
+  ]
 
-  const replaceTo = [author, description, homepage, version, buildTime];
+  const replaceTo = [author, description, homepage, version, buildTime]
 
   replaceFrom.push(
     ...Object.keys(config).map((k) => new RegExp(`__${k}__`, "g"))
-  );
-  replaceTo.push(...Object.values(config));
+  )
+  replaceTo.push(...Object.values(config))
 
   const optionsAddon = {
     files: [
@@ -144,19 +159,19 @@ async function main() {
     from: replaceFrom,
     to: replaceTo,
     countMatches: true,
-  };
+  }
 
-  _ = replace.sync(optionsAddon);
+  _ = replace.sync(optionsAddon)
   console.log(
     "[Build] Run replace in ",
     _.filter((f) => f.hasChanged).map(
       (f) => `${f.file} : ${f.numReplacements} / ${f.numMatches}`
     )
-  );
+  )
 
-  console.log("[Build] Replace OK");
+  console.log("[Build] Replace OK")
 
-  console.log("[Build] Addon prepare OK");
+  console.log("[Build] Addon prepare OK")
 
   compressing.zip.compressDir(
     path.join(buildDir, "addon"),
@@ -164,15 +179,15 @@ async function main() {
     {
       ignoreBase: true,
     }
-  );
+  )
 
-  console.log("[Build] Addon pack OK");
+  console.log("[Build] Addon pack OK")
   console.log(
     `[Build] Finished in ${(new Date().getTime() - t.getTime()) / 1000} s.`
-  );
+  )
 }
 
 main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+  console.log(err)
+  process.exit(1)
+})

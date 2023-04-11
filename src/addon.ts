@@ -1,37 +1,38 @@
-import ZoteroToolkit from "zotero-plugin-toolkit/dist/index";
-import { ColumnOptions } from "zotero-plugin-toolkit/dist/helpers/virtualizedTable";
-import hooks from "./hooks";
+import ZoteroToolkit from 'zotero-plugin-toolkit/dist/index'
+import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
+import hooks from './hooks'
+import { config } from '../package.json'
 
 class Addon {
   public data: {
-    alive: boolean;
+    alive: boolean
     // Env type, see build.js
-    env: "development" | "production";
-    // ztoolkit: MyToolkit;
-    ztoolkit: ZoteroToolkit;
+    env: 'development' | 'production'
+    ztoolkit: CustomToolkit
+    // ztoolkit: ZoteroToolkit
     locale?: {
-      stringBundle: any;
-    };
+      stringBundle: any
+    }
     prefs?: {
-      window: Window;
-      columns: Array<ColumnOptions>;
-      rows: Array<{ [dataKey: string]: string }>;
-    };
-  };
+      window: Window
+      columns: Array<ColumnOptions>
+      rows: Array<{ [dataKey: string]: string }>
+    }
+  }
   // Lifecycle hooks
-  public hooks: typeof hooks;
+  public hooks: typeof hooks
   // APIs
-  public api: {};
+  public api: {}
 
   constructor() {
     this.data = {
       alive: true,
       env: __env__,
-      // ztoolkit: new MyToolkit(),
-      ztoolkit: new ZoteroToolkit(),
-    };
-    this.hooks = hooks;
-    this.api = {};
+      ztoolkit: new CustomToolkit(),
+      // ztoolkit: new ZoteroToolkit(),
+    }
+    this.hooks = hooks
+    this.api = {}
   }
 }
 
@@ -50,23 +51,35 @@ class Addon {
  * You can now add the modules under the `MyToolkit` class.
  */
 
-import { BasicTool, unregister } from "zotero-plugin-toolkit/dist/basic";
-import { UITool } from "zotero-plugin-toolkit/dist/tools/ui";
-import { PreferencePaneManager } from "zotero-plugin-toolkit/dist/managers/preferencePane";
-
-export class MyToolkit extends BasicTool {
-  UI: UITool;
-  PreferencePane: PreferencePaneManager;
+import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
+import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
+import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
+import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
+import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
+import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
+import { ChatManager } from './modules/views/chat'
+export class CustomToolkit extends BasicTool {
+  UI: UITool
+  PreferencePane: PreferencePaneManager
+  Chat: ChatManager
+  Prompt: PromptManager
+  Shortcut: ShortcutManager
+  ProgressWindow: typeof ProgressWindowHelper
 
   constructor() {
-    super();
-    this.UI = new UITool(this);
-    this.PreferencePane = new PreferencePaneManager(this);
+    super()
+    this.UI = new UITool(this)
+    this.PreferencePane = new PreferencePaneManager(this)
+    this.Shortcut = new ShortcutManager(this)
+    this.Chat = new ChatManager(this)
+    this.Prompt = new PromptManager(this)
+    this.ProgressWindow = ProgressWindowHelper
+    this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
   }
 
   unregisterAll() {
-    unregister(this);
+    unregister(this)
   }
 }
 
-export default Addon;
+export default Addon

@@ -1,31 +1,37 @@
-<vbox
-  id="zotero-prefpane-__addonRef__"
-  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})"
->
+<vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})">
   <groupbox>
-    <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
-    <checkbox
+    <!-- <checkbox
       id="zotero-prefpane-__addonRef__-enable"
       label="&zotero.__addonRef__.pref.enable.label;"
       preference="extensions.zotero.__addonRef__.enable"
-    />
-    <hbox>
-      <html:label for="zotero-prefpane-__addonRef__-input"
-        >&zotero.__addonRef__.pref.input.label;</html:label
-      >
-      <html:input
-        type="text"
-        id="zotero-prefpane-__addonRef__-input"
-        preference="extensions.zotero.__addonRef__.input"
-      ></html:input>
-    </hbox>
-    <hbox class="virtualized-table-container" flex="1" height="300px">
+    /> -->
+    <vbox>
+      <hbox>
+        <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
+      </hbox>
+      <hbox>
+        <!-- <html:label for="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
+          >&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</html:label
+        > -->
+        <label>&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</label>
+        <html:input
+          type="password"
+          id="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
+          preference="extensions.zotero.__addonRef__.OPENAI_API_KEY"
+        ></html:input>
+      </hbox>
+      <hbox>
+        <label><html:br></html:br></label>
+      </hbox>
+      <hbox>
+        <label value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"></label>
+      </hbox>
+    </vbox>
+    <!-- <hbox class="virtualized-table-container" flex="1" height="300px">
       <html:div id="__addonRef__-table-container" />
-    </hbox>
+    </hbox> -->
   </groupbox>
 </vbox>
-<vbox>
-  <label
-    value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"
-  ></label>
-</vbox>
+<!-- <vbox>
+  <label value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"></label>
+</vbox> -->

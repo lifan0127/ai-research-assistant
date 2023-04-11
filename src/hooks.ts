@@ -4,111 +4,104 @@ import {
   KeyExampleFactory,
   PromptExampleFactory,
   UIExampleFactory,
-} from "./modules/examples";
-import { config } from "../package.json";
-import { getString, initLocale } from "./modules/locale";
-import { registerPrefsScripts } from "./modules/preferenceScript";
+} from './modules/examples'
+import { config } from '../package.json'
+import { getString, initLocale } from './modules/locale'
+import { registerPrompt, registerShortcuts } from './modules/registry'
+import { chat } from './modules/views/chat'
+import { registerPrefsWindow, registerPrefsScripts } from './modules/preferences'
 
 async function onStartup() {
-  await Promise.all([
-    Zotero.initializationPromise,
-    Zotero.unlockPromise,
-    Zotero.uiReadyPromise,
-  ]);
-  initLocale();
-  ztoolkit.ProgressWindow.setIconURI(
-    "default",
-    `chrome://${config.addonRef}/content/icons/favicon.png`
-  );
+  await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
+  initLocale()
+  ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
+
+  registerPrompt()
+  registerShortcuts()
+  registerPrefsWindow()
+  await Zotero.Promise.delay(1000)
 
   const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
     closeOnClick: true,
     closeTime: -1,
   })
     .createLine({
-      text: getString("startup.begin"),
-      type: "default",
+      text: getString('startup.begin'),
+      type: 'default',
       progress: 0,
     })
-    .show();
+    .show()
 
-  BasicExampleFactory.registerPrefs();
+  // =====================================
 
-  BasicExampleFactory.registerNotifier();
+  // BasicExampleFactory.registerPrefs()
 
-  KeyExampleFactory.registerShortcuts();
+  // BasicExampleFactory.registerNotifier()
 
-  await Zotero.Promise.delay(1000);
-  popupWin.changeLine({
-    progress: 30,
-    text: `[30%] ${getString("startup.begin")}`,
-  });
+  // KeyExampleFactory.registerShortcuts()
 
-  UIExampleFactory.registerStyleSheet();
+  // await Zotero.Promise.delay(1000)
+  // // popupWin.changeLine({
+  // //   progress: 30,
+  // //   text: `[30%] ${getString('startup.begin')}`,
+  // // })
 
-  UIExampleFactory.registerRightClickMenuItem();
+  // UIExampleFactory.registerStyleSheet()
 
-  UIExampleFactory.registerRightClickMenuPopup();
+  // UIExampleFactory.registerRightClickMenuItem()
 
-  UIExampleFactory.registerWindowMenuWithSeparator();
+  // UIExampleFactory.registerRightClickMenuPopup()
 
-  await UIExampleFactory.registerExtraColumn();
+  // UIExampleFactory.registerWindowMenuWithSeparator()
 
-  await UIExampleFactory.registerExtraColumnWithCustomCell();
+  // await UIExampleFactory.registerExtraColumn()
 
-  await UIExampleFactory.registerCustomCellRenderer();
+  // await UIExampleFactory.registerExtraColumnWithCustomCell()
 
-  await UIExampleFactory.registerCustomItemBoxRow();
+  // await UIExampleFactory.registerCustomCellRenderer()
 
-  UIExampleFactory.registerLibraryTabPanel();
+  // await UIExampleFactory.registerCustomItemBoxRow()
 
-  await UIExampleFactory.registerReaderTabPanel();
+  // UIExampleFactory.registerLibraryTabPanel()
 
-  PromptExampleFactory.registerNormalCommandExample();
+  // await UIExampleFactory.registerReaderTabPanel()
 
-  PromptExampleFactory.registerAnonymousCommandExample();
+  // PromptExampleFactory.registerNormalCommandExample()
 
-  PromptExampleFactory.registerConditionalCommandExample();
+  // PromptExampleFactory.registerAnonymousCommandExample()
 
-  await Zotero.Promise.delay(1000);
+  // PromptExampleFactory.registerConditionalCommandExample()
+
+  // await Zotero.Promise.delay(1000)
 
   popupWin.changeLine({
     progress: 100,
-    text: `[100%] ${getString("startup.finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
+    text: `[100%] ${getString('startup.finish')}`,
+  })
+  popupWin.startCloseTimer(5000)
 
-  addon.hooks.onDialogEvents("dialogExample");
+  // addon.hooks.onDialogEvents('dialogExample')
 }
 
 function onShutdown(): void {
-  ztoolkit.unregisterAll();
+  ztoolkit.unregisterAll()
   // Remove addon object
-  addon.data.alive = false;
-  delete Zotero[config.addonInstance];
+  addon.data.alive = false
+  delete Zotero[config.addonInstance]
 }
 
 /**
  * This function is just an example of dispatcher for Notify events.
  * Any operations should be placed in a function to keep this funcion clear.
  */
-async function onNotify(
-  event: string,
-  type: string,
-  ids: Array<string | number>,
-  extraData: { [key: string]: any }
-) {
+async function onNotify(event: string, type: string, ids: Array<string | number>, extraData: { [key: string]: any }) {
   // You can add your code to the corresponding notify type
-  ztoolkit.log("notify", event, type, ids, extraData);
-  if (
-    event == "select" &&
-    type == "tab" &&
-    extraData[ids[0]].type == "reader"
-  ) {
-    BasicExampleFactory.exampleNotifierCallback();
-  } else {
-    return;
-  }
+  ztoolkit.log('notify', event, type, ids, extraData)
+  // if (event == 'select' && type == 'tab' && extraData[ids[0]].type == 'reader') {
+  //   BasicExampleFactory.exampleNotifierCallback()
+  // } else {
+  //   return
+  // }
 }
 
 /**
@@ -119,49 +112,49 @@ async function onNotify(
  */
 async function onPrefsEvent(type: string, data: { [key: string]: any }) {
   switch (type) {
-    case "load":
-      registerPrefsScripts(data.window);
-      break;
+    case 'load':
+      registerPrefsScripts(data.window)
+      break
     default:
-      return;
+      return
   }
 }
 
 function onShortcuts(type: string) {
   switch (type) {
-    case "larger":
-      KeyExampleFactory.exampleShortcutLargerCallback();
-      break;
-    case "smaller":
-      KeyExampleFactory.exampleShortcutSmallerCallback();
-      break;
-    case "confliction":
-      KeyExampleFactory.exampleShortcutConflictingCallback();
-      break;
+    // case 'larger':
+    //   KeyExampleFactory.exampleShortcutLargerCallback()
+    //   break
+    // case 'smaller':
+    //   KeyExampleFactory.exampleShortcutSmallerCallback()
+    //   break
+    // case 'confliction':
+    //   KeyExampleFactory.exampleShortcutConflictingCallback()
+    //   break
     default:
-      break;
+      break
   }
 }
 
 function onDialogEvents(type: string) {
   switch (type) {
-    case "dialogExample":
-      HelperExampleFactory.dialogExample();
-      break;
-    case "clipboardExample":
-      HelperExampleFactory.clipboardExample();
-      break;
-    case "filePickerExample":
-      HelperExampleFactory.filePickerExample();
-      break;
-    case "progressWindowExample":
-      HelperExampleFactory.progressWindowExample();
-      break;
-    case "vtableExample":
-      HelperExampleFactory.vtableExample();
-      break;
+    case 'dialogExample':
+      chat()
+      break
+    // case 'clipboardExample':
+    //   HelperExampleFactory.clipboardExample()
+    //   break
+    // case 'filePickerExample':
+    //   HelperExampleFactory.filePickerExample()
+    //   break
+    // case 'progressWindowExample':
+    //   HelperExampleFactory.progressWindowExample()
+    //   break
+    // case 'vtableExample':
+    //   HelperExampleFactory.vtableExample()
+    //   break
     default:
-      break;
+      break
   }
 }
 
@@ -176,4 +169,4 @@ export default {
   onPrefsEvent,
   onShortcuts,
   onDialogEvents,
-};
+}

@@ -1,0 +1,66 @@
+diff --git a/node_modules/object-hash/crypto.js b/node_modules/object-hash/crypto.js
+new file mode 100644
+index 0000000..6fd9a8d
+--- /dev/null
++++ b/node_modules/object-hash/crypto.js
+@@ -0,0 +1,47 @@
++class Hash {
++  cryptoHash
++  data
++  constructor(algorithm) {
++    this.cryptoHash = Components.classes['@mozilla.org/security/hash;1'].createInstance(
++      Components.interfaces.nsICryptoHash
++    )
++    this.cryptoHash.init(this.getHashType(algorithm))
++    this.data = ''
++  }
++
++  getHashType(algorithm) {
++    switch (algorithm) {
++      case 'md5':
++        return this.cryptoHash.MD5
++      case 'sha1':
++        return this.cryptoHash.SHA1
++      case 'sha256':
++        return this.cryptoHash.SHA256
++      case 'sha384':
++        return this.cryptoHash.SHA384
++      case 'sha512':
++        return this.cryptoHash.SHA512
++      default:
++        throw new Error(`Unsupported hash algorithm: ${algorithm}`)
++    }
++  }
++
++  update(data) {
++    this.data += data
++  }
++
++  digest(encoding) {
++    const inputStream = Components.classes['@mozilla.org/io/string-input-stream;1'].createInstance(
++      Components.interfaces.nsIStringInputStream
++    )
++    inputStream.setData(this.data, this.data.length)
++    const result = this.cryptoHash.finish(encoding === 'hex')
++    return result
++  }
++}
++
++export const crypto = {
++  createHash: function (algorithm) {
++    return new Hash(algorithm)
++  },
++}
+\ No newline at end of file
+diff --git a/node_modules/object-hash/index.js b/node_modules/object-hash/index.js
+index 962bf62..41267f7 100644
+--- a/node_modules/object-hash/index.js
++++ b/node_modules/object-hash/index.js
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-var crypto = require('crypto');
++var { crypto } = require('./crypto');
+ 
+ /**
+  * Exported function

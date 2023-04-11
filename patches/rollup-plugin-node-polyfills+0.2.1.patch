@@ -1,0 +1,13 @@
+diff --git a/node_modules/rollup-plugin-node-polyfills/polyfills/http-lib/capability.js b/node_modules/rollup-plugin-node-polyfills/polyfills/http-lib/capability.js
+index 05210b9..fe0d1df 100644
+--- a/node_modules/rollup-plugin-node-polyfills/polyfills/http-lib/capability.js
++++ b/node_modules/rollup-plugin-node-polyfills/polyfills/http-lib/capability.js
+@@ -42,7 +42,7 @@ export var arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer')
+ export var msstream = !hasFetch && haveSlice && checkTypeSupport('ms-stream')
+ export var mozchunkedarraybuffer = !hasFetch && haveArrayBuffer &&
+   checkTypeSupport('moz-chunked-arraybuffer')
+-export var overrideMimeType = isFunction(xhr.overrideMimeType)
++export var overrideMimeType = isFunction(xhr && xhr.overrideMimeType)
+ export var vbArray = isFunction(global.VBArray)
+ 
+ function isFunction(value) {

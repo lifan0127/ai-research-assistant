@@ -5,11 +5,16 @@
  * [2] https://www.zotero.org/support/dev/zotero_7_for_developers
  */
 
-if (typeof Zotero == "undefined") {
-  var Zotero;
+var config = {
+  addonID: "zotero.ra@apex974.com",
+  addonRef: 'zoteraRa'
 }
 
-var chromeHandle;
+if (typeof Zotero == "undefined") {
+  var Zotero
+}
+
+var chromeHandle
 
 // In Zotero 6, bootstrap methods are called before Zotero is initialized, and using include.js
 // to get the Zotero XPCOM service would risk breaking Zotero startup. Instead, wait for the main
@@ -19,18 +24,18 @@ var chromeHandle;
 // automatically made available.
 async function waitForZotero() {
   if (typeof Zotero != "undefined") {
-    await Zotero.initializationPromise;
+    await Zotero.initializationPromise
   }
 
-  var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
-  var windows = Services.wm.getEnumerator("navigator:browser");
-  var found = false;
+  var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm")
+  var windows = Services.wm.getEnumerator("navigator:browser")
+  var found = false
   while (windows.hasMoreElements()) {
-    let win = windows.getNext();
+    let win = windows.getNext()
     if (win.Zotero) {
-      Zotero = win.Zotero;
-      found = true;
-      break;
+      Zotero = win.Zotero
+      found = true
+      break
     }
   }
   if (!found) {
@@ -40,49 +45,129 @@ async function waitForZotero() {
           // Wait for the window to finish loading
           let domWindow = aWindow
             .QueryInterface(Ci.nsIInterfaceRequestor)
-            .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow);
+            .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow)
           domWindow.addEventListener(
             "load",
             function () {
-              domWindow.removeEventListener("load", arguments.callee, false);
+              domWindow.removeEventListener("load", arguments.callee, false)
               if (domWindow.Zotero) {
-                Services.wm.removeListener(listener);
-                Zotero = domWindow.Zotero;
-                resolve();
+                Services.wm.removeListener(listener)
+                Zotero = domWindow.Zotero
+                resolve()
               }
             },
             false
-          );
+          )
         },
-      };
-      Services.wm.addListener(listener);
-    });
+      }
+      Services.wm.addListener(listener)
+    })
   }
-  await Zotero.initializationPromise;
+  await Zotero.initializationPromise
 }
 
-function install(data, reason) {}
+function getExtensionPath(extensionID) {
+  return new Zotero.Promise((resolve, reject) => {
+    try {
+      const { AddonManager } = Components.utils.import("resource://gre/modules/AddonManager.jsm")
+      AddonManager.getAddonByID(extensionID, (addon) => {
+        if (addon) {
+          resolve(addon.getResourceURI("").QueryInterface(Components.interfaces.nsIFileURL).file.path)
+        } else {
+          reject(new Error("Addon not found"))
+        }
+      })
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+
+
+async function initDatabase() {
+  // Create the database file in the Zotero profile directory
+  const { FileUtils } = ChromeUtils.import("resource://gre/modules/FileUtils.jsm")
+  const dbFile = FileUtils.getFile('ProfD', ['zoteroRa', 'db.sqlite'])
+  // Open the SQLite database
+  const storageService = Cc['@mozilla.org/storage/service;1'].getService(Ci.mozIStorageService)
+  const dbConnection = storageService.openDatabase(dbFile)
+
+  // Create the necessary tables (replace this SQL statement with your own)
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS DOCUMENTS(
+      ITEM_ID TEXT,
+      ITEM_TYPE TEXT,
+      CHUNK_ID TEXT,
+      TEXT TEXT,
+      EMBEDDING BLOB
+    );
+  `
+  // console.log({
+  //   vector0: `${pluginPath}/chrome/content/libs/vector0`,
+  //   vss0: `${pluginPath}/chrome/content/libs/vss0`
+  // })
+
+  try {
+    // const vector0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vector0.so']).path
+    // const vss0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vss0.so']).path
+    // console.log({ vector0, vss0 })
+
+    // Execute the SQL statement
+
+    dbConnection.executeSimpleSQL(createTableSQL)
+    console.log({ dbSuccess: 'success' })
+  } catch (e) {
+    console.log({ dbError: e })
+  }
+
+}
+
+function install(data, reason) {
+  console.log('install')
+}
 
 async function startup({ id, version, resourceURI, rootURI }, reason) {
-  await waitForZotero();
+  await waitForZotero()
 
   // String 'rootURI' introduced in Zotero 7
   if (!rootURI) {
-    rootURI = resourceURI.spec;
+    rootURI = resourceURI.spec
   }
 
   if (Zotero.platformMajorVersion >= 102) {
     var aomStartup = Components.classes[
       "@mozilla.org/addons/addon-manager-startup;1"
-    ].getService(Components.interfaces.amIAddonManagerStartup);
-    var manifestURI = Services.io.newURI(rootURI + "manifest.json");
+    ].getService(Components.interfaces.amIAddonManagerStartup)
+    var manifestURI = Services.io.newURI(rootURI + "manifest.json")
     chromeHandle = aomStartup.registerChrome(manifestURI, [
       ["content", "__addonRef__", rootURI + "chrome/content/"],
       ["locale", "__addonRef__", "en-US", rootURI + "chrome/locale/en-US/"],
       ["locale", "__addonRef__", "zh-CN", rootURI + "chrome/locale/zh-CN/"],
-    ]);
+    ])
   } else {
-    setDefaultPrefs(rootURI);
+    setDefaultPrefs(rootURI)
+  }
+
+  // Initialize the plugin SQLite database
+  switch (reason) {
+    case ADDON_INSTALL:
+    case APP_STARTUP: {
+      // TODO: should only be done during plugin install
+      // console.log('test wasm loader')
+      // const { index, search } = await loadWasmModule()
+      // console.log({ index, search })
+
+      console.log('initialize plugin database')
+      initDatabase()
+      break
+    }
+    case ADDON_UPGRADE: {
+      // TODO: database migration as needed
+      console.log('perform plugin database migration')
+      break
+    }
+
   }
 
   /**
@@ -93,60 +178,60 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
    */
   const ctx = {
     rootURI,
-  };
-  ctx._globalThis = ctx;
+  }
+  ctx._globalThis = ctx
 
   Services.scriptloader.loadSubScript(
     `${rootURI}/chrome/content/scripts/index.js`,
     ctx
-  );
+  )
 }
 
 function shutdown({ id, version, resourceURI, rootURI }, reason) {
   if (reason === APP_SHUTDOWN) {
-    return;
+    return
   }
   if (typeof Zotero === "undefined") {
     Zotero = Components.classes["@zotero.org/Zotero;1"].getService(
       Components.interfaces.nsISupports
-    ).wrappedJSObject;
+    ).wrappedJSObject
   }
-  Zotero.__addonInstance__.hooks.onShutdown();
+  Zotero.__addonInstance__.hooks.onShutdown()
 
   Cc["@mozilla.org/intl/stringbundle;1"]
     .getService(Components.interfaces.nsIStringBundleService)
-    .flushBundles();
+    .flushBundles()
 
-  Cu.unload(`${rootURI}/chrome/content/scripts/index.js`);
+  Cu.unload(`${rootURI}/chrome/content/scripts/index.js`)
 
   if (chromeHandle) {
-    chromeHandle.destruct();
-    chromeHandle = null;
+    chromeHandle.destruct()
+    chromeHandle = null
   }
 }
 
-function uninstall(data, reason) {}
+function uninstall(data, reason) { }
 
 // Loads default preferences from defaults/preferences/prefs.js in Zotero 6
 function setDefaultPrefs(rootURI) {
-  var branch = Services.prefs.getDefaultBranch("");
+  var branch = Services.prefs.getDefaultBranch("")
   var obj = {
     pref(pref, value) {
       switch (typeof value) {
         case "boolean":
-          branch.setBoolPref(pref, value);
-          break;
+          branch.setBoolPref(pref, value)
+          break
         case "string":
-          branch.setStringPref(pref, value);
-          break;
+          branch.setStringPref(pref, value)
+          break
         case "number":
-          branch.setIntPref(pref, value);
-          break;
+          branch.setIntPref(pref, value)
+          break
         default:
-          Zotero.logError(`Invalid type '${typeof value}' for pref '${pref}'`);
+          Zotero.logError(`Invalid type '${typeof value}' for pref '${pref}'`)
       }
     },
-  };
-  Zotero.getMainWindow().console.log(rootURI + "prefs.js");
-  Services.scriptloader.loadSubScript(rootURI + "prefs.js", obj);
+  }
+  Zotero.getMainWindow().console.log(rootURI + "prefs.js")
+  Services.scriptloader.loadSubScript(rootURI + "prefs.js", obj)
 }

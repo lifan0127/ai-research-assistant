@@ -1,0 +1,13 @@
+diff --git a/node_modules/marked/lib/marked.esm.js b/node_modules/marked/lib/marked.esm.js
+index 78f87f1..e60b14d 100644
+--- a/node_modules/marked/lib/marked.esm.js
++++ b/node_modules/marked/lib/marked.esm.js
+@@ -901,7 +901,7 @@ class Tokenizer {
+     if (!match) return;
+ 
+     // _ can't be between two alphanumerics. \p{L}\p{N} includes non-english alphabet/numbers as well
+-    if (match[3] && prevChar.match(/[\p{L}\p{N}]/u)) return;
++    if (match[3] && prevChar.match(/[\w\d]/)) return;
+ 
+     const nextChar = match[1] || match[2] || '';
+ 

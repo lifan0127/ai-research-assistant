@@ -1,6 +1,6 @@
 {
   "name": "zotero-ra",
-  "version": "0.1.6",
+  "version": "0.0.1",
   "description": "Zotero Research Assistant Powered by Large Language Models",
   "config": {
     "addonName": "Zotero RA",
@@ -14,6 +14,9 @@
   "scripts": {
     "build-dev": "cross-env NODE_ENV=development node scripts/build.js",
     "build-prod": "cross-env NODE_ENV=production node scripts/build.js",
+    "build-libs": "cd libs/vector_search && wasm-pack build --target web && cp pkg/vector_search_bg.wasm ../../addon/chrome/content/libs && cp pkg/vector_search.js ../../src/libs && cp pkg/vector_search.d.ts ../../src/libs && echo \"const { TextEncoder, TextDecoder } = Components.utils.import(\\\"resource://gre/modules/Services.jsm\\\", {});\n\" | cat - ../../src/libs/vector_search.js > temp && mv temp ../../src/libs/vector_search.js",
+    "test-libs": "cd libs/vector_search && wasm-pack test --node",
+    "postinstall": "patch-package && node scripts/wasm.js",
     "build": "concurrently -c auto npm:build-prod npm:tsc",
     "tsc": "tsc --noEmit",
     "start-z6": "node scripts/start.js --z 6",
@@ -37,11 +40,24 @@
   },
   "homepage": "https://github.com/lifan0127/zotero-research-assistant#readme",
   "dependencies": {
+    "@dqbd/tiktoken": "^1.0.2",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "@types/marked": "^4.0.8",
+    "crypto-browserify": "^3.12.0",
+    "hnswlib-node": "^1.4.2",
+    "langchain": "^0.0.48",
+    "marked": "^4.3.0",
     "patch-package": "^6.5.1",
+    "typeorm": "^0.3.12",
     "zotero-plugin-toolkit": "^2.1.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-async-generator-functions": "^7.20.7",
+    "@babel/plugin-transform-async-to-generator": "^7.20.7",
+    "@chialab/esbuild-plugin-babel": "^0.17.1",
     "@types/node": "^18.15.10",
+    "@types/object-hash": "^3.0.2",
     "compressing": "^1.9.0",
     "concurrently": "^7.6.0",
     "cross-env": "^7.0.3",
