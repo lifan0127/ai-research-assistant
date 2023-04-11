@@ -15,13 +15,11 @@ const QA_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
   ),
   HumanMessagePromptTemplate.fromTemplate(
     `
-Write an answer ({length}) for the question below solely based on the provided context. 
+Write an answer for the question below solely based on the provided context. 
 If the context provides insufficient information, reply "I cannot answer".
-For each sentence in your answer, indicate which sources most support it via valid citation markers at the end of sentences, like (Example2012).
+
 Answer in an unbiased and scholarly tone. Make clear what is your opinion. 
 Use Markdown for formatting code or text, and try to use direct quotes to support arguments.
-
-{context_str}
 
 Question: {question}
 Answer:
