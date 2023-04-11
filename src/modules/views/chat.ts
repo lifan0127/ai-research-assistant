@@ -67,6 +67,7 @@ export class Chat {
   private initConfiguration() {
     const missingApiKeyNode = this.ui.createElement(this.document, 'div', {
       styles: {
+        color: 'black',
         background: 'RGBA(255, 234, 0, 0.5)',
         padding: '24px',
         width: '75%',
@@ -706,6 +707,7 @@ export class Chat {
         border-width: 0;
         font-size: 16px;
         overflow-y: auto;
+        color: black;
       }
 
       .chat-input #loading {
@@ -801,6 +803,7 @@ export class Chat {
         border-color: rgba(0,0,0,0.1);
         box-shadow: 0 0 6px rgba(0,0,0,0.1);
         background: white;
+        color: black;
       }
 
       #chat-conversation .chat-message.chat-message-bot .markdown {
