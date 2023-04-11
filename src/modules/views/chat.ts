@@ -4,6 +4,7 @@ import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
 import ToolkitGlobal from 'zotero-plugin-toolkit/dist/managers/toolkitGlobal'
 import { marked } from 'marked'
+import { serializeError } from 'serialize-error'
 import { config, version } from '../../../package.json'
 import { ExecutorWithMetadata, createQAExecutor } from '../../libs/agents'
 import { AgentExecutor } from 'langchain/agents'
@@ -453,11 +454,12 @@ export class Chat {
       }
       this.addBotOutput(botOutput)
       this.setLoading(false)
-    } catch (error) {
+    } catch (error: any) {
       console.log({ executorError: error })
       const errorBotOutput: Message = {
         role: 'bot',
-        message: `Sorry. An error occurred. Please try something else.`,
+        message: `Sorry. An error occurred. Please try something else.
+        <pre class='error'>${JSON.stringify(serializeError(error))}</pre>`,
       }
       this.addBotOutput(errorBotOutput)
       this.setLoading(false)
@@ -804,6 +806,13 @@ export class Chat {
         box-shadow: 0 0 6px rgba(0,0,0,0.1);
         background: white;
         color: black;
+      }
+
+      #chat-conversation .chat-message.chat-message-bot .error {
+        white-space: pre-wrap;
+        background-color: #f3f3f3;
+        color: #666;
+        font-size: 12px;
       }
 
       #chat-conversation .chat-message.chat-message-bot .markdown {

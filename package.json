@@ -49,6 +49,7 @@
     "langchain": "^0.0.48",
     "marked": "^4.3.0",
     "patch-package": "^6.5.1",
+    "serialize-error": "^11.0.0",
     "typeorm": "^0.3.12",
     "zotero-plugin-toolkit": "^2.1.0"
   },

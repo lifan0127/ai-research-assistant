@@ -16,7 +16,7 @@ const QUERY_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
   HumanMessagePromptTemplate.fromTemplate(
     `
 We want to answer the following question: {question}
-Provide a search query that will find papers to help answer the question. The query should be general enough to promote more results. Do not use boolean operators such as "AND", "OR", or "NOT".
+Provide a search query that will find papers to help answer the question. The query should be general enough to promote more results. Please, please do not use boolean operators such as "AND", "OR", or "NOT".
 
 Search query:
   `.trim()
