@@ -5,3 +5,4 @@ zotero-cmd.json
 src/env.json
 tests/questions.txt
 debug*.*
+*.env

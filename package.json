@@ -61,6 +61,7 @@
     "compressing": "^1.9.0",
     "concurrently": "^7.6.0",
     "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.2.1",
     "esbuild": "^0.17.14",
     "minimist": "^1.2.8",
     "release-it": "^15.9.3",
