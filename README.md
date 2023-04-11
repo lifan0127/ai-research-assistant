@@ -23,3 +23,12 @@ Zotero RA can be activated through the "Shift + R" shortcut.
 Before using Zotero RA, you need to provide an [OpenAI API Key](https://platform.openai.com/account/api-keys). Follow the in-app instruction to add a key and <b>restart Zotero</b>.
 
 After restart, you should see the activated Zotero RA window (as shown above) and can start using it through conversations.
+
+## Update
+
+- Zotera RA can perform automatic update when internet access is available. To check for available update, select <em>Tools</em> from the top menu bar, and then click on <em>Addons</em>.
+- To manually update Zotera RA, click <em>More</em> under Zotera RA and then click the gear icon at the top right corner. Select <em>Check for Updates</em>.
+
+## Troubleshooting
+
+ Interaction with Zotero, in an open conversational manner and through a probabilistic model, can lead to many different, often unexpected outcomes. If you experience any error, please create an GitHub issue with a screenshot of the error message from your Zotero RA chat window. Thank you!
