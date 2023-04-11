@@ -28,7 +28,7 @@ if (!basicTool.getGlobal('Zotero')[config.addonInstance]) {
   _globalThis.TextEncoder = ZoteroTextEncoder
   _globalThis.TextDecoder = ZoteroTextDecoder
   _globalThis.addon = new Addon()
-  _globalThis.ztoolkit = addon.data.ztoolkit
+  _globalThis.ztoolkit = addon.data.ztoolkit as any
   ztoolkit.basicOptions.log.prefix = `[${config.addonName}]`
   ztoolkit.basicOptions.log.disableConsole = addon.data.env === 'production'
   ztoolkit.UI.basicOptions.ui.enableElementJSONLog = addon.data.env === 'development'
