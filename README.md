@@ -29,6 +29,13 @@ After restart, you should see the activated Zotero RA window (as shown above) an
 - Zotera RA can perform automatic update when internet access is available. To check for available update, select <em>Tools</em> from the top menu bar, and then click on <em>Addons</em>.
 - To manually update Zotera RA, click <em>More</em> under Zotera RA and then click the gear icon at the top right corner. Select <em>Check for Updates</em>. ([screenshots](docs/update.md))
 
+## Limitations
+
+The following are known limitations based on user feedback.
+
+- Currently Zotero RA can query your Zotero library through the Zotero search API. The ability to query the Zotero SQLite database for document count and other metrics will be delivered in a future release.
+- Zotero RA has no awareness of your Zotero application state (selected item, current tab, highlighted text) and therefore cannot answer the related questions. This capability will be added overtime.
+
 ## Troubleshooting
 
   Interaction with Zotero, in an open conversational manner and through a probabilistic model, can lead to many different, often unexpected outcomes. If you experience any error, please create an GitHub issue with a screenshot of the error message from your Zotero RA chat window. Thank you!
