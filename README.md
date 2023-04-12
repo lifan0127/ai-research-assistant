@@ -20,14 +20,14 @@ Your AI research assistant in Zotero, powered by Large Language Models (LLMs).
 
 Zotero RA can be activated through the "Shift + R" shortcut.
 
-Before using Zotero RA, you need to provide an [OpenAI API Key](https://platform.openai.com/account/api-keys). Follow the in-app instruction to add a key and <b>restart Zotero</b>.
+Before using Zotero RA, you need to provide an [OpenAI API Key](https://platform.openai.com/account/api-keys). Follow the in-app instruction to add a key and <b>restart Zotero</b>. ([screenshots](docs/configuration.md))
 
 After restart, you should see the activated Zotero RA window (as shown above) and can start using it through conversations.
 
 ## Update
 
 - Zotera RA can perform automatic update when internet access is available. To check for available update, select <em>Tools</em> from the top menu bar, and then click on <em>Addons</em>.
-- To manually update Zotera RA, click <em>More</em> under Zotera RA and then click the gear icon at the top right corner. Select <em>Check for Updates</em>.
+- To manually update Zotera RA, click <em>More</em> under Zotera RA and then click the gear icon at the top right corner. Select <em>Check for Updates</em>. ([screenshots](docs/update.md))
 
 ## Troubleshooting
 
