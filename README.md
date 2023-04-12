@@ -34,7 +34,7 @@ After restart, you should see the activated Zotero RA window (as shown above) an
 The following are known limitations based on user feedback.
 
 - Currently Zotero RA can query your Zotero library through the Zotero search API. The ability to query the Zotero SQLite database for document count and other metrics will be delivered in a future release.
-- Zotero RA has no awareness of your Zotero application state (selected item, current tab, highlighted text) and therefore cannot answer the related questions. This capability will be added overtime.
+- Zotero RA has no awareness of your Zotero application state (selected item, current tab, highlighted text) and therefore cannot answer the related questions. This capability will be added over time.
 
 ## Troubleshooting
 
@@ -42,6 +42,6 @@ The following are known limitations based on user feedback.
 
 - "Unable to parse JSON response from chat agent": This is perhaps the most common error which is caused by GPT not following its output format instructions. This should be fixed once the parse exception handling logic is introduced into LangChain: https://github.com/hwchase17/langchain/pull/2656.
 
-- "Agent stopped due to max iterations": For certain questions, the bot will make multiple API calls iteratively for response synthesis. Sometimes it may fail to produce an answer before reaching the max iteration.
+- "Agent stopped due to max iterations": For certain questions, the bot will make multiple API calls iteratively for response synthesis. Sometimes, it may fail to produce an answer before reaching the max iterations.
 
 - ZoteroRA tab not in Preferences panel: You may choose the __Advanced__ tab in Preferences and open the __Configuration Editor__ Under Advanced Configuration. From there, please search for "zoterora" and then double-click on the "extensions.zotero.zoteroRa.OPENAI_API_KEY" entry to add your OpenAI API Key.
