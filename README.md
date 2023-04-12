@@ -31,4 +31,8 @@ After restart, you should see the activated Zotero RA window (as shown above) an
 
 ## Troubleshooting
 
- Interaction with Zotero, in an open conversational manner and through a probabilistic model, can lead to many different, often unexpected outcomes. If you experience any error, please create an GitHub issue with a screenshot of the error message from your Zotero RA chat window. Thank you!
+  Interaction with Zotero, in an open conversational manner and through a probabilistic model, can lead to many different, often unexpected outcomes. If you experience any error, please create an GitHub issue with a screenshot of the error message from your Zotero RA chat window. Thank you!
+
+- "Agent stopped due to max iterations": For certain questions, the bot will make multiple API calls iteratively for response synthesis. Sometimes it may fail to produce an answer before reaching the max iteration.
+
+- ZoteroRA tab not in Preferences panel: You may choose the __Advanced__ tab in Preferences and open the __Configuration Editor__ Under Advanced Configuration. From there, please search for "zoterora" and then double-click on the "extensions.zotero.zoteroRa.OPENAI_API_KEY" entry to add your OpenAI API Key.
