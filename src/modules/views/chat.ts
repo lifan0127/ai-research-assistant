@@ -8,6 +8,8 @@ import { serializeError } from 'serialize-error'
 import { config, version } from '../../../package.json'
 import { ExecutorWithMetadata, createQAExecutor } from '../../libs/agents'
 import { AgentExecutor } from 'langchain/agents'
+import { CallbackManager } from 'langchain/callbacks'
+import { AgentAction } from 'langchain/dist/schema'
 
 type Message = {
   role: 'user' | 'bot'
@@ -59,10 +61,47 @@ export class Chat {
     this.OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
     this.initializeUI()
     if (this.OPENAI_API_KEY !== '') {
-      createQAExecutor().then(this.initConversation.bind(this))
+      const callbackManager = CallbackManager.fromHandlers({
+        handleAgentAction: async (action: AgentAction, verbose: boolean) => {
+          this.addActionOutput(action)
+        },
+      })
+      createQAExecutor({ callbackManager }).then(this.initConversation.bind(this))
     } else {
       this.initConfiguration()
     }
+  }
+
+  private addActionOutput(action: AgentAction) {
+    if (action.tool) {
+      const actionNode = this.ui.createElement(this.document, 'div', {
+        styles: {
+          fontWeight: 'bold',
+          padding: '12px',
+        },
+        properties: {
+          innerText: `🛠️ ${action.tool}`,
+        },
+        children: [
+          {
+            tag: 'span',
+            styles: {
+              fontWeight: 'normal',
+            },
+            properties: {
+              innerText: action.toolInput
+                ? ` (input: ${action.toolInput.length > 42 ? action.toolInput.slice(0, 42) + '...' : action.toolInput})`
+                : '',
+            },
+          },
+        ],
+      })
+      this.conversationNode.appendChild(actionNode)
+      this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
+    }
+
+    // this.conversationNode
+    console.log({ displayAction: action })
   }
 
   private initConfiguration() {
@@ -456,12 +495,21 @@ export class Chat {
       this.setLoading(false)
     } catch (error: any) {
       console.log({ executorError: error })
-      const errorBotOutput: Message = {
-        role: 'bot',
-        message: `Sorry. An error occurred. Please try something else.
-        <pre class='error'>${JSON.stringify(serializeError(error))}</pre>`,
+      const errorObj = serializeError(error)
+      if (errorObj.message && errorObj.message.startsWith('Unable to parse JSON response from chat agent.')) {
+        const botOutput: Message = {
+          role: 'bot',
+          message: errorObj.message.replace('Unable to parse JSON response from chat agent.', '').trim(),
+        }
+        this.addBotOutput(botOutput)
+      } else {
+        const errorBotOutput: Message = {
+          role: 'bot',
+          message: `Sorry. An error occurred. Please try something else.
+          <pre class='error'>${JSON.stringify(serializeError(error))}</pre>`,
+        }
+        this.addBotOutput(errorBotOutput)
       }
-      this.addBotOutput(errorBotOutput)
       this.setLoading(false)
     }
   }

@@ -37,12 +37,15 @@ export class ZoteroSearch extends Tool {
           date: ${date}
           `
         })
-      return output.join('------------------------')
+      if (output.length) {
+        return output.join('------------------------')
+      }
+      return `No results found for query: ${input}`
     } catch (error) {
       console.log({ zoteroSearchError: error })
       return "I don't know how to do that."
     }
   }
 
-  description = `Useful for using a search query to find relevant articles from user's personal Zotero database. The input to this tool should be a search query.`
+  description = `Useful for using a search query to find relevant articles from user's personal Zotero database. The gather articles can then be used to answer user question. The input to this tool should be a search query.`
 }

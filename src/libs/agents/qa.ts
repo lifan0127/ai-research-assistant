@@ -19,6 +19,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 import { WasmVectorStore } from '../vectorstore'
 import { SQLiteCache } from '../cache'
 import { CreatePromptArgs } from 'langchain/dist/agents/chat_convo'
+import { callbackManagerArgs } from './base'
 
 const PREFIX = `Assistant is a large language model trained by OpenAI.
 Assistant is designed to be able to assist with a wide range of tasks related to the users of Zotero, a desktop reference management tool, such as finding articles from the Zotero database, summarizing results and answering questions. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topics related to Zotero.
@@ -83,7 +84,7 @@ class QAAgent extends BaseAgent {
 
 export const qa = new QAAgent()
 
-export async function createQAExecutor(): Promise<ExecutorWithMetadata> {
+export async function createQAExecutor({ callbackManager }: callbackManagerArgs): Promise<ExecutorWithMetadata> {
   const OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
   const title = 'QA Assistant'
   const description = `
@@ -103,10 +104,13 @@ export async function createQAExecutor(): Promise<ExecutorWithMetadata> {
   const zoteroSearchTool = new ZoteroSearch()
   const tools = [zoteroQueryTool, zoteroSearchTool, zoteroQATool, zoteroRetrievalTool, zoteroSummaryTool]
   // const executor = await initializeAgentExecutor(tools, chatModel, 'chat-conversational-react-description', true)
+
   const executor = AgentExecutor.fromAgentAndTools({
     agent: ChatConversationalAgent.fromLLMAndTools(chatModel, tools, createPromptArgs),
     tools,
     verbose: true,
+    callbackManager,
+    maxIterations: 6,
   })
   executor.memory = new BufferMemory({
     returnMessages: true,

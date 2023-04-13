@@ -1,6 +1,7 @@
 import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
 import { Command } from 'zotero-plugin-toolkit/dist/managers/prompt'
 import { AgentExecutor } from 'langchain/agents'
+import { CallbackManager } from 'langchain/callbacks'
 
 export abstract class BaseAgent {
   id: string
@@ -33,4 +34,8 @@ export type ExecutorWithMetadata = {
     title: string
     description: string
   }
+}
+
+export type callbackManagerArgs = {
+  callbackManager: CallbackManager
 }

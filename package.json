@@ -40,18 +40,18 @@
   },
   "homepage": "https://github.com/lifan0127/zotero-research-assistant#readme",
   "dependencies": {
-    "@dqbd/tiktoken": "^1.0.2",
+    "@dqbd/tiktoken": "^1.0.6",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@types/marked": "^4.0.8",
     "crypto-browserify": "^3.12.0",
     "hnswlib-node": "^1.4.2",
-    "langchain": "^0.0.48",
+    "langchain": "^0.0.53",
     "marked": "^4.3.0",
     "patch-package": "^6.5.1",
     "serialize-error": "^11.0.0",
-    "typeorm": "^0.3.12",
-    "zotero-plugin-toolkit": "^2.1.0"
+    "typeorm": "^0.3.14",
+    "zotero-plugin-toolkit": "^2.1.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-async-generator-functions": "^7.20.7",
