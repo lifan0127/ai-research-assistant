@@ -3,7 +3,7 @@
     "zotero.ra@apex974.com": {
       "updates": [
         {
-          "version": "0.0.9",
+          "version": "0.0.10",
           "update_link": "https://github.com/lifan0127/zotero-research-assistant/releases/latest/download/zotero-ra.xpi",
           "applications": {
             "gecko": {
@@ -12,7 +12,7 @@
           }
         },
         {
-          "version": "0.0.9",
+          "version": "0.0.10",
           "update_link": "https://github.com/lifan0127/zotero-research-assistant/releases/latest/download/zotero-ra.xpi",
           "applications": {
             "zotero": {

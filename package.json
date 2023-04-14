@@ -1,6 +1,6 @@
 {
   "name": "zotero-ra",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Zotero Research Assistant Powered by Large Language Models",
   "config": {
     "addonName": "Zotero RA",
