@@ -77,7 +77,7 @@ export class Chat {
       const actionNode = this.ui.createElement(this.document, 'div', {
         styles: {
           fontWeight: 'bold',
-          padding: '12px',
+          padding: '0 12px 24px',
         },
         properties: {
           innerText: `🛠️ ${action.tool}`,
@@ -233,7 +233,10 @@ export class Chat {
   }
 
   private createHTML() {
+    const existingChatNode = this.document.getElementById('chat-node')
+    existingChatNode?.remove()
     this.chatNode = this.ui.createElement(this.document, 'div', {
+      id: 'chat-node',
       styles: {
         display: 'none',
       },
@@ -864,7 +867,7 @@ export class Chat {
       }
 
       #chat-conversation .chat-message.chat-message-bot .markdown {
-
+        overflow: hidden;
       }
 
       #chat-conversation .chat-message.chat-message-bot .markdown table {

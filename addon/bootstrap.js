@@ -16,6 +16,15 @@ if (typeof Zotero == "undefined") {
 
 var chromeHandle
 
+// APP_STARTUP: 1,
+// APP_SHUTDOWN: 2,
+// ADDON_ENABLE: 3,
+// ADDON_DISABLE: 4,
+// ADDON_INSTALL: 5,
+// ADDON_UNINSTALL: 6,
+// ADDON_UPGRADE: 7,
+// ADDON_DOWNGRADE: 8,
+
 // In Zotero 6, bootstrap methods are called before Zotero is initialized, and using include.js
 // to get the Zotero XPCOM service would risk breaking Zotero startup. Instead, wait for the main
 // Zotero window to open and get the Zotero object from there.
@@ -124,7 +133,7 @@ async function initDatabase() {
 }
 
 function install(data, reason) {
-  console.log('install')
+  console.log('install', reason, ADDON_UPGRADE, ADDON_DOWNGRADE)
 }
 
 async function startup({ id, version, resourceURI, rootURI }, reason) {
