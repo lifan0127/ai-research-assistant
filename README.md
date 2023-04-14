@@ -7,6 +7,8 @@
 
 Your AI research assistant in Zotero, powered by Large Language Models (LLMs).
 
+> :speaker: This plugin will be renamed in the coming days at the request of the Zotero project. Zotero is a registered trademark of the [Corporation for Digital Scholarship](http://digitalscholar.org/).
+
 ![Zotero RA](assets/images/zotero-ra.png)
 
 ## Installation

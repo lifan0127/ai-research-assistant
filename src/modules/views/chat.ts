@@ -220,6 +220,22 @@ export class Chat {
     })
     this.conversationNode.childNodes.forEach(child => child.remove())
     this.conversationNode.appendChild(introductionNode)
+
+    // Add renaming notice
+    const noticeNode = this.ui.createElement(this.document, 'div', {
+      id: 'zoterora-chat-notice',
+      styles: {
+        color: '#666',
+        background: 'RGBA(255, 234, 0, 0.5)',
+        padding: '12px',
+        fontSize: '12px',
+      },
+      properties: {
+        innerText:
+          '📢 This plugin will be renamed in the coming days at the request of the Zotero project. Zotero is a registered trademark of the Corporation for Digital Scholarship.',
+      },
+    })
+    this.conversationNode.appendChild(noticeNode)
   }
 
   /**
