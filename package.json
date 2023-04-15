@@ -1,14 +1,14 @@
 {
-  "name": "zotero-ra",
+  "name": "aria",
   "version": "0.0.10",
-  "description": "Zotero Research Assistant Powered by Large Language Models",
+  "description": "AI Research Assistant Powered by Large Language Models",
   "config": {
-    "addonName": "Zotero RA",
-    "addonID": "zotero.ra@apex974.com",
-    "addonRef": "zoteroRa",
-    "addonInstance": "ZoteroRA",
-    "releasepage": "https://github.com/lifan0127/zotero-research-assistant/releases/latest/download/zotero-ra.xpi",
-    "updaterdf": "https://raw.githubusercontent.com/lifan0127/zotero-research-assistant/bootstrap/update.json"
+    "addonName": "Aria",
+    "addonID": "aria@apex974.com",
+    "addonRef": "aria",
+    "addonInstance": "Aria",
+    "releasepage": "https://github.com/lifan0127/ai-research-assistant/releases/latest/download/aria.xpi",
+    "updaterdf": "https://raw.githubusercontent.com/lifan0127/ai-research-assistant/bootstrap/update.json"
   },
   "main": "src/index.ts",
   "scripts": {
@@ -31,14 +31,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lifan0127/zotero-research-assistant.git"
+    "url": "git+https://github.com/lifan0127/ai-research-assistant.git"
   },
   "author": "Fan Li",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/lifan0127/zotero-research-assistant/issues"
+    "url": "https://github.com/lifan0127/ai-research-assistant/issues"
   },
-  "homepage": "https://github.com/lifan0127/zotero-research-assistant#readme",
+  "homepage": "https://github.com/lifan0127/ai-research-assistant#readme",
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.6",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",

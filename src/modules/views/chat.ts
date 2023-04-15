@@ -129,7 +129,7 @@ export class Chat {
             marginBottom: '18px',
           },
           properties: {
-            innerText: 'OpenAI API key is required to use Zotero RA.',
+            innerText: 'OpenAI API key is required to use Aria.',
           },
         },
         {
@@ -141,7 +141,7 @@ export class Chat {
             innerHTML: `
               <ul>
                 <li>Select <em>Edit</em> from the top menu bar, then select <em>Preferences</em> from the drop-down menu.</li>
-                <li>On the top panel or the left-hand side panel, select <em>Zotero RA</em>.</li>
+                <li>On the top panel or the left-hand side panel, select <em>Aria</em>.</li>
                 <li>Locate the <em>OpenAI API key</em> field and enter your API key in the text box.</li>
                 <li>Click the "Close" button to save your change and <b>restart Zotero</b>.</li>
               </ul>
@@ -157,7 +157,7 @@ export class Chat {
   private initConversation({ executor, metadata: { title, description } }: ExecutorWithMetadata) {
     this.executor = executor
     const introductionNode = this.ui.createElement(this.document, 'div', {
-      id: 'zoterora-chat-introduction',
+      id: 'aria-chat-introduction',
       styles: {
         display: 'flex',
         flexDirection: 'row',
@@ -178,7 +178,7 @@ export class Chat {
               },
               properties: {
                 src: `chrome://${config.addonRef}/content/icons/favicon@4x.png`,
-                alt: 'Zotero RA',
+                alt: 'Aria',
               },
             },
           ],
@@ -194,7 +194,7 @@ export class Chat {
                 fontSize: '28px',
               },
               properties: {
-                innerText: 'Zotero RA',
+                innerText: 'Aria',
               },
             },
             {
@@ -223,7 +223,7 @@ export class Chat {
 
     // Add renaming notice
     const noticeNode = this.ui.createElement(this.document, 'div', {
-      id: 'zoterora-chat-notice',
+      id: 'aria-chat-notice',
       styles: {
         color: '#666',
         background: 'RGBA(255, 234, 0, 0.5)',
@@ -281,7 +281,7 @@ export class Chat {
     })
     this.chatNode.appendChild(
       this.ui.createElement(this.document, 'div', {
-        id: `zoterora-chat`,
+        id: `aria-chat`,
         classList: ['chat-container'],
         children: [
           {
@@ -1007,7 +1007,7 @@ export class Chat {
   private registerShortcut() {
     const shortCut = new ShortcutManager()
     shortCut.register('event', {
-      id: 'zoterora-chat-key',
+      id: 'aria-chat-key',
       modifiers: 'shift',
       key: 'r',
       callback: () => {

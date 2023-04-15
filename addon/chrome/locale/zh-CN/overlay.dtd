@@ -1,4 +1,4 @@
-<!ENTITY zotero.__addonRef__.pref.title "Zotero RA 配置">
+<!ENTITY zotero.__addonRef__.pref.title "Aria 配置">
 <!ENTITY zotero.__addonRef__.itemmenu.test.label "插件模板">
 <!ENTITY zotero.__addonRef__.pref.enable.label "启用">
 <!ENTITY zotero.__addonRef__.pref.OPENAI_API_KEY.label "OpenAI API 密钥">

@@ -6,8 +6,8 @@
  */
 
 var config = {
-  addonID: "zotero.ra@apex974.com",
-  addonRef: 'zoteraRa'
+  addonID: "aria@apex974.com",
+  addonRef: 'aria'
 }
 
 if (typeof Zotero == "undefined") {
@@ -97,7 +97,7 @@ function getExtensionPath(extensionID) {
 async function initDatabase() {
   // Create the database file in the Zotero profile directory
   const { FileUtils } = ChromeUtils.import("resource://gre/modules/FileUtils.jsm")
-  const dbFile = FileUtils.getFile('ProfD', ['zoteroRa', 'db.sqlite'])
+  const dbFile = FileUtils.getFile('ProfD', ['aria', 'db.sqlite'])
   // Open the SQLite database
   const storageService = Cc['@mozilla.org/storage/service;1'].getService(Ci.mozIStorageService)
   const dbConnection = storageService.openDatabase(dbFile)

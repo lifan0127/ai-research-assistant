@@ -4,7 +4,7 @@ export class SQLiteCache {
   db: any
   constructor() {
     const { FileUtils } = Components.utils.import('resource://gre/modules/FileUtils.jsm')
-    const dbFile = FileUtils.getFile('ProfD', ['zoteroRa', 'db.sqlite'])
+    const dbFile = FileUtils.getFile('ProfD', ['aria', 'db.sqlite'])
     // Open the SQLite database
     const storageService = Components.classes['@mozilla.org/storage/service;1'].getService(
       Components.interfaces.mozIStorageService
