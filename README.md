@@ -1,4 +1,4 @@
-# Aria - Your AI Research Assistant
+# A.R.I.A. (Aria) - Your AI Research Assistant
 
 [![License](https://img.shields.io/github/license/lifan0127/ai-research-assistant)](https://github.com/lifan0127/ai-research-assistant/blob/master/LICENSE)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
@@ -7,9 +7,9 @@
 
 > ## If you have previously installed Aria (formerly Zotero RA) version 0.0.10 or below, please manually remove it under Tools => Add-ons => Remove. Because the legacy versions have incompetible plugin ID and cannot be auto-updated.
 
-Aria is a Zotero plugin powered by Large Language Models (LLMs). Aria is the acronym of "AI Research Assistant" in reverse order.
+Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the acronym of "AI Research Assistant" in reverse order.
 
-![Aria](assets/images/zotero-ra.png)
+![Aria](assets/images/aria.png)
 
 ## Installation
 
@@ -41,8 +41,6 @@ The following are known limitations based on user feedback.
 ## Troubleshooting
 
   Interaction with Zotero, in an open conversational manner and through a probabilistic model, can lead to many different, often unexpected outcomes. If you experience any error, please create an GitHub issue with a screenshot of the error message from your Aria chat window. Thank you!
-
-- ~~"Unable to parse JSON response from chat agent": This is perhaps the most common error which is caused by GPT not following its output format instructions. This should be fixed once the parse exception handling logic is introduced into LangChain: https://github.com/hwchase17/langchain/pull/2656.~~ This should have been temporarily fixed. Please let us know if you still experience this issue with the latest release.
 
 - "Agent stopped due to max iterations": For certain questions, the bot will make multiple API calls iteratively for response synthesis. Sometimes, it may fail to produce an answer before reaching the max iterations.
 
