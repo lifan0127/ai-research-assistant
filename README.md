@@ -5,6 +5,8 @@
 [![Latest release](https://img.shields.io/github/v/release/lifan0127/ai-research-assistant)](https://github.com/lifan0127/ai-research-assistant/releases)
 ![Downloads latest release](https://img.shields.io/github/downloads/lifan0127/ai-research-assistant/latest/total)
 
+> ## If you have previously installed Aria (formerly Zotero RA) version 0.0.10 or below, please manually remove it under Tools => Add-ons => Remove. Because the legacy versions have incompetible plugin ID and cannot be auto-updated.
+
 Aria is a Zotero plugin powered by Large Language Models (LLMs). Aria is the acronym of "AI Research Assistant" in reverse order.
 
 ![Aria](assets/images/zotero-ra.png)
