@@ -45,3 +45,8 @@ The following are known limitations based on user feedback.
 - "Agent stopped due to max iterations": For certain questions, the bot will make multiple API calls iteratively for response synthesis. Sometimes, it may fail to produce an answer before reaching the max iterations.
 
 - Aria tab not in Preferences panel: You may choose the __Advanced__ tab in Preferences and open the __Configuration Editor__ Under Advanced Configuration. From there, please search for "aria" and then double-click on the "extensions.zotero.aria.OPENAI_API_KEY" entry to add your OpenAI API Key.
+
+## Development
+
+Refer to the [Zotero Plugin Development](https://www.zotero.org/support/dev/client_coding/plugin_development) guide to find instructions on how to setup the plugin in your local environment.
+
