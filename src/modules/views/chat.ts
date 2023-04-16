@@ -10,6 +10,7 @@ import { ExecutorWithMetadata, createQAExecutor } from '../../libs/agents'
 import { AgentExecutor } from 'langchain/agents'
 import { CallbackManager } from 'langchain/callbacks'
 import { AgentAction } from 'langchain/dist/schema'
+import { CopyIcon, CopySuccessIcon } from '../components/icons'
 
 type Message = {
   role: 'user' | 'bot'
@@ -194,7 +195,7 @@ export class Chat {
                 fontSize: '28px',
               },
               properties: {
-                innerText: 'Aria',
+                innerText: 'A.R.I.A. (Aria)',
               },
             },
             {
@@ -410,11 +411,53 @@ export class Chat {
   }
 
   private addBotOutput(output: Message) {
+    const htmlOutputMessage = marked(output.message)
     const outputNode = this.ui.createElement(this.document, 'div', {
       classList: ['chat-message', 'chat-message-bot'],
-      properties: {
-        innerHTML: `<div class="markdown">${marked(output.message)}</div>`,
-      },
+      children: [
+        {
+          tag: 'div',
+          classList: ['hover-container'],
+          children: [
+            {
+              tag: 'button',
+              classList: ['copy-button'],
+              styles: {
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              },
+              listeners: [
+                {
+                  type: 'click',
+                  listener: () => {
+                    new ztoolkit.Clipboard()
+                      .addText(output.message, 'text/unicode')
+                      .addText(htmlOutputMessage, 'text/html')
+                      .copy()
+                  },
+                },
+              ],
+              children: [
+                {
+                  tag: 'div',
+                  classList: ['copy-icon'],
+                  properties: {
+                    innerHTML: CopyIcon,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          tag: 'div',
+          classList: ['markdown'],
+          properties: {
+            innerHTML: htmlOutputMessage,
+          },
+        },
+      ],
     })
     this.conversationNode.appendChild(outputNode)
     this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
@@ -849,6 +892,7 @@ export class Chat {
         border-radius: 12px;
         margin-bottom: 18px;
         overflow-wrap: break-word;
+        position: relative;
       }
 
       #chat-conversation .chat-message.chat-message-user {
@@ -874,6 +918,22 @@ export class Chat {
         background: white;
         color: black;
       }
+
+      #chat-conversation .chat-message.chat-message-bot .hover-container {
+        visibility: hidden;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #f3f3f3;
+      }
+
+
+
+      #chat-conversation .chat-message.chat-message-bot:hover .hover-container {
+        visibility: visible;
+      }
+
+      
 
       #chat-conversation .chat-message.chat-message-bot .error {
         white-space: pre-wrap;

@@ -55,6 +55,7 @@ import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
 import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
 import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
 import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
+import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
 import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
 import { ChatManager } from './modules/views/chat'
@@ -64,6 +65,7 @@ export class CustomToolkit extends BasicTool {
   Chat: ChatManager
   Prompt: PromptManager
   Shortcut: ShortcutManager
+  Clipboard: typeof ClipboardHelper
   ProgressWindow: typeof ProgressWindowHelper
 
   constructor() {
@@ -73,6 +75,7 @@ export class CustomToolkit extends BasicTool {
     this.Shortcut = new ShortcutManager(this)
     this.Chat = new ChatManager(this)
     this.Prompt = new PromptManager(this)
+    this.Clipboard = ClipboardHelper
     this.ProgressWindow = ProgressWindowHelper
     this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
   }
