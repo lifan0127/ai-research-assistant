@@ -1,7 +1,8 @@
 import { Tool } from 'langchain/tools'
+import { serializeError } from 'serialize-error'
 
-export class ZoteroRetrieval extends Tool {
-  name = 'zotero-retrieval'
+export class ZoteroItem extends Tool {
+  name = 'zotero-item'
 
   constructor() {
     super()
@@ -40,8 +41,9 @@ export class ZoteroRetrieval extends Tool {
       ${publication}
       `
     } catch (error) {
-      console.log({ zoteroSearchError: error })
-      return "I don't know how to do that."
+      const errorObj = serializeError(error)
+      console.log({ zoteroItemError: errorObj })
+      return `Error: ${errorObj.message}`
     }
   }
 
