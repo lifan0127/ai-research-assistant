@@ -3,14 +3,19 @@ import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
 import { config } from '../../../package.json'
 import { OpenAI } from 'langchain'
 import { ChatOpenAI } from 'langchain/chat_models'
-import { AgentExecutor, ChatConversationalAgent, initializeAgentExecutor } from 'langchain/agents'
-import { ChainTool } from 'langchain/tools'
+import {
+  AgentActionOutputParser,
+  AgentExecutor,
+  ChatConversationalAgent,
+  initializeAgentExecutor,
+} from 'langchain/agents'
 import { ZoteroSearch } from '../tools/zoteroSearch'
-import { ZoteroRetrieval } from '../tools/zoteroRetrieval'
+import { ZoteroItem } from '../tools/zoteroItem'
+import { ZoteroCreators } from '../tools/zoteroCreators'
 // import { ZoteroRetrieval } from './tools/zoteroRetrieval'
 import { BufferMemory } from 'langchain/memory'
 import { PromptTemplate } from 'langchain/prompts'
-import { loadQueryChainAsTool } from '../chains/query'
+import { loadQueryBuilderChainAsTool } from '../chains/queryBuilder'
 import { loadQAChainAsTool } from '../chains/qa'
 import { loadAnalyzeDocumentChainAsTool } from '../chains/summary'
 import { OpenAIEmbeddings } from 'langchain/embeddings'
@@ -20,6 +25,7 @@ import { WasmVectorStore } from '../vectorstore'
 import { SQLiteCache } from '../cache'
 import { CreatePromptArgs } from 'langchain/dist/agents/chat_convo'
 import { callbackManagerArgs } from './base'
+import { AgentArgs } from 'langchain/dist/agents/agent'
 
 const PREFIX = `Assistant is a large language model trained by OpenAI.
 Assistant is designed to be able to assist with a wide range of tasks related to the users of Zotero, a desktop reference management tool, such as finding articles from the Zotero database, summarizing results and answering questions. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topics related to Zotero.
@@ -71,9 +77,50 @@ USER'S INPUT
 --------------------
 Okay, so what is the response to my original question? If using information from tools, you must say it explicitly - I have forgotten all TOOL RESPONSES! Remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else.`
 
-const createPromptArgs: CreatePromptArgs = {
+export class QAAgentOutputParser extends AgentActionOutputParser {
+  async parse(text: string) {
+    let jsonOutput = text.trim()
+    console.log('jsonOutput', jsonOutput)
+    if (jsonOutput.includes('```json')) {
+      jsonOutput = jsonOutput.split('```json')[1].trimStart()
+    }
+    if (jsonOutput.includes('```')) {
+      jsonOutput = jsonOutput.split('```')[0].trimEnd()
+    }
+    if (jsonOutput.startsWith('```')) {
+      jsonOutput = jsonOutput.slice(3).trimStart()
+    }
+    if (jsonOutput.endsWith('```')) {
+      jsonOutput = jsonOutput.slice(0, -3).trimEnd()
+    }
+
+    try {
+      const response = JSON.parse(jsonOutput)
+
+      let { action, action_input } = response
+
+      if (typeof action_input === 'object') {
+        action_input = JSON.stringify(action_input)
+      }
+
+      if (action === 'Final Answer') {
+        return { returnValues: { output: action_input }, log: text }
+      }
+      return { tool: action, toolInput: action_input, log: text }
+    } catch (error) {
+      return { returnValues: { output: text }, log: text }
+    }
+  }
+
+  getFormatInstructions(): string {
+    return FORMAT_INSTRUCTIONS
+  }
+}
+
+const createPromptArgs: CreatePromptArgs & AgentArgs = {
   systemMessage: PREFIX,
   humanMessage: SUFFIX,
+  outputParser: new QAAgentOutputParser(),
 }
 
 class QAAgent extends BaseAgent {
@@ -97,12 +144,20 @@ export async function createQAExecutor({ callbackManager }: callbackManagerArgs)
   })
 
   // const embeddings = new OpenAIEmbeddings({ openAIApiKey: OPENAI_API_KEY })
-  const zoteroQueryTool = loadQueryChainAsTool(chatModel)
+  const zoteroQueryBuilderTool = loadQueryBuilderChainAsTool(chatModel)
   const zoteroQATool = loadQAChainAsTool(chatModel)
-  const zoteroRetrievalTool = new ZoteroRetrieval()
+  const zoteroItemTool = new ZoteroItem()
   const zoteroSummaryTool = loadAnalyzeDocumentChainAsTool(chatModel)
   const zoteroSearchTool = new ZoteroSearch()
-  const tools = [zoteroQueryTool, zoteroSearchTool, zoteroQATool, zoteroRetrievalTool, zoteroSummaryTool]
+  const zoteroCreatorsTool = new ZoteroCreators()
+  const tools = [
+    zoteroQueryBuilderTool,
+    zoteroSearchTool,
+    zoteroQATool,
+    zoteroItemTool,
+    zoteroSummaryTool,
+    zoteroCreatorsTool,
+  ]
   // const executor = await initializeAgentExecutor(tools, chatModel, 'chat-conversational-react-description', true)
 
   const executor = AgentExecutor.fromAgentAndTools({
