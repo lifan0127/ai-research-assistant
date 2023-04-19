@@ -88,11 +88,15 @@ export class Chat {
             tag: 'span',
             styles: {
               fontWeight: 'normal',
+              fontSize: '12px',
             },
             properties: {
-              innerText: action.toolInput
-                ? ` (input: ${action.toolInput.length > 42 ? action.toolInput.slice(0, 42) + '...' : action.toolInput})`
-                : '',
+              innerText:
+                action.toolInput && typeof action.toolInput === 'string'
+                  ? ` (input: ${
+                      action.toolInput.length > 64 ? action.toolInput.slice(0, 64) + '...' : action.toolInput
+                    })`
+                  : '',
             },
           },
         ],
@@ -536,7 +540,7 @@ export class Chat {
    * Called when `enter` key is pressed.
    */
   public async trigger(input: string) {
-    if (input === '') {
+    if (input.trim() === '') {
       return
     }
     const userInput: Message = {
@@ -556,8 +560,8 @@ export class Chat {
       this.addBotOutput(botOutput)
       this.setLoading(false)
     } catch (error: any) {
-      console.log({ executorError: error })
       const errorObj = serializeError(error)
+      console.log({ executorError: error, errorObj })
       if (errorObj.message && errorObj.message.startsWith('Unable to parse JSON response from chat agent.')) {
         const botOutput: Message = {
           role: 'bot',
