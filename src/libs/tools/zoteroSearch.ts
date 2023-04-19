@@ -1,4 +1,6 @@
 import { Tool } from 'langchain/tools'
+import { parse } from 'search-query-parser'
+import { serializeError } from 'serialize-error'
 
 export class ZoteroSearch extends Tool {
   name = 'zotero-search'
@@ -10,10 +12,37 @@ export class ZoteroSearch extends Tool {
   async _call(input: string) {
     try {
       const s = new Zotero.Search()
-      s.addCondition('quicksearch-everything', 'contains', input)
       s.addCondition('itemType', 'isNot', 'attachment')
-      s.set
-      const ids: number[] = await await s.search()
+
+      const query = parse(input, {
+        keywords: ['creator', 'tag'],
+        ranges: ['year'],
+        alwaysArray: true,
+        offsets: false,
+      })
+      console.log({ query })
+      if (typeof query === 'string') {
+        s.addCondition('quicksearch-everything', 'contains', query)
+      } else {
+        const {
+          text,
+          creator = [],
+          tag = [],
+          year,
+        } = query as {
+          text?: string
+          creator?: string[]
+          tag?: string[]
+          year?: { from: string; to: string }
+        }
+        text?.split(' ').forEach(t => s.addCondition('quicksearch-everything', 'contains', t))
+        creator.forEach(c => c.split(' ').forEach(w => s.addCondition('creator', 'contains', w)))
+        tag.forEach(t => s.addCondition('tag', 'is', t))
+        year && year.from && s.addCondition('date', 'isAfter', `${parseInt(year.from) - 1}`)
+        year && year.to && s.addCondition('date', 'isBefore', `${parseInt(year.to) + 1}`)
+      }
+
+      const ids: number[] = await s.search()
 
       const results = await Promise.all(
         ids.map(async id => {
@@ -40,12 +69,13 @@ export class ZoteroSearch extends Tool {
       if (output.length) {
         return output.join('------------------------')
       }
-      return `No results found for query: ${input}`
+      return `No results was found in user's Zotero library for query: ${input}.`
     } catch (error) {
-      console.log({ zoteroSearchError: error })
-      return "I don't know how to do that."
+      const errorObj = serializeError(error)
+      console.log({ zoteroSearchError: errorObj })
+      return `Error: ${errorObj.message}`
     }
   }
 
-  description = `Useful for using a search query to find relevant articles from user's personal Zotero database. The gather articles can then be used to answer user question. The input to this tool should be a search query.`
+  description = `Useful for finding relevant articles from user's personal Zotero database. The gathered articles can then be used to answer user question. The input to this tool should be a search query, which is either a set of keywords (example: machine learning materials discovery), or a search query syntax created by the zotero-query tool (example: chemistry creator:white tag:"machine learning").`
 }
