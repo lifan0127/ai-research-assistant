@@ -41,7 +41,7 @@ export const loadQAChainAsTool = (llm: BaseLanguageModel, params: QAChainParams 
   return new ChainTool({
     name: 'zotero-qa',
     description:
-      'Useful for answering a question based on references found in the Zotero database via the "zotero-search" tool.',
+      'Useful for answering a question based on the content of references found in the Zotero database via the "zotero-search" tool.',
     chain: loadQAChain(llm, params),
   })
 }
