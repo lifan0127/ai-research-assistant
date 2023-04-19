@@ -1,0 +1,25 @@
+diff --git a/node_modules/langchain/dist/agents/mrkl/outputParser.js b/node_modules/langchain/dist/agents/mrkl/outputParser.js
+index 498275e..1f1ab63 100644
+--- a/node_modules/langchain/dist/agents/mrkl/outputParser.js
++++ b/node_modules/langchain/dist/agents/mrkl/outputParser.js
+@@ -11,7 +11,7 @@ export class ZeroShotAgentOutputParser extends AgentActionOutputParser {
+                 log: text,
+             };
+         }
+-        const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
++        const match = /Action: ([\s\S]*)\nAction Input: ([\s\S]*)/.exec(text);
+         if (!match) {
+             throw new Error(`Could not parse LLM output: ${text}`);
+         }
+diff --git a/node_modules/langchain/dist/util/load.js b/node_modules/langchain/dist/util/load.js
+index e993007..5b44908 100644
+--- a/node_modules/langchain/dist/util/load.js
++++ b/node_modules/langchain/dist/util/load.js
+@@ -1,6 +1,6 @@
+ export const loadFromFile = async (uri, loader, values = {}) => {
+     try {
+-        const fs = await import("node:fs/promises");
++        // const fs = await import("node:fs/promises");
+         return loader(await fs.readFile(uri, { encoding: "utf-8" }), uri, values);
+     }
+     catch (e) {
