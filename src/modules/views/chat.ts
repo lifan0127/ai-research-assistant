@@ -468,11 +468,53 @@ export class Chat {
   }
 
   private addUserInput(input: Message) {
+    const message = input.message.replace(/\n/g, '<br/>')
     const inputNode = this.ui.createElement(this.document, 'div', {
       classList: ['chat-message', 'chat-message-user'],
-      properties: {
-        innerHTML: input.message.replace(/\n/g, '<br/>'),
-      },
+      // properties: {
+      //   innerHTML: input.message.replace(/\n/g, '<br/>'),
+      // },
+      children: [
+        {
+          tag: 'div',
+          classList: ['hover-container'],
+          children: [
+            {
+              tag: 'button',
+              classList: ['copy-button'],
+              styles: {
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              },
+              listeners: [
+                {
+                  type: 'click',
+                  listener: () => {
+                    new ztoolkit.Clipboard().addText(message, 'text/unicode').copy()
+                  },
+                },
+              ],
+              children: [
+                {
+                  tag: 'div',
+                  classList: ['copy-icon'],
+                  properties: {
+                    innerHTML: CopyIcon,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          tag: 'div',
+          classList: ['markdown'],
+          properties: {
+            innerHTML: message,
+          },
+        },
+      ],
     })
     this.conversationNode.appendChild(inputNode)
     this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
@@ -956,7 +998,6 @@ export class Chat {
         mask-image: linear-gradient(180deg, rgba(0,0,0,1), rgba(0,0,0,1) 98%, transparent)
       }
       #chat-conversation .chat-message {
-        padding: 6px 12px;
         border-radius: 12px;
         margin-bottom: 18px;
         overflow-wrap: break-word;
@@ -964,6 +1005,7 @@ export class Chat {
       }
 
       #chat-conversation .chat-message.chat-message-user {
+        padding: 6px 12px;
         background: RGB(204, 41, 54, 1);
         color: white;
         width: auto;
@@ -974,7 +1016,7 @@ export class Chat {
       }
 
       #chat-conversation .chat-message.chat-message-bot {
-        padding: 0 12px;
+        padding: 0 4px;
         background: RGBA(255, 255, 255, 1);
         width: auto;
         align-self: flex-start;
@@ -987,17 +1029,28 @@ export class Chat {
         color: black;
       }
 
-      #chat-conversation .chat-message.chat-message-bot .hover-container {
-        visibility: hidden;
-        position: absolute;
-        top: 0;
-        right: 0;
-        background: #f3f3f3;
+      #chat-conversation .chat-message.chat-message-bot .markdown * {
+        margin: 8px;
       }
 
+      #chat-conversation .chat-message.chat-message-bot .hover-container,
+      #chat-conversation .chat-message.chat-message-user .hover-container  {
+        visibility: hidden;
+        position: absolute;
+      }
 
+      #chat-conversation .chat-message.chat-message-bot .hover-container {
+        top: 9px;
+        right: -30px;
+      }
 
-      #chat-conversation .chat-message.chat-message-bot:hover .hover-container {
+      #chat-conversation .chat-message.chat-message-user .hover-container {
+        top: 8px;
+        left: -30px;
+      }
+
+      #chat-conversation .chat-message.chat-message-bot:hover .hover-container,
+      #chat-conversation .chat-message.chat-message-user:hover .hover-container  {
         visibility: visible;
       }
 
