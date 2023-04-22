@@ -23,7 +23,6 @@ import { Document } from 'langchain/docstore'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 import { WasmVectorStore } from '../vectorstore'
 import { SQLiteCache } from '../cache'
-import { CreatePromptArgs } from 'langchain/dist/agents/chat_convo'
 import { callbackManagerArgs } from './base'
 import { AgentArgs } from 'langchain/dist/agents/agent'
 
@@ -117,7 +116,7 @@ export class QAAgentOutputParser extends AgentActionOutputParser {
   }
 }
 
-const createPromptArgs: CreatePromptArgs & AgentArgs = {
+const createPromptArgs = {
   systemMessage: PREFIX,
   humanMessage: SUFFIX,
   outputParser: new QAAgentOutputParser(),
