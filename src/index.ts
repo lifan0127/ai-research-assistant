@@ -6,6 +6,7 @@ import { fsPromises } from './polyfills/fs'
 import './polyfills/object'
 import './polyfills/string'
 import './polyfills/error'
+import { crypto } from './polyfills/crypto'
 import { setTimeout, clearTimeout } from './polyfills/timers'
 import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
 
@@ -25,6 +26,7 @@ if (!basicTool.getGlobal('Zotero')[config.addonInstance]) {
   _globalThis.setTimeout = setTimeout
   _globalThis.clearTimeout = clearTimeout
   _globalThis.fs = fsPromises
+  _globalThis.crypto = crypto
   _globalThis.TextEncoder = ZoteroTextEncoder
   _globalThis.TextDecoder = ZoteroTextDecoder
   _globalThis.addon = new Addon()

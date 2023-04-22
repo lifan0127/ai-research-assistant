@@ -62,12 +62,33 @@ export class Chat {
     this.OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
     this.initializeUI()
     if (this.OPENAI_API_KEY !== '') {
-      const callbackManager = CallbackManager.fromHandlers({
-        handleAgentAction: async (action: AgentAction, verbose: boolean) => {
-          this.addActionOutput(action)
+      Zotero.HTTP.request('POST', 'https://api.openai.com/v1/chat/completions', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.OPENAI_API_KEY}`,
         },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: 'Say this is a test!' }],
+          temperature: 0.7,
+        }),
       })
-      createQAExecutor({ callbackManager }).then(this.initConversation.bind(this))
+        .then(() => {
+          const callbackManager = CallbackManager.fromHandlers({
+            handleAgentAction: async (action: AgentAction) => {
+              this.addActionOutput(action)
+            },
+          })
+          createQAExecutor({ callbackManager }).then(this.initConversation.bind(this)).catch(console.error)
+        })
+        .catch((error: any) => {
+          try {
+            const message = JSON.parse(error.xmlhttp.response).error.message
+            this.initError(message)
+          } catch (error) {
+            this.initError('Unknown error. Please contact support.')
+          }
+        })
     } else {
       this.initConfiguration()
     }
@@ -151,6 +172,49 @@ export class Chat {
                 <li>Click the "Close" button to save your change and <b>restart Zotero</b>.</li>
               </ul>
             `,
+          },
+        },
+      ],
+    })
+    this.conversationNode.childNodes.forEach(child => child.remove())
+    this.conversationNode.appendChild(missingApiKeyNode)
+  }
+
+  private initError(message: string) {
+    const missingApiKeyNode = this.ui.createElement(this.document, 'div', {
+      styles: {
+        color: 'black',
+        background: 'RGBA(255, 187, 129, 0.5)',
+        padding: '24px',
+        width: '75%',
+        minWidth: '560px',
+        textAlign: 'left',
+        position: 'fixed',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        border: '1px solid RGBA(255, 172, 120, 1)',
+        borderRadius: '18px',
+      },
+      children: [
+        {
+          tag: 'div',
+          styles: {
+            fontSize: '18px',
+            fontWeight: 'bold',
+            marginBottom: '18px',
+          },
+          properties: {
+            innerText: 'Error in connecting to OpenAI API.',
+          },
+        },
+        {
+          tag: 'div',
+          styles: {
+            fontSize: '14px',
+          },
+          properties: {
+            innerText: message,
           },
         },
       ],

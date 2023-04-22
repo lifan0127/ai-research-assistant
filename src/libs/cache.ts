@@ -14,7 +14,8 @@ export class SQLiteCache {
   }
 
   async initDatabase() {
-    this.db.executeSimpleSQL(`
+    this.db.executeSimpleSQL(
+      `
       CREATE TABLE IF NOT EXISTS LANGCHAIN_CACHE (
         prompt TEXT,
         llm TEXT,
@@ -22,7 +23,8 @@ export class SQLiteCache {
         response TEXT,
         PRIMARY KEY (prompt, llm, idx)
       )
-    `)
+    `.trim()
+    )
   }
 
   async lookup(prompt: string, llmKey: string) {
