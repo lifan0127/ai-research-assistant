@@ -7,7 +7,7 @@ import {
 } from './modules/examples'
 import { config } from '../package.json'
 import { getString, initLocale } from './modules/locale'
-import { registerPrompt, registerShortcuts } from './modules/registry'
+// import { registerPrompt, registerShortcuts } from './modules/registry'
 import { chat } from './modules/views/chat'
 import { registerPrefsWindow, registerPrefsScripts } from './modules/preferences'
 
@@ -16,8 +16,8 @@ async function onStartup() {
   initLocale()
   ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
 
-  registerPrompt()
-  registerShortcuts()
+  // registerPrompt()
+  // registerShortcuts()
   registerPrefsWindow()
   await Zotero.Promise.delay(1000)
 
