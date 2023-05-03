@@ -108,7 +108,8 @@ async function main() {
           process: true,
           buffer: true,
           define: {
-            'process.env.NODE_ENV': `"${process.env.NODE_ENV}"`
+            'process.env.NODE_ENV': `"${process.env.NODE_ENV}"`,
+            'process.env.LANGCHAIN_TRACING': `"${process.env.NODE_ENV === 'development' ? 'true' : 'false'}"`,
           },
         }),
         NodeModulesPolyfillPlugin(),

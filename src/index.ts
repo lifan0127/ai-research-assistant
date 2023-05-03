@@ -13,6 +13,7 @@ import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
 if (!IS_ZOTERO_7) {
   Components.utils.importGlobalProperties(['URL', 'URLSearchParams', 'fetch'])
 }
+process.env = { ...process.env, LANGCHAIN_TRACING: __env__ === 'development' ? 'true' : 'false' }
 
 const basicTool = new BasicTool()
 
