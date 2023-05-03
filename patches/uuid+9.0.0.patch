@@ -1,0 +1,10 @@
+diff --git a/node_modules/uuid/dist/esm-node/rng.js b/node_modules/uuid/dist/esm-node/rng.js
+index 8006244..34e6951 100644
+--- a/node_modules/uuid/dist/esm-node/rng.js
++++ b/node_modules/uuid/dist/esm-node/rng.js
+@@ -1,4 +1,4 @@
+-import crypto from 'crypto';
++// import crypto from 'crypto';
+ const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+ 
+ let poolPtr = rnds8Pool.length;
