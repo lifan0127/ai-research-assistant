@@ -77,5 +77,5 @@ export class ZoteroSearch extends Tool {
     }
   }
 
-  description = `Useful for finding relevant articles from user's personal Zotero database. The gathered articles can then be used to answer user question. The input to this tool should be a search query, which is either a set of keywords (example: machine learning materials discovery), or a search query syntax created by the zotero-query tool (example: chemistry creator:white tag:"machine learning").`
+  description = `Useful for finding relevant articles from user's personal Zotero database. The gathered articles can then be used to answer user question. This tool is not useful if the question is not based on article contents. The input to this tool should be a search query, which is either a set of keywords (example: machine learning materials discovery), or a search query syntax created by the zotero-query tool (example: chemistry creator:white tag:"machine learning").`
 }

@@ -11,6 +11,7 @@ import {
 } from 'langchain/agents'
 import { ZoteroSearch } from '../tools/zoteroSearch'
 import { ZoteroItem } from '../tools/zoteroItem'
+import { ZoteroCollection } from '../tools/zoteroCollection'
 import { ZoteroCreators } from '../tools/zoteroCreators'
 // import { ZoteroRetrieval } from './tools/zoteroRetrieval'
 import { BufferMemory } from 'langchain/memory'
@@ -30,12 +31,14 @@ const PREFIX = `Assistant is a large language model trained by OpenAI.
 Assistant is designed to be able to assist with a wide range of tasks related to the users of Zotero, a desktop reference management tool, such as finding articles from the Zotero database, summarizing results and answering questions. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topics related to Zotero.
 Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of Zotera-related topics.
 Assistant is able to access user's Zotero database and can search for items in the database.
-Whenever possible, Assistant should search Zotero to find the information to answer the user's question. If unable to find relevant information in Zotero, Assistant should politely decline the request and ask the user to try again with a different question. 
+Assistant can search Zotero to find the information to answer the user's question. If unable to find relevant information in Zotero, Assistant should politely decline the request and ask the user to try again with a different question. 
 Whenever a Zotero item is mentioned in answer, please, please include the item's Zotero ID in the answer, like [ID:1234].
 Where appropriate, incorporate bullet points or table as part of your response.
+Assistant can use Zotero state information, such as the current items, current collection and current library to scope the answer as directed by the user.
 Assistant should politely decline any requests that are unrelated to Zotero reference management, such as: 
 - How to cook certain food such as french toast, pizza etc.. 
-- Request to prodcue a story, ajoke, a poem, a song or like.`
+- Request to prodcue a story, ajoke, a poem, a song or like.
+`
 
 const FORMAT_INSTRUCTIONS = `RESPONSE FORMAT INSTRUCTIONS
 ----------------------------
@@ -64,6 +67,11 @@ Assistant can ask the user to use tools to look up information that may be helpf
 {{tools}}
 {format_instructions}
 Please, please ALWAYS adhere to the response format instructions above. If you do not, I will not be able to understand your response and will not be able to learn from it.
+APPLICATION STATES
+--------------------
+The following Zotero application states are relevant to user questions. Do NOT rely on chat history as application state changes constantly.
+- Current Items: {{{{current_items}}}}
+- Current Collection: {{{{current_collection}}}}
 USER'S INPUT
 --------------------
 Here is the user's input (remember to respond with a markdown code snippet of a json blob with a single action, and NOTHING else):
@@ -122,13 +130,13 @@ const createPromptArgs = {
   outputParser: new QAAgentOutputParser(),
 }
 
-class QAAgent extends BaseAgent {
-  constructor() {
-    super('qa', 'QA: Question and Answer', config.addonInstance)
-  }
-}
+// class QAAgent extends BaseAgent {
+//   constructor() {
+//     super('qa', 'QA: Question and Answer', config.addonInstance)
+//   }
+// }
 
-export const qa = new QAAgent()
+// export const qa = new QAAgent()
 
 export async function createQAExecutor({ callbackManager }: callbackManagerArgs): Promise<ExecutorWithMetadata> {
   const OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
@@ -146,6 +154,7 @@ export async function createQAExecutor({ callbackManager }: callbackManagerArgs)
   const zoteroQueryBuilderTool = loadQueryBuilderChainAsTool(chatModel)
   const zoteroQATool = loadQAChainAsTool(chatModel)
   const zoteroItemTool = new ZoteroItem()
+  const zoteroCollectionTool = new ZoteroCollection()
   const zoteroSummaryTool = loadAnalyzeDocumentChainAsTool(chatModel)
   const zoteroSearchTool = new ZoteroSearch()
   const zoteroCreatorsTool = new ZoteroCreators()
@@ -154,6 +163,7 @@ export async function createQAExecutor({ callbackManager }: callbackManagerArgs)
     zoteroSearchTool,
     zoteroQATool,
     zoteroItemTool,
+    zoteroCollectionTool,
     zoteroSummaryTool,
     zoteroCreatorsTool,
   ]
@@ -166,6 +176,22 @@ export async function createQAExecutor({ callbackManager }: callbackManagerArgs)
     callbackManager,
     maxIterations: 6,
   })
+  executor.agent.llmChain.prompt.partialVariables = {
+    current_items: () => {
+      const items = ZoteroPane.getSelectedItems()
+      if (items.length > 0) {
+        return items.map(x => `${x.name} (ID: "${x.id}")`).join(', ')
+      }
+      return 'No selected items'
+    },
+    current_collection: () => {
+      const collection = ZoteroPane.getSelectedCollection()
+      if (collection) {
+        return `${collection.name} (ID: "${collection.id}")`
+      }
+      return 'None'
+    },
+  }
   executor.memory = new BufferMemory({
     returnMessages: true,
     memoryKey: 'chat_history',

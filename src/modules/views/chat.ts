@@ -86,6 +86,7 @@ export class Chat {
             const message = JSON.parse(error.xmlhttp.response).error.message
             this.initError(message)
           } catch (error) {
+            console.log({ unknownOpenAIApiError: error })
             this.initError('Unknown error. Please contact support.')
           }
         })
@@ -115,7 +116,9 @@ export class Chat {
               innerText:
                 action.toolInput && typeof action.toolInput === 'string'
                   ? ` (input: ${
-                      action.toolInput.length > 64 ? action.toolInput.slice(0, 64) + '...' : action.toolInput
+                      action.toolInput.length > 64
+                        ? action.toolInput.slice(0, 64) + '...'
+                        : action.toolInput || 'missing'
                     })`
                   : '',
             },
@@ -520,8 +523,11 @@ export class Chat {
     this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
   }
 
-  private addBotOutput(output: Message) {
-    const htmlOutputMessage = marked(output.message)
+  private addBotOutput({ message }: Message) {
+    if (message === 'Agent stopped due to max iterations.') {
+      message = "Sorry. I can't answer this question because I've reached the maximum number of attempts."
+    }
+    const htmlMessage = marked(message)
     const outputNode = this.ui.createElement(this.document, 'div', {
       classList: ['chat-message', 'chat-message-bot'],
       children: [
@@ -541,10 +547,7 @@ export class Chat {
                 {
                   type: 'click',
                   listener: () => {
-                    new ztoolkit.Clipboard()
-                      .addText(output.message, 'text/unicode')
-                      .addText(htmlOutputMessage, 'text/html')
-                      .copy()
+                    new ztoolkit.Clipboard().addText(message, 'text/unicode').addText(htmlMessage, 'text/html').copy()
                   },
                 },
               ],
@@ -564,7 +567,7 @@ export class Chat {
           tag: 'div',
           classList: ['markdown'],
           properties: {
-            innerHTML: htmlOutputMessage,
+            innerHTML: htmlMessage,
           },
         },
       ],

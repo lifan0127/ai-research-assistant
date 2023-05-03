@@ -22,8 +22,7 @@ export class ZoteroCreators extends Tool {
         ORDER BY val
         LIMIT 10
       `.trim()
-      const sqlParams = [`${input}`]
-      const results = await Zotero.DB.queryAsync(sql, sqlParams)
+      const results = await Zotero.DB.queryAsync(sql, [`${input}`])
       // Unpack the iterator array
       let output: string[] = []
       for (let row of results) {
