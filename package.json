@@ -48,7 +48,7 @@
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.67",
     "marked": "^4.3.0",
-    "patch-package": "^6.5.1",
+    "patch-package": "^7.0.0",
     "search-query-parser": "^1.6.0",
     "serialize-error": "^11.0.0",
     "typeorm": "^0.3.14",
