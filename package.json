@@ -61,7 +61,7 @@
     "@types/node": "^18.15.10",
     "@types/object-hash": "^3.0.2",
     "compressing": "^1.9.0",
-    "concurrently": "^7.6.0",
+    "concurrently": "^8.2.0",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.2.1",
     "esbuild": "^0.17.14",
