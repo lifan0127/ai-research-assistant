@@ -45,7 +45,7 @@ export function Input({ isLoading, onSubmit }: InputProps) {
         <textarea
           id="aria-chat-input"
           ref={inputRef}
-          className="w-full h-6 max-h-64 resize-none border-none text-base overflow-y-auto text-black"
+          className="w-full h-6 max-h-64 resize-none border-none text-base overflow-y-auto text-black bg-white"
           placeholder="How can I help you today?"
           autoFocus
           onKeyDown={handleKeyDown}
