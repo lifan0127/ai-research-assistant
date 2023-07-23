@@ -1,7 +1,7 @@
-diff --git a/node_modules/langchain/node_modules/yaml/dist/compose/resolve-flow-scalar.js b/node_modules/langchain/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+diff --git a/node_modules/yaml/dist/compose/resolve-flow-scalar.js b/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 index cf6257c..62c821f 100644
---- a/node_modules/langchain/node_modules/yaml/dist/compose/resolve-flow-scalar.js
-+++ b/node_modules/langchain/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+--- a/node_modules/yaml/dist/compose/resolve-flow-scalar.js
++++ b/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 @@ -87,8 +87,8 @@ function foldLines(source) {
          line = new RegExp('[ \t]*(.*?)(?:(?<![ \t])[ \t]*)?\r?\n', 'sy');
      }

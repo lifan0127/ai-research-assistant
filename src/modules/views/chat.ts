@@ -6,22 +6,39 @@ import ToolkitGlobal from 'zotero-plugin-toolkit/dist/managers/toolkitGlobal'
 import { marked } from 'marked'
 import { serializeError } from 'serialize-error'
 import { config, version } from '../../../package.json'
-import { ExecutorWithMetadata, createQAExecutor } from '../../libs/agents'
+import { ExecutorWithMetadata, createQAExecutor, createHelpExecutor } from '../../models/agents'
 import { AgentExecutor } from 'langchain/agents'
 import { CallbackManager } from 'langchain/callbacks'
 import { AgentAction } from 'langchain/dist/schema'
 import { CopyIcon, CopySuccessIcon } from '../components/icons'
+import { LLMChain } from 'langchain'
+import { createRouter } from '../../models/chains/router'
+import { loadZoteroQueryBuilderChain } from '../../models/chains/queryBuilder'
+import { SearchQuery } from '../../models/chains/queryBuilder'
+import { searchZotero } from '../../models/zotero/search'
+import { OPENAI_GPT_MODEL } from '../../constants'
 
 type Message = {
   role: 'user' | 'bot'
   message: string
 }
 
+type Executors = {
+  [key: string]: {
+    metadata: {
+      title: string
+      description: string
+    }
+    executor: AgentExecutor
+  }
+}
+
 export class Chat {
   private ui: UITool
   private base: BasicTool
   private document: Document
-  private executor: AgentExecutor | undefined
+  private executors: Executors | undefined
+  private router: LLMChain | undefined
   /**
    * Record the last text entered
    */
@@ -68,18 +85,15 @@ export class Chat {
           Authorization: `Bearer ${this.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: OPENAI_GPT_MODEL,
           messages: [{ role: 'user', content: 'Say this is a test!' }],
           temperature: 0.7,
         }),
       })
         .then(() => {
-          const callbackManager = CallbackManager.fromHandlers({
-            handleAgentAction: async (action: AgentAction) => {
-              this.addActionOutput(action)
-            },
-          })
-          createQAExecutor({ callbackManager }).then(this.initConversation.bind(this)).catch(console.error)
+          this.executors = this.createExecutors()
+          this.router = createRouter()
+          this.initConversation()
         })
         .catch((error: any) => {
           try {
@@ -90,9 +104,53 @@ export class Chat {
             this.initError('Unknown error. Please contact support.')
           }
         })
+        .then(() => {
+          this.trigger('Find some papers on machine learning')
+        })
     } else {
       this.initConfiguration()
     }
+  }
+
+  private createExecutors(): Executors {
+    const callbackManager = CallbackManager.fromHandlers({
+      handleAgentAction: async (action: AgentAction) => {
+        this.addActionOutput(action)
+      },
+    })
+    const executors = {
+      manage: createQAExecutor({ callbackManager }),
+      search: loadZoteroQueryBuilderChain({ callbackManager }),
+      qa: createQAExecutor({ callbackManager }),
+      help: createHelpExecutor({ callbackManager }),
+    }
+    return executors as any
+  }
+
+  private addRouteOutput(route: string, input: string) {
+    const routeNode = this.ui.createElement(this.document, 'div', {
+      styles: {
+        fontWeight: 'bold',
+        padding: '0 12px 24px',
+      },
+      properties: {
+        innerText: `🚀 ${route}`,
+      },
+      children: [
+        {
+          tag: 'span',
+          styles: {
+            fontWeight: 'normal',
+            fontSize: '12px',
+          },
+          properties: {
+            innerText: !!input ? ` (input: ${input.length > 64 ? input.slice(0, 64) + '...' : input})` : '',
+          },
+        },
+      ],
+    })
+    this.conversationNode.appendChild(routeNode)
+    this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
   }
 
   private addActionOutput(action: AgentAction) {
@@ -226,8 +284,7 @@ export class Chat {
     this.conversationNode.appendChild(missingApiKeyNode)
   }
 
-  private initConversation({ executor, metadata: { title, description } }: ExecutorWithMetadata) {
-    this.executor = executor
+  private initConversation() {
     const introductionNode = this.ui.createElement(this.document, 'div', {
       id: 'aria-chat-introduction',
       styles: {
@@ -283,7 +340,9 @@ export class Chat {
             {
               tag: 'div',
               properties: {
-                innerHTML: marked(description),
+                innerHTML: marked(
+                  'QA Assistant analyzes and understands the content of your Zotero library. It can help streamline your research process by performing automatic literature search, summarization, and question & answer'
+                ),
               },
             },
           ],
@@ -576,6 +635,318 @@ export class Chat {
     this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
   }
 
+  private addSearchResults(searchQuery: SearchQuery, ids: number[], results: any[]) {
+    const { keywords, authors, tags, years } = searchQuery
+    const searchResultsNode = this.ui.createElement(this.document, 'div', {
+      classList: ['chat-message', 'chat-message-bot'],
+      children: [
+        {
+          tag: 'div',
+          styles: {
+            margin: '8px',
+          },
+          children: [
+            {
+              tag: 'p',
+              properties: {
+                innerText: 'Here are some results I found for your search:',
+              },
+            },
+            {
+              tag: 'div',
+              classList: ['search-results-table'],
+              children: [
+                {
+                  tag: 'table',
+                  styles: {
+                    width: '100%',
+                  },
+                  children: [
+                    {
+                      tag: 'thead',
+                      children: [
+                        {
+                          tag: 'tr',
+                          children: [
+                            {
+                              tag: 'th',
+                              attributes: {
+                                align: 'left',
+                              },
+                              styles: {
+                                width: '45%',
+                                borderBottom: '1px solid #ddd',
+                                borderCollapse: 'collapse',
+                                borderSpacing: '0',
+                              },
+                              properties: {
+                                innerText: 'Title',
+                              },
+                            },
+                            {
+                              tag: 'th',
+                              attributes: {
+                                align: 'left',
+                              },
+                              styles: {
+                                width: '25%',
+                                borderBottom: '1px solid #ddd',
+                                borderCollapse: 'collapse',
+                                borderSpacing: '0',
+                              },
+                              properties: {
+                                innerText: 'Authors',
+                              },
+                            },
+                            {
+                              tag: 'th',
+                              attributes: {
+                                align: 'left',
+                              },
+                              styles: {
+                                width: '10%',
+                                borderBottom: '1px solid #ddd',
+                                borderCollapse: 'collapse',
+                                borderSpacing: '0',
+                              },
+                              properties: {
+                                innerText: 'Item Type',
+                              },
+                            },
+                            {
+                              tag: 'th',
+                              attributes: {
+                                align: 'left',
+                              },
+                              styles: {
+                                width: '7%',
+                                borderBottom: '1px solid #ddd',
+                                borderCollapse: 'collapse',
+                                borderSpacing: '0',
+                              },
+                              properties: {
+                                innerText: 'Year',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      tag: 'tbody',
+                      children: results.map(result => {
+                        const creators = result.getCreators()
+                        const creator =
+                          creators.length === 0
+                            ? null
+                            : creators.length > 1
+                            ? `${creators[0].lastName} et al.`
+                            : `${creators[0].firstName} ${creators[0].lastName}`
+                        return {
+                          tag: 'tr',
+                          children: [
+                            {
+                              tag: 'td',
+                              styles: {
+                                fontSize: '11px',
+                              },
+                              properties: {
+                                innerText: result.getDisplayTitle(),
+                              },
+                            },
+                            {
+                              tag: 'td',
+                              styles: {
+                                fontSize: '11px',
+                              },
+                              properties: {
+                                innerText: creator,
+                              },
+                            },
+                            {
+                              tag: 'td',
+                              styles: {
+                                fontSize: '11px',
+                              },
+                              properties: {
+                                innerText: result.itemType,
+                              },
+                            },
+                            {
+                              tag: 'td',
+                              styles: {
+                                fontSize: '11px',
+                              },
+                              properties: {
+                                innerText: new Date(result.getField('date')).getFullYear(),
+                              },
+                            },
+                          ],
+                        }
+                      }),
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              tag: 'div',
+              classList: ['search-results'],
+              children: [
+                {
+                  tag: 'div',
+                  classList: ['search-results-section'],
+                  children: [
+                    {
+                      tag: 'div',
+                      classList: ['search-results-section-title'],
+                      properties: {
+                        innerText: 'Keywords',
+                      },
+                    },
+                    {
+                      tag: 'div',
+                      classList: ['search-results-section-content'],
+                      children: keywords.map(keyword => {
+                        return {
+                          tag: 'button',
+                          classList: ['search-result'],
+                          properties: {
+                            innerText: keyword,
+                          },
+                          listeners: [
+                            {
+                              type: 'click',
+                              listener: () => {
+                                this.inputNode.value = keyword
+                                // this.inputNode.dispatchEvent(new Event('input'))
+                                // this.inputNode.dispatchEvent(new Event('submit'))
+                                Zotero.launchURL(`https://www.google.com`)
+                              },
+                            },
+                          ],
+                        }
+                      }),
+                    },
+                  ],
+                },
+                {
+                  tag: 'div',
+                  classList: ['search-results-section'],
+                  children: [
+                    {
+                      tag: 'div',
+                      classList: ['search-results-section-title'],
+                      properties: {
+                        innerText: 'Authors',
+                      },
+                    },
+                    {
+                      tag: 'div',
+                      classList: ['search-results-section-content'],
+                      children: authors.map(author => {
+                        return {
+                          tag: 'button',
+                          classList: ['search-result'],
+                          properties: {
+                            innerText: author,
+                          },
+                          listeners: [
+                            {
+                              type: 'click',
+                              listener: () => {
+                                this.inputNode.value = author
+                                this.inputNode.dispatchEvent(new Event('input'))
+                                this.inputNode.dispatchEvent(new Event('submit'))
+                              },
+                            },
+                          ],
+                        }
+                      }),
+                    },
+                  ],
+                },
+                {
+                  tag: 'div',
+                  classList: ['search-results-section'],
+                  children: [
+                    {
+                      tag: 'div',
+                      classList: ['search-results-section-title'],
+                      properties: {
+                        innerText: 'Tags',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    this.conversationNode.appendChild(searchResultsNode)
+    this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
+  }
+
+  private displayAgentSelection(input: string) {
+    const options = Object.keys(this.executors || {}).map(key => {
+      const {
+        metadata: { title, description },
+      } = this.executors![key]
+      return { key, title, description }
+    })
+
+    // TODO: disable buttons after selection
+    const agentSelectionNode = this.ui.createElement(this.document, 'div', {
+      classList: ['chat-message', 'chat-message-bot'],
+      children: [
+        {
+          tag: 'div',
+          classList: [],
+          children: [
+            {
+              tag: 'div',
+              properties: {
+                innerText: 'I need your help. Which category does your request belong to?',
+              },
+            },
+            ...options.map(({ key, title, description }) => {
+              return {
+                tag: 'button',
+                classList: ['option'],
+                children: [
+                  {
+                    tag: 'div',
+                    classList: ['title'],
+                    properties: {
+                      innerText: title,
+                    },
+                  },
+                  {
+                    tag: 'div',
+                    classList: ['description'],
+                    properties: {
+                      innerText: description,
+                    },
+                  },
+                ],
+                listeners: [
+                  {
+                    type: 'click',
+                    listener: () => this.selectAgent(key, input),
+                  },
+                ],
+              }
+            }),
+          ],
+        },
+      ],
+    })
+    this.conversationNode.appendChild(agentSelectionNode)
+    this.conversationNode.scrollTo(0, this.conversationNode.scrollHeight)
+  }
+
   private setLoading(isLoading = false) {
     this.loadingNode.style.visibility = isLoading ? 'visible' : 'hidden'
   }
@@ -645,6 +1016,21 @@ export class Chat {
   //   return commandNode
   // }
 
+  private async selectAgent(selectedAgent: string, input: string) {
+    // Rewrite the last message in chat history
+    const lastMessage = this.router?.memory!.chatHistory.messages.pop()
+    this.router?.memory!.chatHistory.addAIChatMessage(`{\n    \"destination\": \"${selectedAgent}\"\n}`)
+    // Launch the selected agent
+    this.setLoading(true)
+    const result = await this.executors![selectedAgent].executor.call({ input })
+    const botOutput: Message = {
+      role: 'bot',
+      message: result.output,
+    }
+    this.addBotOutput(botOutput)
+    this.setLoading(false)
+  }
+
   /**
    * Called when `enter` key is pressed.
    */
@@ -661,13 +1047,49 @@ export class Chat {
     this.inputNode.style.height = '20px'
     try {
       this.setLoading(true)
-      const result = await this.executor!.call({ input })
-      const botOutput: Message = {
-        role: 'bot',
-        message: result.output,
+      const { response } = await this.router!.call({ input })
+      const { action, payload } = JSON.parse(response)
+      console.log({ action, payload })
+      switch (action) {
+        case 'clarification': {
+          const { message } = payload
+          const botOutput: Message = {
+            role: 'bot',
+            message,
+          }
+          this.addBotOutput(botOutput)
+          this.setLoading(false)
+          return
+        }
+        case 'routing': {
+          const { route, input } = payload
+          switch (route) {
+            case 'search': {
+              this.addRouteOutput(route, input)
+              const { output } = await this.executors![route]!.call({ input })
+              const searchQuery = JSON.parse(output)
+              const { ids, results } = await searchZotero(searchQuery)
+              this.addSearchResults(searchQuery, ids, results)
+              this.setLoading(false)
+              return
+            }
+          }
+          console.log({ agent, input, executor: this.executors![agent] })
+          const result = await this.executors![agent].executor.call({ input })
+          const botOutput: Message = {
+            role: 'bot',
+            message: result.output,
+          }
+          this.addBotOutput(botOutput)
+          this.setLoading(false)
+          return this.displayAgentSelection(input)
+        }
+        case 'selection':
+        default: {
+          this.setLoading(false)
+          return this.displayAgentSelection(input)
+        }
       }
-      this.addBotOutput(botOutput)
-      this.setLoading(false)
     } catch (error: any) {
       const errorObj = serializeError(error)
       console.log({ executorError: error, errorObj })

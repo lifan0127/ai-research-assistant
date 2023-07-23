@@ -58,11 +58,11 @@ import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
 import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
 import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
-import { ChatManager } from './modules/views/chat'
+import { ReactRootManager } from './views/root'
 export class CustomToolkit extends BasicTool {
   UI: UITool
   PreferencePane: PreferencePaneManager
-  Chat: ChatManager
+  ReactRoot: ReactRootManager
   Prompt: PromptManager
   Shortcut: ShortcutManager
   Clipboard: typeof ClipboardHelper
@@ -73,7 +73,7 @@ export class CustomToolkit extends BasicTool {
     this.UI = new UITool(this)
     this.PreferencePane = new PreferencePaneManager(this)
     this.Shortcut = new ShortcutManager(this)
-    this.Chat = new ChatManager(this)
+    this.ReactRoot = new ReactRootManager(this)
     this.Prompt = new PromptManager(this)
     this.Clipboard = ClipboardHelper
     this.ProgressWindow = ProgressWindowHelper

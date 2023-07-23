@@ -1,0 +1,16 @@
+diff --git a/node_modules/camelcase/index.js b/node_modules/camelcase/index.js
+index 6d80316..51f0459 100644
+--- a/node_modules/camelcase/index.js
++++ b/node_modules/camelcase/index.js
+@@ -1,7 +1,7 @@
+-const UPPERCASE = /[\p{Lu}]/u;
+-const LOWERCASE = /[\p{Ll}]/u;
+-const LEADING_CAPITAL = /^[\p{Lu}](?![\p{Lu}])/gu;
+-const IDENTIFIER = /([\p{Alpha}\p{N}_]|$)/u;
++const UPPERCASE = /[A-Z]/;
++const LOWERCASE = /[a-z]/;
++const LEADING_CAPITAL = /^[A-Z](?![A-Z])/g;
++const IDENTIFIER = /([A-Za-z0-9_]|$)/;
+ const SEPARATORS = /[_.\- ]+/;
+ 
+ const LEADING_SEPARATORS = new RegExp('^' + SEPARATORS.source);

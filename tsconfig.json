@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
+    "jsx": "react",
     "experimentalDecorators": true,
     "module": "commonjs",
     "target": "ES2016",
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "esModuleInterop": true
   },
   "include": [
     "src",

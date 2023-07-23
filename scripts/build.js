@@ -6,6 +6,9 @@ const process = require("process")
 const replace = require("replace-in-file")
 const { NodeGlobalsPolyfillPlugin } = require('@esbuild-plugins/node-globals-polyfill')
 const { NodeModulesPolyfillPlugin } = require('@esbuild-plugins/node-modules-polyfill')
+const postCssPlugin = require('esbuild-style-plugin')
+const tailwind = require('tailwindcss')
+const autoprefixer = require('autoprefixer')
 
 const {
   name,
@@ -102,22 +105,30 @@ async function main() {
 
   await esbuild
     .build({
-      entryPoints: ["src/index.ts"],
+      entryPoints: [
+        'src/index.ts'
+      ],
       plugins: [
         NodeGlobalsPolyfillPlugin({
           process: true,
           buffer: true,
           define: {
             'process.env.NODE_ENV': `"${process.env.NODE_ENV}"`,
-            'process.env.LANGCHAIN_TRACING': `"${process.env.NODE_ENV === 'development' ? 'true' : 'false'}"`,
+            // 'process.env.LANGCHAIN_TRACING': `"${process.env.NODE_ENV === 'development' ? 'true' : 'false'}"`,
           },
         }),
         NodeModulesPolyfillPlugin(),
+        postCssPlugin({
+          postcss: {
+            plugins: [tailwind(), autoprefixer()],
+          },
+        }),
       ],
       define: {
         global: '_globalThis',
         __env__: `"${process.env.NODE_ENV}"`,
       },
+      // external: ['react', 'react-dom'],
       bundle: true,
       platform: 'node',
       target: 'es2018',

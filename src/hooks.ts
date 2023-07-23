@@ -138,9 +138,9 @@ function onShortcuts(type: string) {
 
 function onDialogEvents(type: string) {
   switch (type) {
-    case 'dialogExample':
-      chat()
-      break
+    // case 'dialogExample':
+    //   chat()
+    //   break
     // case 'clipboardExample':
     //   HelperExampleFactory.clipboardExample()
     //   break

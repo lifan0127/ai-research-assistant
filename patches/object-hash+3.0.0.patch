@@ -1,6 +1,6 @@
 diff --git a/node_modules/object-hash/crypto.js b/node_modules/object-hash/crypto.js
 new file mode 100644
-index 0000000..6fd9a8d
+index 0000000..2d1fb9a
 --- /dev/null
 +++ b/node_modules/object-hash/crypto.js
 @@ -0,0 +1,47 @@
@@ -46,21 +46,718 @@ index 0000000..6fd9a8d
 +  }
 +}
 +
-+export const crypto = {
-+  createHash: function (algorithm) {
-+    return new Hash(algorithm)
-+  },
-+}
++// export const crypto = {
++//   createHash: function (algorithm) {
++//     return new Hash(algorithm)
++//   },
++// }
 \ No newline at end of file
 diff --git a/node_modules/object-hash/index.js b/node_modules/object-hash/index.js
-index 962bf62..41267f7 100644
+index 962bf62..7dc678d 100644
 --- a/node_modules/object-hash/index.js
 +++ b/node_modules/object-hash/index.js
-@@ -1,6 +1,6 @@
- 'use strict';
+@@ -1,6 +1,57 @@
+-'use strict';
++'use strict'
++let crypto
++if (typeof Components !== 'undefined') {
++  class Hash {
++    cryptoHash
++    data
++    constructor(algorithm) {
++      this.cryptoHash = Components.classes['@mozilla.org/security/hash;1'].createInstance(
++        Components.interfaces.nsICryptoHash
++      )
++      this.cryptoHash.init(this.getHashType(algorithm))
++      this.data = ''
++    }
++
++    getHashType(algorithm) {
++      switch (algorithm) {
++        case 'md5':
++          return this.cryptoHash.MD5
++        case 'sha1':
++          return this.cryptoHash.SHA1
++        case 'sha256':
++          return this.cryptoHash.SHA256
++        case 'sha384':
++          return this.cryptoHash.SHA384
++        case 'sha512':
++          return this.cryptoHash.SHA512
++        default:
++          throw new Error(`Unsupported hash algorithm: ${algorithm}`)
++      }
++    }
++
++    update(data) {
++      this.data += data
++    }
++
++    digest(encoding) {
++      const inputStream = Components.classes['@mozilla.org/io/string-input-stream;1'].createInstance(
++        Components.interfaces.nsIStringInputStream
++      )
++      inputStream.setData(this.data, this.data.length)
++      const result = this.cryptoHash.finish(encoding === 'hex')
++      return result
++    }
++  }
++
++  crypto = {
++    createHash: function (algorithm) {
++      return new Hash(algorithm)
++    },
++  }
++} else {
++  crypto = require('crypto')
++}
  
 -var crypto = require('crypto');
-+var { crypto } = require('./crypto');
  
  /**
   * Exported function
+@@ -25,12 +76,12 @@ var crypto = require('crypto');
+  * @return {string} hash value
+  * @api public
+  */
+-exports = module.exports = objectHash;
++exports = module.exports = objectHash
+ 
+-function objectHash(object, options){
+-  options = applyDefaults(object, options);
++function objectHash(object, options) {
++  options = applyDefaults(object, options)
+ 
+-  return hash(object, options);
++  return hash(object, options)
+ }
+ 
+ /**
+@@ -40,109 +91,109 @@ function objectHash(object, options){
+  * @return {string} hash value
+  * @api public
+  */
+-exports.sha1 = function(object){
+-  return objectHash(object);
+-};
+-exports.keys = function(object){
+-  return objectHash(object, {excludeValues: true, algorithm: 'sha1', encoding: 'hex'});
+-};
+-exports.MD5 = function(object){
+-  return objectHash(object, {algorithm: 'md5', encoding: 'hex'});
+-};
+-exports.keysMD5 = function(object){
+-  return objectHash(object, {algorithm: 'md5', encoding: 'hex', excludeValues: true});
+-};
++exports.sha1 = function (object) {
++  return objectHash(object)
++}
++exports.keys = function (object) {
++  return objectHash(object, { excludeValues: true, algorithm: 'sha1', encoding: 'hex' })
++}
++exports.MD5 = function (object) {
++  return objectHash(object, { algorithm: 'md5', encoding: 'hex' })
++}
++exports.keysMD5 = function (object) {
++  return objectHash(object, { algorithm: 'md5', encoding: 'hex', excludeValues: true })
++}
+ 
+ // Internals
+-var hashes = crypto.getHashes ? crypto.getHashes().slice() : ['sha1', 'md5'];
+-hashes.push('passthrough');
+-var encodings = ['buffer', 'hex', 'binary', 'base64'];
++var hashes = crypto.getHashes ? crypto.getHashes().slice() : ['sha1', 'md5']
++hashes.push('passthrough')
++var encodings = ['buffer', 'hex', 'binary', 'base64']
+ 
+-function applyDefaults(object, sourceOptions){
+-  sourceOptions = sourceOptions || {};
++function applyDefaults(object, sourceOptions) {
++  sourceOptions = sourceOptions || {}
+ 
+   // create a copy rather than mutating
+-  var options = {};
+-  options.algorithm = sourceOptions.algorithm || 'sha1';
+-  options.encoding = sourceOptions.encoding || 'hex';
+-  options.excludeValues = sourceOptions.excludeValues ? true : false;
+-  options.algorithm = options.algorithm.toLowerCase();
+-  options.encoding = options.encoding.toLowerCase();
+-  options.ignoreUnknown = sourceOptions.ignoreUnknown !== true ? false : true; // default to false
+-  options.respectType = sourceOptions.respectType === false ? false : true; // default to true
+-  options.respectFunctionNames = sourceOptions.respectFunctionNames === false ? false : true;
+-  options.respectFunctionProperties = sourceOptions.respectFunctionProperties === false ? false : true;
+-  options.unorderedArrays = sourceOptions.unorderedArrays !== true ? false : true; // default to false
+-  options.unorderedSets = sourceOptions.unorderedSets === false ? false : true; // default to false
+-  options.unorderedObjects = sourceOptions.unorderedObjects === false ? false : true; // default to true
+-  options.replacer = sourceOptions.replacer || undefined;
+-  options.excludeKeys = sourceOptions.excludeKeys || undefined;
+-
+-  if(typeof object === 'undefined') {
+-    throw new Error('Object argument required.');
++  var options = {}
++  options.algorithm = sourceOptions.algorithm || 'sha1'
++  options.encoding = sourceOptions.encoding || 'hex'
++  options.excludeValues = sourceOptions.excludeValues ? true : false
++  options.algorithm = options.algorithm.toLowerCase()
++  options.encoding = options.encoding.toLowerCase()
++  options.ignoreUnknown = sourceOptions.ignoreUnknown !== true ? false : true // default to false
++  options.respectType = sourceOptions.respectType === false ? false : true // default to true
++  options.respectFunctionNames = sourceOptions.respectFunctionNames === false ? false : true
++  options.respectFunctionProperties = sourceOptions.respectFunctionProperties === false ? false : true
++  options.unorderedArrays = sourceOptions.unorderedArrays !== true ? false : true // default to false
++  options.unorderedSets = sourceOptions.unorderedSets === false ? false : true // default to false
++  options.unorderedObjects = sourceOptions.unorderedObjects === false ? false : true // default to true
++  options.replacer = sourceOptions.replacer || undefined
++  options.excludeKeys = sourceOptions.excludeKeys || undefined
++
++  if (typeof object === 'undefined') {
++    throw new Error('Object argument required.')
+   }
+ 
+   // if there is a case-insensitive match in the hashes list, accept it
+   // (i.e. SHA256 for sha256)
+   for (var i = 0; i < hashes.length; ++i) {
+     if (hashes[i].toLowerCase() === options.algorithm.toLowerCase()) {
+-      options.algorithm = hashes[i];
++      options.algorithm = hashes[i]
+     }
+   }
+ 
+-  if(hashes.indexOf(options.algorithm) === -1){
++  if (hashes.indexOf(options.algorithm) === -1) {
+     throw new Error('Algorithm "' + options.algorithm + '"  not supported. ' +
+-      'supported values: ' + hashes.join(', '));
++      'supported values: ' + hashes.join(', '))
+   }
+ 
+-  if(encodings.indexOf(options.encoding) === -1 &&
+-     options.algorithm !== 'passthrough'){
++  if (encodings.indexOf(options.encoding) === -1 &&
++    options.algorithm !== 'passthrough') {
+     throw new Error('Encoding "' + options.encoding + '"  not supported. ' +
+-      'supported values: ' + encodings.join(', '));
++      'supported values: ' + encodings.join(', '))
+   }
+ 
+-  return options;
++  return options
+ }
+ 
+ /** Check if the given function is a native function */
+ function isNativeFunction(f) {
+   if ((typeof f) !== 'function') {
+-    return false;
++    return false
+   }
+-  var exp = /^function\s+\w*\s*\(\s*\)\s*{\s+\[native code\]\s+}$/i;
+-  return exp.exec(Function.prototype.toString.call(f)) != null;
++  var exp = /^function\s+\w*\s*\(\s*\)\s*{\s+\[native code\]\s+}$/i
++  return exp.exec(Function.prototype.toString.call(f)) != null
+ }
+ 
+ function hash(object, options) {
+-  var hashingStream;
++  var hashingStream
+ 
+   if (options.algorithm !== 'passthrough') {
+-    hashingStream = crypto.createHash(options.algorithm);
++    hashingStream = crypto.createHash(options.algorithm)
+   } else {
+-    hashingStream = new PassThrough();
++    hashingStream = new PassThrough()
+   }
+ 
+   if (typeof hashingStream.write === 'undefined') {
+-    hashingStream.write = hashingStream.update;
+-    hashingStream.end   = hashingStream.update;
++    hashingStream.write = hashingStream.update
++    hashingStream.end = hashingStream.update
+   }
+ 
+-  var hasher = typeHasher(options, hashingStream);
+-  hasher.dispatch(object);
++  var hasher = typeHasher(options, hashingStream)
++  hasher.dispatch(object)
+   if (!hashingStream.update) {
+-    hashingStream.end('');
++    hashingStream.end('')
+   }
+ 
+   if (hashingStream.digest) {
+-    return hashingStream.digest(options.encoding === 'buffer' ? undefined : options.encoding);
++    return hashingStream.digest(options.encoding === 'buffer' ? undefined : options.encoding)
+   }
+ 
+-  var buf = hashingStream.read();
++  var buf = hashingStream.read()
+   if (options.encoding === 'buffer') {
+-    return buf;
++    return buf
+   }
+ 
+-  return buf.toString(options.encoding);
++  return buf.toString(options.encoding)
+ }
+ 
+ /**
+@@ -153,79 +204,79 @@ function hash(object, options) {
+  * @param {object} stream  A stream to write the serializiation to
+  * @api public
+  */
+-exports.writeToStream = function(object, options, stream) {
++exports.writeToStream = function (object, options, stream) {
+   if (typeof stream === 'undefined') {
+-    stream = options;
+-    options = {};
++    stream = options
++    options = {}
+   }
+ 
+-  options = applyDefaults(object, options);
++  options = applyDefaults(object, options)
+ 
+-  return typeHasher(options, stream).dispatch(object);
+-};
++  return typeHasher(options, stream).dispatch(object)
++}
+ 
+-function typeHasher(options, writeTo, context){
+-  context = context || [];
+-  var write = function(str) {
++function typeHasher(options, writeTo, context) {
++  context = context || []
++  var write = function (str) {
+     if (writeTo.update) {
+-      return writeTo.update(str, 'utf8');
++      return writeTo.update(str, 'utf8')
+     } else {
+-      return writeTo.write(str, 'utf8');
++      return writeTo.write(str, 'utf8')
+     }
+-  };
++  }
+ 
+   return {
+-    dispatch: function(value){
++    dispatch: function (value) {
+       if (options.replacer) {
+-        value = options.replacer(value);
++        value = options.replacer(value)
+       }
+ 
+-      var type = typeof value;
++      var type = typeof value
+       if (value === null) {
+-        type = 'null';
++        type = 'null'
+       }
+ 
+       //console.log("[DEBUG] Dispatch: ", value, "->", type, " -> ", "_" + type);
+ 
+-      return this['_' + type](value);
++      return this['_' + type](value)
+     },
+-    _object: function(object) {
+-      var pattern = (/\[object (.*)\]/i);
+-      var objString = Object.prototype.toString.call(object);
+-      var objType = pattern.exec(objString);
++    _object: function (object) {
++      var pattern = (/\[object (.*)\]/i)
++      var objString = Object.prototype.toString.call(object)
++      var objType = pattern.exec(objString)
+       if (!objType) { // object type did not match [object ...]
+-        objType = 'unknown:[' + objString + ']';
++        objType = 'unknown:[' + objString + ']'
+       } else {
+-        objType = objType[1]; // take only the class name
++        objType = objType[1] // take only the class name
+       }
+ 
+-      objType = objType.toLowerCase();
++      objType = objType.toLowerCase()
+ 
+-      var objectNumber = null;
++      var objectNumber = null
+ 
+       if ((objectNumber = context.indexOf(object)) >= 0) {
+-        return this.dispatch('[CIRCULAR:' + objectNumber + ']');
++        return this.dispatch('[CIRCULAR:' + objectNumber + ']')
+       } else {
+-        context.push(object);
++        context.push(object)
+       }
+ 
+       if (typeof Buffer !== 'undefined' && Buffer.isBuffer && Buffer.isBuffer(object)) {
+-        write('buffer:');
+-        return write(object);
++        write('buffer:')
++        return write(object)
+       }
+ 
+-      if(objType !== 'object' && objType !== 'function' && objType !== 'asyncfunction') {
+-        if(this['_' + objType]) {
+-          this['_' + objType](object);
++      if (objType !== 'object' && objType !== 'function' && objType !== 'asyncfunction') {
++        if (this['_' + objType]) {
++          this['_' + objType](object)
+         } else if (options.ignoreUnknown) {
+-          return write('[' + objType + ']');
++          return write('[' + objType + ']')
+         } else {
+-          throw new Error('Unknown object type "' + objType + '"');
++          throw new Error('Unknown object type "' + objType + '"')
+         }
+-      }else{
+-        var keys = Object.keys(object);
++      } else {
++        var keys = Object.keys(object)
+         if (options.unorderedObjects) {
+-          keys = keys.sort();
++          keys = keys.sort()
+         }
+         // Make sure to incorporate special properties, so
+         // Types with different prototypes will produce
+@@ -235,35 +286,35 @@ function typeHasher(options, writeTo, context){
+         // We never do this for native functions since some
+         // seem to break because of that.
+         if (options.respectType !== false && !isNativeFunction(object)) {
+-          keys.splice(0, 0, 'prototype', '__proto__', 'constructor');
++          keys.splice(0, 0, 'prototype', '__proto__', 'constructor')
+         }
+ 
+         if (options.excludeKeys) {
+-          keys = keys.filter(function(key) { return !options.excludeKeys(key); });
++          keys = keys.filter(function (key) { return !options.excludeKeys(key) })
+         }
+ 
+-        write('object:' + keys.length + ':');
+-        var self = this;
+-        return keys.forEach(function(key){
+-          self.dispatch(key);
+-          write(':');
+-          if(!options.excludeValues) {
+-            self.dispatch(object[key]);
++        write('object:' + keys.length + ':')
++        var self = this
++        return keys.forEach(function (key) {
++          self.dispatch(key)
++          write(':')
++          if (!options.excludeValues) {
++            self.dispatch(object[key])
+           }
+-          write(',');
+-        });
++          write(',')
++        })
+       }
+     },
+-    _array: function(arr, unordered){
++    _array: function (arr, unordered) {
+       unordered = typeof unordered !== 'undefined' ? unordered :
+-        options.unorderedArrays !== false; // default to options.unorderedArrays
++        options.unorderedArrays !== false // default to options.unorderedArrays
+ 
+-      var self = this;
+-      write('array:' + arr.length + ':');
++      var self = this
++      write('array:' + arr.length + ':')
+       if (!unordered || arr.length <= 1) {
+-        return arr.forEach(function(entry) {
+-          return self.dispatch(entry);
+-        });
++        return arr.forEach(function (entry) {
++          return self.dispatch(entry)
++        })
+       }
+ 
+       // the unordered case is a little more complicated:
+@@ -275,159 +326,159 @@ function typeHasher(options, writeTo, context){
+       // since the order of hashing should *not* matter. instead,
+       // we keep track of the additions to a copy of the context array
+       // and add all of them to the global context array when we’re done
+-      var contextAdditions = [];
+-      var entries = arr.map(function(entry) {
+-        var strm = new PassThrough();
+-        var localContext = context.slice(); // make copy
+-        var hasher = typeHasher(options, strm, localContext);
+-        hasher.dispatch(entry);
++      var contextAdditions = []
++      var entries = arr.map(function (entry) {
++        var strm = new PassThrough()
++        var localContext = context.slice() // make copy
++        var hasher = typeHasher(options, strm, localContext)
++        hasher.dispatch(entry)
+         // take only what was added to localContext and append it to contextAdditions
+-        contextAdditions = contextAdditions.concat(localContext.slice(context.length));
+-        return strm.read().toString();
+-      });
+-      context = context.concat(contextAdditions);
+-      entries.sort();
+-      return this._array(entries, false);
++        contextAdditions = contextAdditions.concat(localContext.slice(context.length))
++        return strm.read().toString()
++      })
++      context = context.concat(contextAdditions)
++      entries.sort()
++      return this._array(entries, false)
+     },
+-    _date: function(date){
+-      return write('date:' + date.toJSON());
++    _date: function (date) {
++      return write('date:' + date.toJSON())
+     },
+-    _symbol: function(sym){
+-      return write('symbol:' + sym.toString());
++    _symbol: function (sym) {
++      return write('symbol:' + sym.toString())
+     },
+-    _error: function(err){
+-      return write('error:' + err.toString());
++    _error: function (err) {
++      return write('error:' + err.toString())
+     },
+-    _boolean: function(bool){
+-      return write('bool:' + bool.toString());
++    _boolean: function (bool) {
++      return write('bool:' + bool.toString())
+     },
+-    _string: function(string){
+-      write('string:' + string.length + ':');
+-      write(string.toString());
++    _string: function (string) {
++      write('string:' + string.length + ':')
++      write(string.toString())
+     },
+-    _function: function(fn){
+-      write('fn:');
++    _function: function (fn) {
++      write('fn:')
+       if (isNativeFunction(fn)) {
+-        this.dispatch('[native]');
++        this.dispatch('[native]')
+       } else {
+-        this.dispatch(fn.toString());
++        this.dispatch(fn.toString())
+       }
+ 
+       if (options.respectFunctionNames !== false) {
+         // Make sure we can still distinguish native functions
+         // by their name, otherwise String and Function will
+         // have the same hash
+-        this.dispatch("function-name:" + String(fn.name));
++        this.dispatch("function-name:" + String(fn.name))
+       }
+ 
+       if (options.respectFunctionProperties) {
+-        this._object(fn);
++        this._object(fn)
+       }
+     },
+-    _number: function(number){
+-      return write('number:' + number.toString());
++    _number: function (number) {
++      return write('number:' + number.toString())
+     },
+-    _xml: function(xml){
+-      return write('xml:' + xml.toString());
++    _xml: function (xml) {
++      return write('xml:' + xml.toString())
+     },
+-    _null: function() {
+-      return write('Null');
++    _null: function () {
++      return write('Null')
+     },
+-    _undefined: function() {
+-      return write('Undefined');
++    _undefined: function () {
++      return write('Undefined')
+     },
+-    _regexp: function(regex){
+-      return write('regex:' + regex.toString());
++    _regexp: function (regex) {
++      return write('regex:' + regex.toString())
+     },
+-    _uint8array: function(arr){
+-      write('uint8array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _uint8array: function (arr) {
++      write('uint8array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _uint8clampedarray: function(arr){
+-      write('uint8clampedarray:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _uint8clampedarray: function (arr) {
++      write('uint8clampedarray:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _int8array: function(arr){
+-      write('int8array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _int8array: function (arr) {
++      write('int8array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _uint16array: function(arr){
+-      write('uint16array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _uint16array: function (arr) {
++      write('uint16array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _int16array: function(arr){
+-      write('int16array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _int16array: function (arr) {
++      write('int16array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _uint32array: function(arr){
+-      write('uint32array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _uint32array: function (arr) {
++      write('uint32array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _int32array: function(arr){
+-      write('int32array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _int32array: function (arr) {
++      write('int32array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _float32array: function(arr){
+-      write('float32array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _float32array: function (arr) {
++      write('float32array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _float64array: function(arr){
+-      write('float64array:');
+-      return this.dispatch(Array.prototype.slice.call(arr));
++    _float64array: function (arr) {
++      write('float64array:')
++      return this.dispatch(Array.prototype.slice.call(arr))
+     },
+-    _arraybuffer: function(arr){
+-      write('arraybuffer:');
+-      return this.dispatch(new Uint8Array(arr));
++    _arraybuffer: function (arr) {
++      write('arraybuffer:')
++      return this.dispatch(new Uint8Array(arr))
+     },
+-    _url: function(url) {
+-      return write('url:' + url.toString(), 'utf8');
++    _url: function (url) {
++      return write('url:' + url.toString(), 'utf8')
+     },
+-    _map: function(map) {
+-      write('map:');
+-      var arr = Array.from(map);
+-      return this._array(arr, options.unorderedSets !== false);
++    _map: function (map) {
++      write('map:')
++      var arr = Array.from(map)
++      return this._array(arr, options.unorderedSets !== false)
+     },
+-    _set: function(set) {
+-      write('set:');
+-      var arr = Array.from(set);
+-      return this._array(arr, options.unorderedSets !== false);
++    _set: function (set) {
++      write('set:')
++      var arr = Array.from(set)
++      return this._array(arr, options.unorderedSets !== false)
+     },
+-    _file: function(file) {
+-      write('file:');
+-      return this.dispatch([file.name, file.size, file.type, file.lastModfied]);
++    _file: function (file) {
++      write('file:')
++      return this.dispatch([file.name, file.size, file.type, file.lastModfied])
+     },
+-    _blob: function() {
++    _blob: function () {
+       if (options.ignoreUnknown) {
+-        return write('[blob]');
++        return write('[blob]')
+       }
+ 
+       throw Error('Hashing Blob objects is currently not supported\n' +
+         '(see https://github.com/puleos/object-hash/issues/26)\n' +
+-        'Use "options.replacer" or "options.ignoreUnknown"\n');
++        'Use "options.replacer" or "options.ignoreUnknown"\n')
+     },
+-    _domwindow: function() { return write('domwindow'); },
+-    _bigint: function(number){
+-      return write('bigint:' + number.toString());
++    _domwindow: function () { return write('domwindow') },
++    _bigint: function (number) {
++      return write('bigint:' + number.toString())
+     },
+     /* Node.js standard native objects */
+-    _process: function() { return write('process'); },
+-    _timer: function() { return write('timer'); },
+-    _pipe: function() { return write('pipe'); },
+-    _tcp: function() { return write('tcp'); },
+-    _udp: function() { return write('udp'); },
+-    _tty: function() { return write('tty'); },
+-    _statwatcher: function() { return write('statwatcher'); },
+-    _securecontext: function() { return write('securecontext'); },
+-    _connection: function() { return write('connection'); },
+-    _zlib: function() { return write('zlib'); },
+-    _context: function() { return write('context'); },
+-    _nodescript: function() { return write('nodescript'); },
+-    _httpparser: function() { return write('httpparser'); },
+-    _dataview: function() { return write('dataview'); },
+-    _signal: function() { return write('signal'); },
+-    _fsevent: function() { return write('fsevent'); },
+-    _tlswrap: function() { return write('tlswrap'); },
+-  };
++    _process: function () { return write('process') },
++    _timer: function () { return write('timer') },
++    _pipe: function () { return write('pipe') },
++    _tcp: function () { return write('tcp') },
++    _udp: function () { return write('udp') },
++    _tty: function () { return write('tty') },
++    _statwatcher: function () { return write('statwatcher') },
++    _securecontext: function () { return write('securecontext') },
++    _connection: function () { return write('connection') },
++    _zlib: function () { return write('zlib') },
++    _context: function () { return write('context') },
++    _nodescript: function () { return write('nodescript') },
++    _httpparser: function () { return write('httpparser') },
++    _dataview: function () { return write('dataview') },
++    _signal: function () { return write('signal') },
++    _fsevent: function () { return write('fsevent') },
++    _tlswrap: function () { return write('tlswrap') },
++  }
+ }
+ 
+ // Mini-implementation of stream.PassThrough
+@@ -438,16 +489,16 @@ function PassThrough() {
+   return {
+     buf: '',
+ 
+-    write: function(b) {
+-      this.buf += b;
++    write: function (b) {
++      this.buf += b
+     },
+ 
+-    end: function(b) {
+-      this.buf += b;
++    end: function (b) {
++      this.buf += b
+     },
+ 
+-    read: function() {
+-      return this.buf;
++    read: function () {
++      return this.buf
+     }
+-  };
++  }
+ }

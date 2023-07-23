@@ -1,0 +1,12 @@
+diff --git a/node_modules/langchain/dist/util/load.js b/node_modules/langchain/dist/util/load.js
+index e993007..5b44908 100644
+--- a/node_modules/langchain/dist/util/load.js
++++ b/node_modules/langchain/dist/util/load.js
+@@ -1,6 +1,6 @@
+ export const loadFromFile = async (uri, loader, values = {}) => {
+     try {
+-        const fs = await import("node:fs/promises");
++        // const fs = await import("node:fs/promises");
+         return loader(await fs.readFile(uri, { encoding: "utf-8" }), uri, values);
+     }
+     catch (e) {
