@@ -1,6 +1,7 @@
 import { Embeddings } from 'langchain/embeddings'
 import { VectorStore } from 'langchain/vectorstores'
-import { Document, InMemoryDocstore } from 'langchain/docstore'
+import { Document } from 'langchain/document'
+import { InMemoryDocstore } from 'langchain/stores/doc/in_memory'
 import init, { createIndex, runSearch, InitOutput } from './vector_search'
 import { config } from '../../../package.json'
 
@@ -27,7 +28,7 @@ export class WasmVectorStore extends VectorStore {
     if (!this.wasmModule) {
       await this.initWasmModule()
     }
-    const docstoreSize = this.docstore.count
+    const docstoreSize = (this.docstore as any).count
     const data = vectors.map((vector, i) => ({
       id: docstoreSize + i,
       embeddings: vector,
@@ -47,7 +48,11 @@ export class WasmVectorStore extends VectorStore {
     }
     const result: any[] = runSearch(this.index, query, k)
     console.log({ result, store: this.docstore })
-    return result.map(({ id, distance }) => [this.docstore.search(id.toString()), distance] as [Document, number])
+    return Promise.all(
+      result.map(
+        async ({ id, distance }) => [await this.docstore.search(id.toString()), distance] as [Document, number]
+      )
+    )
   }
 
   static async fromDocuments(

@@ -18,8 +18,8 @@ if (!Object.fromEntries) {
   })
 }
 
-if (!Object.hasOwn) {
-  Object.hasOwn = function (obj, prop) {
+if (!(Object as any).hasOwn) {
+  ;(Object as any).hasOwn = function (obj: any, prop: any) {
     return Object.prototype.hasOwnProperty.call(obj, prop)
   }
 }
