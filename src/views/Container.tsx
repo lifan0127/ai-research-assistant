@@ -11,6 +11,8 @@ import { BotIntermediateStep, BotIntermediateStepProps } from './components/mess
 import { Header } from './components/Header'
 import { Menu } from './components/Menu'
 import { Input } from './components/Input'
+import { ReleaseNote } from './components/ReleaseNote'
+import { Version } from './components/Version'
 import './style.css'
 
 export default function Container(props: any, ref: any) {
@@ -184,6 +186,7 @@ export default function Container(props: any, ref: any) {
         {__env__ === 'development' && (
           <TestButtons setUserInput={setUserInput} addMessage={addMessage} onClick={handleTestClick} />
         )}
+        {messages.length === 0 ? <ReleaseNote /> : null}
         {messages.map(({ type, ...props }) => {
           switch (type) {
             case 'USER_MESSAGE': {
@@ -199,6 +202,7 @@ export default function Container(props: any, ref: any) {
         })}
       </div>
       <Input onSubmit={handleSubmit} isLoading={isLoading} />
+      <Version />
     </div>
   )
 }
