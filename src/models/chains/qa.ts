@@ -207,7 +207,7 @@ interface loadQAChainInput {
 }
 
 export const loadQAChain = (params: loadQAChainInput) => {
-  const OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
+  const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,
@@ -262,7 +262,7 @@ class RetrievalQAChain extends BaseChain {
 }
 
 export const loadRetrievalQAChain = (params: loadQAChainInput) => {
-  const OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
+  const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,

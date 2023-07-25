@@ -21,7 +21,7 @@ import { ClarificationActionResponse, RoutingActionResponse, ExecutorActionRespo
 import { OutputActionParser } from '../utils/parsers'
 import { OPENAI_GPT_MODEL } from '../../constants'
 
-const OPENAI_API_KEY = Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string
+const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
 
 const llm = new ChatOpenAI({
   temperature: 0,
