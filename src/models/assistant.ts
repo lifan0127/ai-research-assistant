@@ -44,8 +44,8 @@ export class ResearchAssistant {
   }
 
   async call(input: string) {
-    const { output } = await this.router.call({ input })
     try {
+      const { output } = await this.router.call({ input })
       const { action, payload } = JSON.parse(output)
       // console.log({ action, payload: JSON.stringify(payload) })
       if (action === 'clarification') {
@@ -71,9 +71,25 @@ export class ResearchAssistant {
         }
       }
     } catch (error) {
+      const errorObj = serializeError(error)
+      if (errorObj.message?.includes('Incorrect API key provided')) {
+        return {
+          action: 'error',
+          payload: {
+            message: `
+#### OpenAI API key is required to use Aria.
+
+* Select _Edit_ from the top menu bar, and then select _Preferences_ from the dropdown menu.
+* On the top panel or the left-hand side panel, select _Aria_.
+* Locate the _OpenAI API key_ field and enter your API key in the text box.
+* Click the _Close_ button to save your chagne and __restart Zotero__.
+            `.trim(),
+          },
+        }
+      }
       const errorResponse = {
         action: 'error',
-        payload: { message: `Something went wrong: ${JSON.stringify(serializeError(error))}` },
+        payload: { message: `Something went wrong: ${JSON.stringify(errorObj)}` },
       }
       console.log({ errorResponse })
       return errorResponse

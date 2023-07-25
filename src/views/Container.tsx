@@ -4,7 +4,7 @@ import { TestButtons } from './components/test/testButtons'
 import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
 import { ResearchAssistant } from '../models/assistant'
-import { ClarificationActionResponse, ExecutorActionResponse } from '../models/utils/actions'
+import { ClarificationActionResponse, ErrorActionResponse, ExecutorActionResponse } from '../models/utils/actions'
 import { UserMessage, UserMessageProps } from './components/message/UserMessage'
 import { BotMessage, BotMessageProps } from './components/message/BotMessage'
 import { BotIntermediateStep, BotIntermediateStepProps } from './components/message/BotIntermediateStep'
@@ -109,11 +109,25 @@ export default function Container(props: any, ref: any) {
 
   useEffect(() => {
     function handleAction(
-      { action, payload }: ClarificationActionResponse | ExecutorActionResponse,
+      { action, payload }: ClarificationActionResponse | ErrorActionResponse | ExecutorActionResponse,
       isSubscribed: boolean
     ) {
       switch (action) {
         case 'clarification': {
+          const { message } = payload
+          const newBotMessage = {
+            type: 'BOT_MESSAGE' as const,
+            widget: 'MARKDOWN' as const,
+            input: {
+              content: message,
+            },
+          }
+          if (isSubscribed) {
+            addMessage(newBotMessage)
+          }
+          return
+        }
+        case 'error': {
           const { message } = payload
           const newBotMessage = {
             type: 'BOT_MESSAGE' as const,

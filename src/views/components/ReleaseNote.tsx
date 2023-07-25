@@ -15,15 +15,15 @@ export function ReleaseNote({}: ReleaseNoteProps) {
       </h3>
       <h4 className="text-base font-bold mb-2">New Features</h4>
       <ul>
-        {features.map(feature => {
-          return <li>{feature}</li>
+        {features.map((feature, i) => {
+          return <li key={`feature-${i}`}>{feature}</li>
         })}
       </ul>
       <h4 className="text-base font-bold mb-2">Bug Fixes</h4>
       {bugFixes.length ? (
         <ul>
-          {bugFixes.map(fix => {
-            return <li>{fix}</li>
+          {bugFixes.map((fix, i) => {
+            return <li key={`bug-fix-${i}`}>{fix}</li>
           })}
         </ul>
       ) : (
