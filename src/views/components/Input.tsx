@@ -7,7 +7,6 @@ interface InputProps {
 }
 
 export function Input({ isLoading, onSubmit }: InputProps) {
-  const [lastValue, setLastValue] = useState('')
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -24,14 +23,13 @@ export function Input({ isLoading, onSubmit }: InputProps) {
   }
 
   function handleKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (inputRef.current === null || event.currentTarget.value === lastValue) {
+    if (inputRef.current === null) {
       return
     }
     const ref = inputRef.current as HTMLTextAreaElement
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
       onSubmit(event.currentTarget.value)
-      setLastValue(event.currentTarget.value)
       event.currentTarget.value = ''
       ref.style.height = '1.5rem' // reset height to h-6
     } else {

@@ -15,8 +15,12 @@ import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
 
+interface UserInput {
+  content: string
+}
+
 export default function Container(props: any, ref: any) {
-  const [userInput, setUserInput] = useState<string>()
+  const [userInput, setUserInput] = useState<UserInput>()
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -81,6 +85,11 @@ export default function Container(props: any, ref: any) {
     },
     handleZoteroActionEnd: () => {},
   }
+  const errorCallbacks = {
+    handleErrorEnd: () => {
+      setIsLoading(false)
+    },
+  }
   const menuItems = [
     {
       label: 'Clear chat history',
@@ -96,7 +105,10 @@ export default function Container(props: any, ref: any) {
       },
     },
   ]
-  const assistant = useMemo(() => new ResearchAssistant({ langChainCallbackManager, zoteroCallbacks }), [])
+  const assistant = useMemo(
+    () => new ResearchAssistant({ langChainCallbackManager, zoteroCallbacks, errorCallbacks }),
+    []
+  )
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -128,12 +140,12 @@ export default function Container(props: any, ref: any) {
           return
         }
         case 'error': {
-          const { message } = payload
+          const { error } = payload
           const newBotMessage = {
             type: 'BOT_MESSAGE' as const,
-            widget: 'MARKDOWN' as const,
+            widget: 'ERROR' as const,
             input: {
-              content: message,
+              error,
             },
           }
           if (isSubscribed) {
@@ -157,7 +169,7 @@ export default function Container(props: any, ref: any) {
     }
     let isSubscribed = true
     if (userInput) {
-      assistant.call(userInput).then(response => {
+      assistant.call(userInput.content).then(response => {
         try {
           handleAction(response as ClarificationActionResponse | ExecutorActionResponse, isSubscribed)
         } catch (e) {
@@ -179,9 +191,9 @@ export default function Container(props: any, ref: any) {
     addMessage(newUserMessage)
 
     if (isLoading) {
-      setUserInput(userInput + '\n' + content)
+      setUserInput({ content: userInput?.content + '\n' + content })
     } else {
-      setUserInput(content)
+      setUserInput({ content })
     }
   }
 

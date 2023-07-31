@@ -233,7 +233,7 @@ const testMessages = [
 ]
 
 interface TestButtonsProps {
-  setUserInput: (input: string) => void
+  setUserInput: (input: { content: string }) => void
   addMessage: (message: Partial<Message>) => void
   onClick?: () => void
 }
@@ -258,7 +258,7 @@ export function TestButtons({ setUserInput, addMessage, onClick }: TestButtonsPr
           onClick={() => {
             addMessage(message)
             if (message.type === 'USER_MESSAGE') {
-              setUserInput(message.content)
+              setUserInput({ content: message.content })
             }
           }}
         >
