@@ -16,14 +16,22 @@ export function ReleaseNote({}: ReleaseNoteProps) {
       <h4 className="text-base font-bold mb-2">New Features</h4>
       <ul>
         {features.map((feature, i) => {
-          return <li key={`feature-${i}`}>{feature}</li>
+          return (
+            <li key={`feature-${i}`} className="mb-2 last-of-type:mb-0">
+              {feature}
+            </li>
+          )
         })}
       </ul>
       <h4 className="text-base font-bold mb-2">Bug Fixes</h4>
       {bugFixes.length ? (
         <ul>
           {bugFixes.map((fix, i) => {
-            return <li key={`bug-fix-${i}`}>{fix}</li>
+            return (
+              <li key={`bug-fix-${i}`} className="mb-2 last-of-type:mb-0">
+                {fix}
+              </li>
+            )
           })}
         </ul>
       ) : (

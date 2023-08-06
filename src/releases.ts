@@ -1,5 +1,15 @@
 const releases = [
   {
+    date: '2021-08-06',
+    version: '0.2.0',
+    features: [
+      'Aria is now displayed in a separate dialog window, facilitating positioning and resizing.',
+      'Support for copying and pasting chat messages, in both markdown and rich text (HTML) formats.',
+      'Users now have the ability to edit their previous chat messages.',
+    ],
+    bugFixes: ['Various bug fixes and performance improvements.'],
+  },
+  {
     date: '2021-07-23',
     version: '0.1.2',
     features: [
