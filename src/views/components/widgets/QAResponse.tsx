@@ -1,5 +1,6 @@
 import React from 'react'
 import MarkdownReact from 'marked-react'
+import { marked } from 'marked'
 import { createCitations } from '../../../models/chains/qa'
 
 export interface QAResponseProps {
@@ -18,7 +19,7 @@ export function QAResponse({ answer, sources }: QAResponseProps) {
       <MarkdownReact>{answer}</MarkdownReact>
       {sources.length > 0 ? (
         <div className="text-sm">
-          <h4 className="p-0 m-0 mb-1 text-tomato">References</h4>
+          <h4 className="p-0 m-0 !mt-4 mb-1 text-tomato">References</h4>
           <ol className="list-none p-0">
             {sources.map(({ itemId, bib }) => {
               return (
@@ -34,4 +35,19 @@ export function QAResponse({ answer, sources }: QAResponseProps) {
       ) : null}
     </div>
   )
+}
+
+export function copyQAResponse({ answer, sources = [] }: QAResponseProps) {
+  const textContent =
+    sources.length === 0
+      ? answer
+      : `
+${answer}
+
+#### References
+
+${sources.map(({ bib }) => bib).join('\n')}
+  `.trim()
+  const htmlContent = marked(textContent)
+  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }

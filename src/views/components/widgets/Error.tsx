@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import MarkdownReact from 'marked-react'
 import { serializeError } from 'serialize-error'
+import { marked } from 'marked'
 import { OPENAI_GPT_MODEL } from '../../../constants'
 
 interface ErrorContainerProps {
@@ -92,4 +93,10 @@ export function Error({ error }: ErrorProps) {
       </MarkdownReact>
     </ErrorContainer>
   )
+}
+
+export function copyError({ error }: ErrorProps) {
+  const textContent = '<pre>' + JSON.stringify(serializeError(error), null, 2) + '</pre>'
+  const htmlContent = marked(textContent)
+  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }

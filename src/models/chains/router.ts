@@ -114,15 +114,7 @@ Your job is to analyze a user's request and use the routing function to invoke f
   `.trim()
   ),
   new MessagesPlaceholder('history'),
-  HumanMessagePromptTemplate.fromTemplate(
-    `
-    {history}
-    << INPUT >>
-    {input}
-
-    << OUTPUT >>
-  `.trim()
-  ),
+  HumanMessagePromptTemplate.fromTemplate(`{input}`),
 ])
 
 interface createRouterInput {

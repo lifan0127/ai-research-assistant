@@ -18,6 +18,10 @@ class Addon {
       columns: Array<ColumnOptions>
       rows: Array<{ [dataKey: string]: string }>
     }
+    popup: {
+      window?: Window
+      messages: any[]
+    }
   }
   // Lifecycle hooks
   public hooks: typeof hooks
@@ -29,7 +33,9 @@ class Addon {
       alive: true,
       env: __env__,
       ztoolkit: new CustomToolkit(),
-      // ztoolkit: new ZoteroToolkit(),
+      popup: {
+        messages: [],
+      },
     }
     this.hooks = hooks
     this.api = {}
@@ -59,6 +65,7 @@ import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
 import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
 import { ReactRootManager } from './views/root'
+
 export class CustomToolkit extends BasicTool {
   UI: UITool
   PreferencePane: PreferencePaneManager

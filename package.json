@@ -58,6 +58,7 @@
     "patch-package": "^7.0.0",
     "search-query-parser": "^1.6.0",
     "serialize-error": "^11.0.0",
+    "tablemark": "^3.0.0",
     "typeorm": "^0.3.17",
     "zotero-plugin-toolkit": "^2.1.5"
   },

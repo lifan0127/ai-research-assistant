@@ -7,6 +7,7 @@ export interface ClarificationActionResponse extends BaseActionResponse {
   action: 'clarification'
   payload: {
     message: string
+    _raw: string
   }
 }
 
@@ -15,6 +16,7 @@ export interface ErrorActionResponse extends BaseActionResponse {
   payload: {
     message: string
     error: object
+    _raw: string
   }
 }
 
@@ -23,6 +25,7 @@ export interface RoutingActionResponse extends BaseActionResponse {
   payload: {
     route: string
     input: string
+    _raw: string
   }
 }
 
@@ -36,6 +39,7 @@ export interface SearchActionResponse extends BaseActionResponse {
       from: number
       to: number
     }
+    _raw: string
   }
 }
 
@@ -44,6 +48,7 @@ export interface QAActionResponse extends BaseActionResponse {
   payload: {
     answer: string
     sources: string[]
+    _raw: string
   }
 }
 
@@ -52,5 +57,6 @@ export interface ExecutorActionResponse extends BaseActionResponse {
   payload: {
     widget: 'MARKDOWN' | 'SEARCH_RESULTS' | 'QA_RESPONSE'
     input: object
+    _raw: string
   }
 }

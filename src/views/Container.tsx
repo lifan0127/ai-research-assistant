@@ -14,13 +14,19 @@ import { Input } from './components/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
+// import { Portal } from './Portal'
 
 interface UserInput {
   content: string
 }
 
+let visibility: 'visible' | 'hidden' = 'visible'
+export let setVisibility: any
+
 export default function Container(props: any, ref: any) {
+  ;[visibility, setVisibility] = useState(visibility)
   const [userInput, setUserInput] = useState<UserInput>()
+  const [displayMode, setDisplayMode] = useState<'normal' | 'minimal'>('normal')
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -104,6 +110,12 @@ export default function Container(props: any, ref: any) {
         Zotero.launchURL(`https://github.com/lifan0127/ai-research-assistant/issues`)
       },
     },
+    {
+      label: 'Close',
+      handleClick: () => {
+        setVisibility('hidden')
+      },
+    },
   ]
   const assistant = useMemo(
     () => new ResearchAssistant({ langChainCallbackManager, zoteroCallbacks, errorCallbacks }),
@@ -126,13 +138,14 @@ export default function Container(props: any, ref: any) {
     ) {
       switch (action) {
         case 'clarification': {
-          const { message } = payload
+          const { message, _raw } = payload
           const newBotMessage = {
             type: 'BOT_MESSAGE' as const,
             widget: 'MARKDOWN' as const,
             input: {
               content: message,
             },
+            _raw,
           }
           if (isSubscribed) {
             addMessage(newBotMessage)
@@ -140,13 +153,14 @@ export default function Container(props: any, ref: any) {
           return
         }
         case 'error': {
-          const { error } = payload
+          const { error, _raw } = payload
           const newBotMessage = {
             type: 'BOT_MESSAGE' as const,
             widget: 'ERROR' as const,
             input: {
               error,
             },
+            _raw,
           }
           if (isSubscribed) {
             addMessage(newBotMessage)
@@ -154,11 +168,12 @@ export default function Container(props: any, ref: any) {
           return
         }
         default: {
-          const { widget, input } = payload
+          const { widget, input, _raw } = payload
           const newBotMessage = {
             type: 'BOT_MESSAGE' as const,
             widget,
             input: input as BotMessageProps['input'],
+            _raw,
           }
           if (isSubscribed) {
             addMessage(newBotMessage)
@@ -182,18 +197,28 @@ export default function Container(props: any, ref: any) {
     }
   }, [userInput])
 
-  async function handleSubmit(content: string) {
-    const newUserMessage = {
-      type: 'USER_MESSAGE' as const,
-      content,
-    }
-
-    addMessage(newUserMessage)
-
-    if (isLoading) {
-      setUserInput({ content: userInput?.content + '\n' + content })
-    } else {
+  async function handleSubmit(content: string, id?: string) {
+    if (id) {
+      const updatedUserMessage = {
+        type: 'USER_MESSAGE' as const,
+        id,
+        content,
+      }
+      assistant.rebuildMemory(updateMessage(updatedUserMessage))
       setUserInput({ content })
+    } else {
+      const newUserMessage = {
+        type: 'USER_MESSAGE' as const,
+        content,
+      }
+
+      addMessage(newUserMessage)
+
+      if (isLoading) {
+        setUserInput({ content: userInput?.content + '\n' + content })
+      } else {
+        setUserInput({ content })
+      }
     }
   }
 
@@ -202,9 +227,9 @@ export default function Container(props: any, ref: any) {
   }
 
   return (
-    <div className="overflow-hidden px-3 py-4 fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3/5 h-4/5 min-w-720 rounded-xl bg-gradient-170 from-red-50 to-blue-50 shadow-[0_1.8px_7.3px_0_rgba(0,0,0,0.071),0_6.3px_24.7px_0_rgba(0,0,0,0.112),0_30px_90px_0_rgba(0,0,0,0.2)]">
+    <div className="fixed m-0 h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50" style={{ visibility }}>
       <div
-        className="w-full h-[calc(100%-56px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
+        className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
         ref={conversationRef}
       >
         <Header />
@@ -216,7 +241,7 @@ export default function Container(props: any, ref: any) {
         {messages.map(({ type, ...props }) => {
           switch (type) {
             case 'USER_MESSAGE': {
-              return <UserMessage key={props.id} {...(props as UserMessageProps)} />
+              return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
             }
             case 'BOT_MESSAGE': {
               return <BotMessage key={props.id} {...(props as BotMessageProps)} />

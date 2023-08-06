@@ -6,6 +6,8 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { marked } from 'marked'
+import tablemark from 'tablemark'
 import { searchZotero } from '../../../models/chains/search'
 
 interface SearchResult {
@@ -129,4 +131,28 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
       </div>
     </div>
   )
+}
+
+export function copySearchResults({ query: { keywords, authors, tags, years }, count, results }: SearchResultsProps) {
+  const keywordsStr = keywords.length > 0 ? `__Keywords:__ ${keywords.join(', ')}\n\n` : ''
+  const authorsStr = authors && authors.length > 0 ? `__Authors:__ ${authors.join(', ')}\n\n` : ''
+  const tagsStr = tags && tags.length > 0 ? `__Tags:__ ${tags.join(', ')}\n\n` : ''
+  const yearsStr = years
+    ? years.from
+      ? years.to
+        ? `__Date Range:__ ${years.from} - ${years.to}\n\n`
+        : `__Date Range:__ From ${years.from}\n\n`
+      : `__Date Range:__ To ${years.to}\n\n`
+    : ''
+  const textContent = `
+#### Search Strategy
+
+${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
+
+#### Results (${count > 25 ? `${count}, limited to the first 25` : count})
+
+${tablemark(results, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
+  `.trim()
+  const htmlContent = marked(textContent)
+  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }

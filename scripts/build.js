@@ -106,7 +106,7 @@ async function main() {
   await esbuild
     .build({
       entryPoints: [
-        'src/index.ts'
+        'src/index.ts',
       ],
       plugins: [
         NodeGlobalsPolyfillPlugin({

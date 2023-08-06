@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://__addonRef__/content/scripts/index.css" type="text/css"?>
+<xul:dialog id="aria" title="Aria: AI Research Assistant" buttons="none"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns="http://www.w3.org/1999/xhtml"
+  style="padding: 0"
+  minwidth="420"
+  minheight="560"
+>
+  <xul:script src="chrome://zotero/content/include.js" />
+  <xul:vbox>
+    <div id="aria-entry-point"></div>
+  </xul:vbox>
+
+  <!-- <script type="application/javascript" src="chrome://aria/content/scripts/aria.js"></script> -->
+</xul:dialog>

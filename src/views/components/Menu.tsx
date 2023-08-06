@@ -1,5 +1,6 @@
-import React from 'react'
-import { Bars3Icon } from '@heroicons/react/20/solid'
+import React, { useState } from 'react'
+import { Bars3Icon } from '@heroicons/react/24/solid'
+import { useOutsideClick } from '../hooks/useOutsideClick'
 
 interface MenuProps {
   items: {
@@ -9,22 +10,15 @@ interface MenuProps {
 }
 
 export function Menu({ items }: MenuProps) {
-  const [open, setOpen] = React.useState(false)
-
-  function handleOpen() {
-    setOpen(!open)
-  }
-
-  function selectOption(onClick: () => void) {
-    onClick()
-    setOpen(!open)
-  }
+  const [open, setOpen] = useState(false)
+  const ref = useOutsideClick(() => setOpen(false))
 
   return (
     <div className="fixed top-4 right-6 z-10">
       <div className="relative w-9">
         <button
-          onClick={handleOpen}
+          ref={ref}
+          onClick={() => setOpen(!open)}
           className="border-transparent border-solid p-0 rounded-md opacity-50 hover:opacity-90 hover:bg-white"
         >
           <Bars3Icon />
@@ -39,10 +33,7 @@ export function Menu({ items }: MenuProps) {
         {items.map(({ label, handleClick }) => {
           return (
             <li key={label}>
-              <button
-                className="text-left w-full block px-4 py-2 whitespace-nowrap border-none"
-                onClick={() => selectOption(handleClick)}
-              >
+              <button className="text-left w-full block px-4 py-2 whitespace-nowrap border-none" onClick={handleClick}>
                 {label}
               </button>
             </li>

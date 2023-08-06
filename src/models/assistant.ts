@@ -1,10 +1,12 @@
 import { BaseChain } from 'langchain/chains'
 import { BaseChatMemory, BufferWindowMemory } from 'langchain/memory'
-import { Routes, createRouter, createRouteFunctions } from './chains/router'
 import { CallbackManager } from 'langchain/callbacks'
+import { serializeError } from 'serialize-error'
+import { Routes, createRouter, createRouteFunctions } from './chains/router'
 import { loadSearchChain } from './chains/search'
 import { loadRetrievalQAChain } from './chains/qa'
 import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
+import { Message } from '../views/hooks/useMessages'
 
 interface ResearchAssistantFields {
   langChainCallbackManager: CallbackManager
@@ -47,10 +49,12 @@ export class ResearchAssistant {
 
   async call(input: string) {
     try {
+      // throw new Error('Test Error')
       const { output } = await this.router.call({ input })
       const { action, payload } = JSON.parse(output)
       // console.log({ action, payload: JSON.stringify(payload) })
       if (action === 'clarification') {
+        payload._raw = output
         return { action, payload }
       }
       const { route, input: updatedInput } = payload
@@ -60,14 +64,11 @@ export class ResearchAssistant {
       const { output: executorOutput } = await executor.call({ input: updatedInput })
 
       switch (route) {
-        case 'search': {
-          const { action, payload } = JSON.parse(executorOutput)
-          // console.log({ route, action, payload: JSON.stringify(payload) })
-          return { action, payload }
-        }
+        case 'search':
         case 'qa': {
           const { action, payload } = JSON.parse(executorOutput)
-          console.log({ route, action, payload: JSON.stringify(payload) })
+          // console.log({ route, action, payload: JSON.stringify(payload) })
+          payload._raw = executorOutput
           return { action, payload }
         }
       }
@@ -77,6 +78,7 @@ export class ResearchAssistant {
         action: 'error',
         payload: {
           error,
+          _raw: JSON.stringify(serializeError(error), null, 2),
         },
       }
     }
@@ -84,5 +86,19 @@ export class ResearchAssistant {
 
   resetMemory() {
     this.memory.chatHistory.clear()
+  }
+
+  rebuildMemory(messages: Message[]) {
+    this.memory.chatHistory.clear()
+    messages.forEach(message => {
+      switch (message.type) {
+        case 'USER_MESSAGE': {
+          return this.memory.chatHistory.addUserMessage(message.content)
+        }
+        case 'BOT_MESSAGE': {
+          return this.memory.chatHistory.addAIChatMessage(message._raw)
+        }
+      }
+    })
   }
 }

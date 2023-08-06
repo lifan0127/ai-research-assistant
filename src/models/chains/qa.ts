@@ -165,7 +165,7 @@ export class QAChain extends BaseChain {
       return output
     }
     console.log({ pos: 'qa-chain', action, payload })
-    const { answer, sources } = payload as QAActionResponse['payload']
+    const { answer, sources = [] } = payload as QAActionResponse['payload']
     const itemIds = sources.reduce((all: number[], source) => {
       try {
         const itemId = parseInt(source)
