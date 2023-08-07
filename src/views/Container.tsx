@@ -227,7 +227,10 @@ export default function Container(props: any, ref: any) {
   }
 
   return (
-    <div className="fixed m-0 h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50" style={{ visibility }}>
+    <div
+      className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50"
+      style={{ visibility }}
+    >
       <div
         className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
         ref={conversationRef}
