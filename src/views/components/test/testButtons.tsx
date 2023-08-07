@@ -239,16 +239,6 @@ interface TestButtonsProps {
 }
 
 export function TestButtons({ setUserInput, addMessage, onClick }: TestButtonsProps) {
-  async function handleSearch() {
-    console.log(
-      await searchZotero(
-        { keywords: [''], authors: ['Oliveira'], tags: [], years: { from: 1900, to: 2023 } },
-        { handleZoteroActionStart: () => {}, handleZoteroActionEnd: () => {} },
-        'search'
-      )
-    )
-  }
-
   return (
     <div className="fixed top-2 right-16 z-10">
       {testMessages.map(({ label, message }, i) => (
@@ -265,9 +255,6 @@ export function TestButtons({ setUserInput, addMessage, onClick }: TestButtonsPr
           {label}
         </button>
       ))}
-      <button className="p-0 text-xs" onClick={handleSearch}>
-        Search
-      </button>
       <button className="p-0 text-xs" onClick={onClick}>
         Click
       </button>
