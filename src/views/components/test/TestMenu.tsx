@@ -1,6 +1,8 @@
 import React from 'react'
-import { searchZotero } from '../../../models/chains/search'
+import { WrenchIcon } from '@heroicons/react/24/solid'
+import { Menu } from '../menu/Menu'
 import { Message } from '../../hooks/useMessages'
+import { ResearchAssistant } from '../../../models/assistant'
 
 const results: any = [
   {
@@ -155,30 +157,37 @@ const results: any = [
 
 const testMessages = [
   {
+    type: 'BUTTON' as const,
     label: 'User hello',
     message: { type: 'USER_MESSAGE' as const, content: 'Hello!' },
   },
   {
+    type: 'BUTTON' as const,
     label: 'Search ML',
     message: { type: 'USER_MESSAGE' as const, content: 'Find some papers on machine learning.' },
   },
   {
+    type: 'BUTTON' as const,
     label: 'Unclear Search',
     message: { type: 'USER_MESSAGE' as const, content: 'Can you help me search for papers?' },
   },
   {
+    type: 'BUTTON' as const,
     label: 'QA ML',
     message: { type: 'USER_MESSAGE' as const, content: 'How to use machine learning for materials discovery?' },
   },
   {
+    type: 'BUTTON' as const,
     label: 'QA Unknown',
     message: { type: 'USER_MESSAGE' as const, content: 'How to use knowledge graphs in chemistry?' },
   },
   {
+    type: 'BUTTON' as const,
     label: 'Summarize',
     message: { type: 'USER_MESSAGE' as const, content: 'Summarize the search results.' },
   },
   // {
+  //   type: 'BUTTON' as const,
   //   label: 'Bot lengthy',
   //   message: {
   //     type: 'BOT_MESSAGE' as const,
@@ -190,6 +199,7 @@ const testMessages = [
   //   },
   // },
   // {
+  //   type: 'BUTTON' as const,
   //   label: 'Bot search output',
   //   message: {
   //     type: 'BOT_MESSAGE' as const,
@@ -210,6 +220,7 @@ const testMessages = [
   //   },
   // },
   {
+    type: 'BUTTON' as const,
     label: 'Bot QA output',
     message: {
       type: 'BOT_MESSAGE' as const,
@@ -232,32 +243,24 @@ const testMessages = [
   },
 ]
 
-interface TestButtonsProps {
+interface TestMenuProps {
   setUserInput: (input: { content: string }) => void
   addMessage: (message: Partial<Message>) => void
-  onClick?: () => void
+  assistant: ResearchAssistant
 }
 
-export function TestButtons({ setUserInput, addMessage, onClick }: TestButtonsProps) {
-  return (
-    <div className="fixed top-2 right-16 z-10">
-      {testMessages.map(({ label, message }, i) => (
-        <button
-          key={`test-message-${i}`}
-          className="p-0 text-xs"
-          onClick={() => {
-            addMessage(message)
-            if (message.type === 'USER_MESSAGE') {
-              setUserInput({ content: message.content })
-            }
-          }}
-        >
-          {label}
-        </button>
-      ))}
-      <button className="p-0 text-xs" onClick={onClick}>
-        Click
-      </button>
-    </div>
-  )
+export function TestMenu({ setUserInput, addMessage, assistant }: TestMenuProps) {
+  const items = [
+    ...testMessages.map(({ label, message }) => ({
+      type: 'BUTTON' as const,
+      label,
+      handleClick: () => {
+        addMessage(message)
+        if (message.type === 'USER_MESSAGE') {
+          setUserInput({ content: message.content })
+        }
+      },
+    })),
+  ]
+  return <Menu Icon={WrenchIcon} position={'top-4 right-16'} items={items} />
 }

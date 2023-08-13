@@ -79,6 +79,7 @@ export class ReactRoot {
       `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top}`,
       windowArgs
     )
+    // Assign the dialog to the addon object so that it can be accessed from within the addon
     addon.data.popup.window = dialog
     // await windowArgs._initPromise.promise
     this.dialog = dialog

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useMessages } from './hooks/useMessages'
-import { TestButtons } from './components/test/testButtons'
+import { TestMenu } from './components/test/TestMenu'
 import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
 import { ResearchAssistant } from '../models/assistant'
@@ -9,7 +9,7 @@ import { UserMessage, UserMessageProps } from './components/message/UserMessage'
 import { BotMessage, BotMessageProps } from './components/message/BotMessage'
 import { BotIntermediateStep, BotIntermediateStepProps } from './components/message/BotIntermediateStep'
 import { Header } from './components/Header'
-import { Menu } from './components/Menu'
+import { MainMenu } from './components/menu/MainMenu'
 import { Input } from './components/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
@@ -20,13 +20,8 @@ interface UserInput {
   content: string
 }
 
-let visibility: 'visible' | 'hidden' = 'visible'
-export let setVisibility: any
-
 export default function Container(props: any, ref: any) {
-  ;[visibility, setVisibility] = useState(visibility)
   const [userInput, setUserInput] = useState<UserInput>()
-  const [displayMode, setDisplayMode] = useState<'normal' | 'minimal'>('normal')
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -96,27 +91,7 @@ export default function Container(props: any, ref: any) {
       setIsLoading(false)
     },
   }
-  const menuItems = [
-    {
-      label: 'Clear chat history',
-      handleClick: () => {
-        clearMessages()
-        assistant.resetMemory()
-      },
-    },
-    {
-      label: 'Feedback',
-      handleClick: () => {
-        Zotero.launchURL(`https://github.com/lifan0127/ai-research-assistant/issues`)
-      },
-    },
-    {
-      label: 'Close',
-      handleClick: () => {
-        setVisibility('hidden')
-      },
-    },
-  ]
+
   const assistant = useMemo(
     () => new ResearchAssistant({ langChainCallbackManager, zoteroCallbacks, errorCallbacks }),
     []
@@ -222,23 +197,16 @@ export default function Container(props: any, ref: any) {
     }
   }
 
-  async function handleTestClick() {
-    await assistant.call('Hello!')
-  }
-
   return (
-    <div
-      className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50"
-      style={{ visibility }}
-    >
+    <div className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50">
       <div
         className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
         ref={conversationRef}
       >
         <Header />
-        <Menu items={menuItems} />
+        <MainMenu assistant={assistant} clearMessages={clearMessages} />
         {__env__ === 'development' && (
-          <TestButtons setUserInput={setUserInput} addMessage={addMessage} onClick={handleTestClick} />
+          <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
         )}
         {messages.length === 0 ? <ReleaseNote /> : null}
         {messages.map(({ type, ...props }) => {
