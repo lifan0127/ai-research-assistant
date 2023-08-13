@@ -97,7 +97,7 @@ export function UserMessage({ id, content, onSubmit }: UserMessageProps) {
         </div>
       )}
       {displayMenu && (
-        <div className={`absolute pb-3 text-sm -top-8 ${isShortMessage ? 'right-0' : 'left-0'}`}>
+        <div className={`absolute pb-3 text-sm -top-8 ${isShortMessage ? 'right-0' : 'left-0 pr-12'}`}>
           <div className="bg-white mb-3 rounded border border-neutral-500 shadow-md text-black">
             <span className="inline-flex rounded-md shadow-sm">
               <button
