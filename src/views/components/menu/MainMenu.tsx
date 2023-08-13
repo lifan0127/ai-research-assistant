@@ -1,30 +1,21 @@
 import React from 'react'
 import { Bars3Icon } from '@heroicons/react/24/outline'
 import { ResearchAssistant } from '../../../models/assistant'
+import { useDialogControl } from '../../hooks/useDialogControl'
 import { Menu } from './Menu'
 
 interface MenuProps {
   assistant: ResearchAssistant
+  dialog: ReturnType<typeof useDialogControl>
   clearMessages: () => void
 }
 
-export function MainMenu({ assistant, clearMessages }: MenuProps) {
-  function minimize() {
-    const dialog = addon.data.popup.window as Window
-    dialog.resizeTo(420, 640)
-
-    // Determine the coordinates for the lower right corner with 20-pixel margin
-    const mainWindow = Zotero.getMainWindow()
-    const x = mainWindow.screenX + mainWindow.innerWidth - dialog.outerWidth - 20
-    const y = mainWindow.screenY + mainWindow.innerHeight - dialog.outerHeight - 20
-    setTimeout(() => dialog.moveTo(x, y), 0)
-  }
-
+export function MainMenu({ assistant, dialog, clearMessages }: MenuProps) {
   const items = [
     {
       type: 'BUTTON' as const,
-      label: 'Minimize window',
-      handleClick: minimize,
+      label: dialog.mode === 'NORMAL' ? 'Minimize window' : 'Restore window',
+      handleClick: dialog.mode === 'NORMAL' ? dialog.minimize : dialog.restore,
     },
     {
       type: 'BUTTON' as const,
@@ -45,7 +36,6 @@ export function MainMenu({ assistant, clearMessages }: MenuProps) {
       type: 'BUTTON' as const,
       label: 'Close',
       handleClick: () => {
-        const dialog = addon.data.popup.window as Window
         dialog.close()
       },
     },

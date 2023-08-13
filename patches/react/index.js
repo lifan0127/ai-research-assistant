@@ -1,10 +1,11 @@
 const React = Zotero.getMainWindow().require('react')
-const { Fragment, useState, useEffect, useRef, useCallback, useReducer, useMemo, useImperativeHandle, createContext } = React
+const { Fragment, useState, useEffect, useLayoutEffect, useRef, useCallback, useReducer, useMemo, useImperativeHandle, createContext } = React
 
 module.exports = React
 exports.Fragment = Fragment
 exports.useState = useState
 exports.useEffect = useEffect
+exports.useLayoutEffect = useLayoutEffect
 exports.useRef = useRef
 exports.useCallback = useCallback
 exports.useReducer = useReducer

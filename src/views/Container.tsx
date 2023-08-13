@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useMessages } from './hooks/useMessages'
+import { useDialogControl } from './hooks/useDialogControl'
 import { TestMenu } from './components/test/TestMenu'
 import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
@@ -14,7 +15,6 @@ import { Input } from './components/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
-// import { Portal } from './Portal'
 
 interface UserInput {
   content: string
@@ -22,6 +22,7 @@ interface UserInput {
 
 export default function Container(props: any, ref: any) {
   const [userInput, setUserInput] = useState<UserInput>()
+  const dialog = useDialogControl()
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -204,7 +205,7 @@ export default function Container(props: any, ref: any) {
         ref={conversationRef}
       >
         <Header />
-        <MainMenu assistant={assistant} clearMessages={clearMessages} />
+        <MainMenu assistant={assistant} clearMessages={clearMessages} dialog={dialog} />
         {__env__ === 'development' && (
           <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
         )}
