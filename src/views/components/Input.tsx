@@ -27,7 +27,7 @@ export const InputBox = forwardRef(function InputBox({ onSubmit, id, content }: 
   }
 
   function handleKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (inputRef.current === null) {
+    if (inputRef.current === null || event.currentTarget.value === '') {
       return
     }
     const current = inputRef.current as HTMLTextAreaElement
