@@ -10,3 +10,16 @@ index e993007..5b44908 100644
          return loader(await fs.readFile(uri, { encoding: "utf-8" }), uri, values);
      }
      catch (e) {
+diff --git a/node_modules/langchain/dist/util/stream.js b/node_modules/langchain/dist/util/stream.js
+index a7368e3..548f455 100644
+--- a/node_modules/langchain/dist/util/stream.js
++++ b/node_modules/langchain/dist/util/stream.js
+@@ -38,6 +38,8 @@ stream, preventCancel = false) {
+         },
+     };
+ }
++
++class ReadableStream {}
+ export class IterableReadableStream extends ReadableStream {
+     constructor() {
+         super(...arguments);

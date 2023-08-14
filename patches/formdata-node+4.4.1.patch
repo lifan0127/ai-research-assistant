@@ -1,0 +1,13 @@
+diff --git a/node_modules/formdata-node/lib/esm/fileFromPath.js b/node_modules/formdata-node/lib/esm/fileFromPath.js
+index 30ab35e..494e3ee 100644
+--- a/node_modules/formdata-node/lib/esm/fileFromPath.js
++++ b/node_modules/formdata-node/lib/esm/fileFromPath.js
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+ var _FileFromPath_path, _FileFromPath_start;
+-import { statSync, createReadStream, promises as fs } from "fs";
++// import { statSync, createReadStream, promises as fs } from "fs";
+ import { basename } from "path";
+ import DOMException from "node-domexception";
+ import { File } from "./File.js";

@@ -40,4 +40,16 @@ export const fsPromises = {
       throw error
     }
   },
+
+  statSync: function () {},
+
+  createReadStream: function () {},
+
+  ReadStream: class {
+    constructor() {}
+
+    on() {}
+
+    read() {}
+  },
 }
