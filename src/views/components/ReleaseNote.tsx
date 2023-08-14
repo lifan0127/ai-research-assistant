@@ -9,7 +9,7 @@ export function ReleaseNote({}: ReleaseNoteProps) {
   const year = dateObj.getFullYear()
   const month = dateObj.toLocaleString('default', { month: 'long' })
   return (
-    <div className="mx-24 my-12 px-8 py-4 text-gray-400 bg-white bg-opacity-50">
+    <div className="mx-0 sm:mx-24 my-12 px-8 py-4 text-gray-400 bg-white bg-opacity-50">
       <h3 className="text-lg font-bold mt-2">
         {month} {year} Release (Version: {version})
       </h3>

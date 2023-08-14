@@ -60,7 +60,7 @@ function copyBotMessage({ widget, input }: BotMessageProps) {
 export function BotMessage(props: BotMessageProps) {
   const [displayMenu, setDisplayMenu] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const width = props.widget === 'SEARCH_RESULTS' ? 'w-[85%]' : 'w-auto max-w-[70%]'
+  const width = props.widget === 'SEARCH_RESULTS' ? 'w-full sm:w-[85%]' : 'w-auto max-w-full sm:max-w-[70%]'
   const isShortMessage = ref?.current?.offsetWidth && ref.current?.offsetWidth < 32
 
   const handleMouseEnter = useCallback(() => {

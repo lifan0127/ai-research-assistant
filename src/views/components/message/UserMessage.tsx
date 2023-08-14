@@ -62,7 +62,7 @@ export function UserMessage({ id, content, onSubmit }: UserMessageProps) {
       {isEdit ? (
         <div
           ref={ref}
-          className="bg-tomato w-96 p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-white break-words"
+          className="bg-tomato p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-white break-words"
         >
           <InputBox ref={inputRef} onSubmit={handleSubmit} id={id} content={content} />
           <div className="text-right">
