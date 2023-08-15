@@ -27,17 +27,18 @@ export const InputBox = forwardRef(function InputBox({ onSubmit, id, content }: 
   }
 
   function handleKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (inputRef.current === null || event.currentTarget.value === '') {
+    if (inputRef.current === null) {
       return
     }
     const current = inputRef.current as HTMLTextAreaElement
-    if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey && event.currentTarget.value !== '') {
       event.preventDefault()
       onSubmit(event.currentTarget.value, id)
-      event.currentTarget.value = ''
+      current.value = ''
       current.style.height = '1.5rem' // reset height to h-6
     } else {
-      current.style.height = current.scrollHeight + 'px'
+      current.style.height = '0px' // need this to trigger scrollHeight refresh
+      current.style.height = current.scrollHeight.toString() + 'px'
     }
   }
 
