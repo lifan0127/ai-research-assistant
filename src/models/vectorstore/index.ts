@@ -10,6 +10,9 @@ export class WasmVectorStore extends VectorStore {
   dimensions: number
   index?: any
   docstore: InMemoryDocstore
+  _vectorstoreType(): string {
+    return 'aria'
+  }
 
   constructor(embeddings: Embeddings, _dbConfig: Record<string, any>) {
     super(embeddings, _dbConfig)
