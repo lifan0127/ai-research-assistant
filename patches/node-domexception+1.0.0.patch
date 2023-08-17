@@ -1,24 +1,33 @@
 diff --git a/node_modules/node-domexception/index.js b/node_modules/node-domexception/index.js
-index b7bbe95..b043f8e 100644
+index b7bbe95..3c80b30 100644
 --- a/node_modules/node-domexception/index.js
 +++ b/node_modules/node-domexception/index.js
-@@ -1,6 +1,6 @@
+@@ -1,16 +1,23 @@
  /*! node-domexception. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
  
 -if (!globalThis.DOMException) {
-+if (!_globalThis.DOMException) {
++let globalThis2
++if (typeof globalThis === 'undefined') {
++  globalThis2 = _globalThis
++} else {
++  globalThis2 = globalThis
++}
++
++if (!globalThis2.DOMException) {
    try {
      const { MessageChannel } = require('worker_threads'),
-     port = new MessageChannel().port1,
-@@ -8,9 +8,9 @@ if (!globalThis.DOMException) {
+-    port = new MessageChannel().port1,
+-    ab = new ArrayBuffer()
++      port = new MessageChannel().port1,
++      ab = new ArrayBuffer()
      port.postMessage(ab, [ab, ab])
    } catch (err) {
      err.constructor.name === 'DOMException' && (
 -      globalThis.DOMException = err.constructor
-+      _globalThis.DOMException = err.constructor
++      globalThis2.DOMException = err.constructor
      )
    }
  }
  
 -module.exports = globalThis.DOMException
-+module.exports = _globalThis.DOMException
++module.exports = globalThis2.DOMException

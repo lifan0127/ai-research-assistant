@@ -64,7 +64,7 @@ const testMessages = [
     label: 'Bot QA output',
     message: {
       type: 'BOT_MESSAGE' as const,
-      ...qaResponseAction,
+      ...qaResponseAction.payload,
       _raw: JSON.stringify(qaResponseAction),
     },
   },
