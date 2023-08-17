@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -9,36 +9,98 @@ import {
 import { marked } from 'marked'
 import tablemark from 'tablemark'
 import { searchZotero } from '../../../models/chains/search'
+import { getItemAndBestAttachment } from '../../../models/utils/zotero'
+import { useDialog } from '../../hooks/useDialog'
+import { ItemIcon } from '../../icons/zotero'
 
 interface SearchResult {
   title: string
   authors?: string
   itemType: string
   year?: number
+  links: Awaited<ReturnType<typeof getItemAndBestAttachment>>
 }
 
 const columnHelper = createColumnHelper<SearchResult>()
 
-const columns = [
-  columnHelper.accessor('title', {
-    header: 'Title',
-  }),
-  columnHelper.accessor('authors', {
-    header: 'Authors',
-  }),
-  columnHelper.accessor('itemType', {
-    header: 'Item Type',
-  }),
-  columnHelper.accessor('year', {
-    header: 'Year',
-  }),
-]
-
 export interface SearchResultsProps extends Awaited<ReturnType<typeof searchZotero>> {}
 
 export function SearchResults({ query: { keywords, authors = [], years }, count, results }: SearchResultsProps) {
+  const dialog = useDialog()
+
+  function openItem(event: React.MouseEvent<HTMLElement>, itemId: number) {
+    event.preventDefault()
+    dialog.mode === 'NORMAL' && dialog.minimize()
+    ZoteroPane.selectItem(itemId)
+  }
+
+  function openAttachment(event: React.MouseEvent<HTMLElement>, attachmentId: number) {
+    event.preventDefault()
+    dialog.mode === 'NORMAL' && dialog.minimize()
+    ZoteroPane.viewAttachment(attachmentId)
+  }
+
+  const columns = [
+    columnHelper.accessor('title', {
+      header: 'Title',
+    }),
+    columnHelper.accessor('authors', {
+      header: 'Authors',
+    }),
+    columnHelper.accessor('itemType', {
+      header: 'Item Type',
+    }),
+    columnHelper.accessor('year', {
+      header: 'Year',
+    }),
+    columnHelper.accessor('links', {
+      header: '',
+      cell: props => {
+        const { item, attachment } = props.getValue()
+        return (
+          <div className="whitespace-nowrap">
+            <a href="#" onClick={event => openItem(event, item.id)}>
+              <ItemIcon itemType={item.type} />
+            </a>
+            {attachment ? (
+              <a href="#" onClick={event => openAttachment(event, attachment.id)}>
+                <ItemIcon itemType={attachment.type} />
+              </a>
+            ) : null}
+          </div>
+        )
+      },
+    }),
+  ]
+
+  // Must be wrapped in useMemo or pagination won't work
+  const data = useMemo(
+    () =>
+      results.map(({ item, attachment }) => {
+        return {
+          title: item.title as string,
+          authors: item.authors,
+          itemType: item.type,
+          year: item.year,
+          links: {
+            item: {
+              id: item.id,
+              type: item.type,
+            },
+            attachment: attachment
+              ? {
+                  id: attachment.id,
+                  type: attachment.type,
+                }
+              : undefined,
+          },
+        }
+      }),
+    [results]
+  )
+
   const table = useReactTable({
-    data: results,
+    data: data,
     columns,
     initialState: {
       pagination: {
@@ -73,7 +135,7 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
         <h4 className="p-0 m-0 mb-1 text-tomato">
           Results <small>({count > 25 ? `${count}, limited to the first 25` : count})</small>
         </h4>
-        {results.length > 0 ? (
+        {data.length > 0 ? (
           <div>
             <table className="w-full">
               <thead>
@@ -134,6 +196,14 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
 }
 
 export function copySearchResults({ query: { keywords, authors, tags, years }, count, results }: SearchResultsProps) {
+  const data = results.map(({ item, attachment }) => {
+    return {
+      title: item.title as string,
+      authors: item.authors,
+      itemType: item.type,
+      year: item.year,
+    }
+  })
   const keywordsStr = keywords.length > 0 ? `__Keywords:__ ${keywords.join(', ')}\n\n` : ''
   const authorsStr = authors && authors.length > 0 ? `__Authors:__ ${authors.join(', ')}\n\n` : ''
   const tagsStr = tags && tags.length > 0 ? `__Tags:__ ${tags.join(', ')}\n\n` : ''
@@ -151,7 +221,7 @@ ${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
 
 #### Results (${count > 25 ? `${count}, limited to the first 25` : count})
 
-${tablemark(results, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
+${tablemark(data, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
   `.trim()
   const htmlContent = marked(textContent)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()

@@ -1,16 +1,16 @@
 import React from 'react'
 import { Bars3Icon } from '@heroicons/react/24/outline'
 import { ResearchAssistant } from '../../../models/assistant'
-import { useDialogControl } from '../../hooks/useDialogControl'
-import { Menu } from './Menu'
+import { useDialog } from '../../hooks/useDialog'
+import { DropdownMenu } from './DropdownMenu'
 
 interface MenuProps {
   assistant: ResearchAssistant
-  dialog: ReturnType<typeof useDialogControl>
   clearMessages: () => void
 }
 
-export function MainMenu({ assistant, dialog, clearMessages }: MenuProps) {
+export function MainMenu({ assistant, clearMessages }: MenuProps) {
+  const dialog = useDialog()
   const items = [
     {
       type: 'BUTTON' as const,
@@ -40,5 +40,5 @@ export function MainMenu({ assistant, dialog, clearMessages }: MenuProps) {
       },
     },
   ]
-  return <Menu items={items} Icon={Bars3Icon} position="top-4 right-6" />
+  return <DropdownMenu items={items} Icon={Bars3Icon} position="top-4 right-6" />
 }

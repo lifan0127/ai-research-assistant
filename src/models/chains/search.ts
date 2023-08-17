@@ -21,6 +21,7 @@ import { OPENAI_GPT_MODEL } from '../../constants'
 import { OutputActionParser } from '../utils/parsers'
 import { ClarificationActionResponse, ErrorActionResponse, SearchActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
+import { getItemAndBestAttachment } from '../utils/zotero'
 
 type SearchMode = 'search' | 'qa'
 
@@ -59,29 +60,29 @@ export async function searchZotero(
   }
 
   ids = uniq(ids)
-  const items = await Promise.all(
+  const results = await Promise.all(
     ids.slice(0, length).map(async id => {
-      return await Zotero.Items.getAsync(id)
+      return await getItemAndBestAttachment(id, 'search')
     })
   )
-  const results = items.map(item => {
-    const id = item.id
-    const title = item.getDisplayTitle()
-    const creators = item.getCreators()
-    const authors =
-      creators.length === 0
-        ? undefined
-        : creators.length > 1
-        ? `${creators[0].lastName} et al.`
-        : `${creators[0].firstName} ${creators[0].lastName}`
-    const itemType = item.itemType
-    const year = new Date(item.getField('date') as string).getFullYear()
-    if (mode === 'search') {
-      return { id, title, authors, itemType, year }
-    }
-    const abstract = item.getField('abstractNote', false, true) || ''
-    return { id, title, authors, itemType, year, abstract }
-  })
+  // const results = items.map(item => {
+  //   const id = item.id
+  //   const title = item.getDisplayTitle()
+  //   const creators = item.getCreators()
+  //   const authors =
+  //     creators.length === 0
+  //       ? undefined
+  //       : creators.length > 1
+  //       ? `${creators[0].lastName} et al.`
+  //       : `${creators[0].firstName} ${creators[0].lastName}`
+  //   const itemType = item.itemType
+  //   const year = new Date(item.getField('date') as string).getFullYear()
+  //   if (mode === 'search') {
+  //     return { id, title, authors, itemType, year }
+  //   }
+  //   const abstract = item.getField('abstractNote', false, true) || ''
+  //   return { id, title, authors, itemType, year, abstract }
+  // })
   handleZoteroActionEnd('✅ Search complete')
   return { count: ids.length, query, results }
 }

@@ -1,21 +1,47 @@
-import React, { useState } from 'react'
+import React, { useState, createContext, useContext, useMemo } from 'react'
 
-export function useDialogControl() {
+type DialogContextType = {
+  mode: 'NORMAL' | 'MINIMAL'
+  setMode: (mode: 'NORMAL' | 'MINIMAL') => void
+}
+
+export const DialogContext = createContext<DialogContextType>({
+  mode: 'NORMAL' as const,
+  setMode: mode => {},
+})
+
+interface DialogContextProviderProps {
+  children: React.ReactNode
+}
+
+export function DialogContextProvider({ children }: DialogContextProviderProps) {
   const [mode, setMode] = useState<'NORMAL' | 'MINIMAL'>('NORMAL')
+  const contextValue = useMemo(
+    () => ({
+      mode,
+      setMode,
+    }),
+    [mode]
+  )
+  return <DialogContext.Provider value={contextValue}>{children}</DialogContext.Provider>
+}
+
+export function useDialog() {
   const dialog = addon.data.popup.window as Window
   const mainWindow = Zotero.getMainWindow()
+  const { mode, setMode } = useContext(DialogContext)
 
   function minimize() {
     setMode('MINIMAL')
 
     const dialogWidth = 420
-    const dialogHeight = 640
+    const dialogHeight = 560
     dialog.resizeTo(dialogWidth, dialogHeight)
 
     // Determine the coordinates for the lower right corner with 20-pixel margin
     const left = mainWindow.screenX + mainWindow.innerWidth - dialog.outerWidth - 20
     const top = mainWindow.screenY + mainWindow.innerHeight - dialog.outerHeight - 20
-    setTimeout(() => dialog.moveTo(left, top), 0)
+    setTimeout(() => dialog.moveTo(left, top), 0) // To prevent flickering
   }
 
   function restore() {

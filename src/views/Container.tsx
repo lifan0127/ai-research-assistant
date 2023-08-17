@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react'
 import { useMessages } from './hooks/useMessages'
-import { useDialogControl } from './hooks/useDialogControl'
+import { DialogContextProvider } from './hooks/useDialog'
 import { TestMenu } from './components/test/TestMenu'
 import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
@@ -16,13 +16,14 @@ import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
 
+const DialogContext = createContext(null)
+
 interface UserInput {
   content: string
 }
 
 export default function Container(props: any, ref: any) {
   const [userInput, setUserInput] = useState<UserInput>()
-  const dialog = useDialogControl()
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -198,34 +199,49 @@ export default function Container(props: any, ref: any) {
     }
   }
 
+  function handleDrag(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log({ e })
+  }
+
   return (
-    <div className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50">
-      <div
-        className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
-        ref={conversationRef}
-      >
-        <Header />
-        <MainMenu assistant={assistant} clearMessages={clearMessages} dialog={dialog} />
-        {__env__ === 'development' && (
-          <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-        )}
-        {messages.length === 0 ? <ReleaseNote /> : null}
-        {messages.map(({ type, ...props }) => {
-          switch (type) {
-            case 'USER_MESSAGE': {
-              return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
+    <DialogContextProvider>
+      <div className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50">
+        <div
+          className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
+          ref={conversationRef}
+        >
+          <Header />
+          <MainMenu assistant={assistant} clearMessages={clearMessages} />
+          {__env__ === 'development' && (
+            <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
+          )}
+          {messages.length === 0 ? <ReleaseNote /> : null}
+          {/* <div
+            draggable={true}
+            className="w-[calc(100%-20px)] py-12 text-center border-dashed rounded-lg"
+            onDragOver={handleDrag}
+          >
+            Drag and Drop Area
+          </div> */}
+          {messages.map(({ type, ...props }) => {
+            switch (type) {
+              case 'USER_MESSAGE': {
+                return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
+              }
+              case 'BOT_MESSAGE': {
+                return <BotMessage key={props.id} {...(props as BotMessageProps)} />
+              }
+              case 'BOT_INTERMEDIATE_STEP': {
+                return <BotIntermediateStep key={props.id} {...(props as BotIntermediateStepProps)} />
+              }
             }
-            case 'BOT_MESSAGE': {
-              return <BotMessage key={props.id} {...(props as BotMessageProps)} />
-            }
-            case 'BOT_INTERMEDIATE_STEP': {
-              return <BotIntermediateStep key={props.id} {...(props as BotIntermediateStepProps)} />
-            }
-          }
-        })}
+          })}
+        </div>
+        <Input onSubmit={handleSubmit} isLoading={isLoading} />
+        <Version />
       </div>
-      <Input onSubmit={handleSubmit} isLoading={isLoading} />
-      <Version />
-    </div>
+    </DialogContextProvider>
   )
 }

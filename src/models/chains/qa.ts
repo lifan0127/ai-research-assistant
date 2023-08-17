@@ -17,12 +17,14 @@ import { ZoteroCallbacks } from '../utils/callbacks'
 import { ReadOnlyBufferWindowMemory } from '../utils/memory'
 import { OutputActionParser } from '../utils/parsers'
 import { loadSearchChain, SearchChain } from './search'
+import { getItemAndBestAttachment } from '../utils/zotero'
 
-export function createCitations(itemIds: number[]) {
+export async function createCitations(itemIds: number[]) {
   const csl = Zotero.Styles.get('http://www.zotero.org/styles/american-chemical-society').getCiteProc()
   csl.updateItems(itemIds)
   const bibs = csl.makeBibliography()[1]
-  return itemIds.map((itemId, i) => ({ itemId, bib: bibs[i] }))
+  const items = await Promise.all(itemIds.map(async id => await getItemAndBestAttachment(id, 'citation')))
+  return items.map((item, i) => ({ ...item, bib: bibs[i] }))
 }
 
 // // Prompt credit: https://github.com/whitead/paper-qa/blob/main/paperqa/qaprompts.py
@@ -164,7 +166,7 @@ export class QAChain extends BaseChain {
     if (action === 'clarification' || action === 'error') {
       return output
     }
-    console.log({ pos: 'qa-chain', action, payload })
+
     const { answer, sources = [] } = payload as QAActionResponse['payload']
     const itemIds = sources.reduce((all: number[], source) => {
       try {
@@ -177,7 +179,7 @@ export class QAChain extends BaseChain {
         return all
       }
     }, [])
-    const citations = itemIds.length ? createCitations(itemIds) : []
+    const citations = itemIds.length ? await createCitations(itemIds) : []
     return {
       [this.outputKey]: JSON.stringify({
         action,

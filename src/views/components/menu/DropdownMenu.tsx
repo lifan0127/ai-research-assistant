@@ -13,13 +13,13 @@ interface ComponentItem {
   component: React.FC | JSX.Element
 }
 
-interface MenuProps {
+interface DropdownMenuProps {
   items: (ButtonItem | ComponentItem)[]
   Icon: any
   position: string
 }
 
-export function Menu({ Icon, position, items }: MenuProps) {
+export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useOutsideClick(() => setOpen(false))
 
