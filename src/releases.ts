@@ -1,11 +1,12 @@
 const releases = [
   {
-    date: '2021-08-06',
-    version: '0.2.0',
+    date: '2021-08-17',
+    version: '0.2.2',
     features: [
       'Aria is now displayed in a separate dialog window, facilitating positioning and resizing.',
       'Support for copying and pasting chat messages, in both markdown and rich text (HTML) formats.',
-      'Users now have the ability to edit their previous chat messages.',
+      'Users now have the ability to edit and delete chat messages.',
+      'Initial support to drive Zotero through Aria, such as locating items and open PDF attachments.',
     ],
     bugFixes: ['Various bug fixes and performance improvements.'],
   },
