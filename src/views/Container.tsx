@@ -27,7 +27,7 @@ export default function Container(props: any, ref: any) {
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
   const [isUpdate, setIsUpdate] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const conversationRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const langChainCallbackManager = CallbackManager.fromHandlers({
     handleChainStart: (chain, inputs) => {
       const { key, title } = (chain as any)?.kwargs?.llm_kwargs
@@ -101,8 +101,8 @@ export default function Container(props: any, ref: any) {
 
   useEffect(() => {
     const id = setTimeout(() => {
-      if (conversationRef.current) {
-        conversationRef.current.scrollTop = conversationRef.current.scrollHeight
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight
       }
     }, 50)
     return () => clearTimeout(id)
@@ -210,10 +210,10 @@ export default function Container(props: any, ref: any) {
       <div className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50">
         <div
           className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
-          ref={conversationRef}
+          ref={containerRef}
         >
           <Header />
-          <MainMenu assistant={assistant} clearMessages={clearMessages} />
+          <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
           {__env__ === 'development' && (
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
           )}

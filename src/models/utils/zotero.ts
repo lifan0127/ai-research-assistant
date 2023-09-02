@@ -1,4 +1,4 @@
-interface ItemInfo {
+export interface ItemInfo {
   id: number
   type: Zotero.Item.ItemType
   title?: string
@@ -7,7 +7,7 @@ interface ItemInfo {
   abstract?: string
 }
 
-interface AttachmentInfo {
+export interface AttachmentInfo {
   id: number
   type:
     | 'attachment-pdf'

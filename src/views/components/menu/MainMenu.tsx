@@ -5,17 +5,26 @@ import { useDialog } from '../../hooks/useDialog'
 import { DropdownMenu } from './DropdownMenu'
 
 interface MenuProps {
+  containerRef: React.RefObject<HTMLDivElement>
   assistant: ResearchAssistant
   clearMessages: () => void
 }
 
-export function MainMenu({ assistant, clearMessages }: MenuProps) {
+export function MainMenu({ containerRef, assistant, clearMessages }: MenuProps) {
   const dialog = useDialog()
+
   const items = [
     {
       type: 'BUTTON' as const,
       label: dialog.mode === 'NORMAL' ? 'Minimize window' : 'Restore window',
-      handleClick: dialog.mode === 'NORMAL' ? dialog.minimize : dialog.restore,
+      handleClick: () => {
+        dialog.mode === 'NORMAL' ? dialog.minimize() : dialog.restore()
+        setTimeout(() => {
+          if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight
+          }
+        }, 50)
+      },
     },
     {
       type: 'BUTTON' as const,

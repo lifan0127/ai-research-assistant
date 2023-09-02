@@ -2,8 +2,7 @@ import React from 'react'
 import MarkdownReact from 'marked-react'
 import { marked } from 'marked'
 import { createCitations } from '../../../models/chains/qa'
-import { useDialog } from '../../hooks/useDialog'
-import { ItemIcon } from '../../icons/zotero'
+import { ItemButton } from '../item/ItemButton'
 
 export interface QAResponseProps {
   answer: string
@@ -11,20 +10,6 @@ export interface QAResponseProps {
 }
 
 export function QAResponse({ answer, sources }: QAResponseProps) {
-  const dialog = useDialog()
-
-  function openItem(event: React.MouseEvent<HTMLElement>, itemId: number) {
-    event.preventDefault()
-    dialog.mode === 'NORMAL' && dialog.minimize()
-    ZoteroPane.selectItem(itemId)
-  }
-
-  function openAttachment(event: React.MouseEvent<HTMLElement>, attachmentId: number) {
-    event.preventDefault()
-    dialog.mode === 'NORMAL' && dialog.minimize()
-    ZoteroPane.viewAttachment(attachmentId)
-  }
-
   return (
     <div>
       <MarkdownReact>{answer}</MarkdownReact>
@@ -36,14 +21,8 @@ export function QAResponse({ answer, sources }: QAResponseProps) {
               return (
                 <li key={item.id} className="mb-2 last:mb-0">
                   {bib}
-                  <a href="#" onClick={event => openItem(event, item.id)}>
-                    <ItemIcon itemType={item.type} />
-                  </a>
-                  {attachment ? (
-                    <a href="#" onClick={event => openAttachment(event, attachment.id)}>
-                      <ItemIcon itemType={attachment.type} />
-                    </a>
-                  ) : null}
+                  <ItemButton item={item} mode="item" />
+                  {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
                 </li>
               )
             })}

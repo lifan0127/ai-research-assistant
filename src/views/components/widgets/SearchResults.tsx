@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
+  Row,
 } from '@tanstack/react-table'
 import { marked } from 'marked'
 import tablemark from 'tablemark'
 import { searchZotero } from '../../../models/chains/search'
 import { getItemAndBestAttachment } from '../../../models/utils/zotero'
-import { useDialog } from '../../hooks/useDialog'
-import { ItemIcon } from '../../icons/zotero'
+import { ItemButton } from '../item/ItemButton'
 
 interface SearchResult {
   title: string
@@ -26,20 +26,6 @@ const columnHelper = createColumnHelper<SearchResult>()
 export interface SearchResultsProps extends Awaited<ReturnType<typeof searchZotero>> {}
 
 export function SearchResults({ query: { keywords, authors = [], years }, count, results }: SearchResultsProps) {
-  const dialog = useDialog()
-
-  function openItem(event: React.MouseEvent<HTMLElement>, itemId: number) {
-    event.preventDefault()
-    dialog.mode === 'NORMAL' && dialog.minimize()
-    ZoteroPane.selectItem(itemId)
-  }
-
-  function openAttachment(event: React.MouseEvent<HTMLElement>, attachmentId: number) {
-    event.preventDefault()
-    dialog.mode === 'NORMAL' && dialog.minimize()
-    ZoteroPane.viewAttachment(attachmentId)
-  }
-
   const columns = [
     columnHelper.accessor('title', {
       header: 'Title',
@@ -53,24 +39,23 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
     columnHelper.accessor('year', {
       header: 'Year',
     }),
-    columnHelper.accessor('links', {
-      header: '',
-      cell: props => {
-        const { item, attachment } = props.getValue()
-        return (
-          <div className="whitespace-nowrap">
-            <a href="#" onClick={event => openItem(event, item.id)}>
-              <ItemIcon itemType={item.type} />
-            </a>
-            {attachment ? (
-              <a href="#" onClick={event => openAttachment(event, attachment.id)}>
-                <ItemIcon itemType={attachment.type} />
-              </a>
-            ) : null}
-          </div>
-        )
-      },
-    }),
+    // Note: The following doesn't work as useRef becomes null in ItemButtons
+    // columnHelper.accessor('links', {
+    //   header: '',
+    //   cell: props => {
+    //     const { item, attachment } = props.getValue()
+    //     const ref = useRef<HTMLButtonElement>(null)
+    //     return (
+    //       <div className="whitespace-nowrap">
+    //         <button ref={ref} onClick={() => console.log({ ref })}>
+    //           Test
+    //         </button>
+    //         <ItemButton item={item} mode="item" />
+    //         {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
+    //       </div>
+    //     )
+    //   },
+    // }),
   ]
 
   // Must be wrapped in useMemo or pagination won't work
@@ -111,6 +96,17 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
     getPaginationRowModel: getPaginationRowModel(),
   })
 
+  function createLinks(row: Row<SearchResult>) {
+    const { item, attachment } = row.original.links
+    const ref = useRef<HTMLButtonElement>(null)
+    return (
+      <div className="whitespace-nowrap">
+        <ItemButton item={item} mode="item" />
+        {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
+      </div>
+    )
+  }
+
   return (
     <div className="text-sm">
       <div className="mb-2">
@@ -146,6 +142,7 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
                     ))}
+                    <th></th>
                   </tr>
                 ))}
               </thead>
@@ -155,6 +152,7 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
                     {row.getVisibleCells().map(cell => (
                       <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                     ))}
+                    <td>{createLinks(row)}</td>
                   </tr>
                 ))}
               </tbody>
