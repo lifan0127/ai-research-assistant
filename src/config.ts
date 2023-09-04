@@ -16,7 +16,20 @@ export default function globalConfig() {
   if (!IS_ZOTERO_7) {
     Components.utils.importGlobalProperties(['URL', 'URLSearchParams', 'fetch'])
   }
+
   // process.env = { ...process.env, LANGCHAIN_TRACING: __env__ === 'development' ? 'true' : 'false' }
+  if (__env__ === 'development') {
+    const tracing = Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_TRACING_V2`)
+    if (tracing) {
+      process.env = {
+        ...process.env,
+        LANGCHAIN_TRACING_V2: 'true',
+        LANGCHAIN_ENDPOINT: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_ENDPOINT`) as string,
+        LANGCHAIN_API_KEY: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_API_KEY`) as string,
+        LANGCHAIN_PROJECT: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_PROJECT`) as string,
+      }
+    }
+  }
 
   const basicTool = new BasicTool()
 

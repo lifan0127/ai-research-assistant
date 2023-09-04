@@ -1,5 +1,5 @@
 diff --git a/node_modules/@anthropic-ai/sdk/_shims/agent.node.mjs b/node_modules/@anthropic-ai/sdk/_shims/agent.node.mjs
-index 2e81430..7bb8a80 100644
+index 2e81430..acfbffb 100644
 --- a/node_modules/@anthropic-ai/sdk/_shims/agent.node.mjs
 +++ b/node_modules/@anthropic-ai/sdk/_shims/agent.node.mjs
 @@ -1,16 +1,20 @@
@@ -33,7 +33,6 @@ index 2e81430..7bb8a80 100644
 -  return defaultHttpAgent;
 +  return undefined;
  };
-\ No newline at end of file
 -//# sourceMappingURL=agent.node.mjs.map
 diff --git a/node_modules/@anthropic-ai/sdk/_shims/node-readable.node.mjs b/node_modules/@anthropic-ai/sdk/_shims/node-readable.node.mjs
 index 527483b..20a8580 100644
