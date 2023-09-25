@@ -215,9 +215,9 @@ export function Container() {
       >
         <Header />
         <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
-        {__env__ === 'development' ? (
+        {/* {__env__ === 'development' ? (
           <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-        ) : null}
+        ) : null} */}
         {messages.length === 0 ? <ReleaseNote /> : null}
         {messages.map(({ type, ...props }) => {
           switch (type) {

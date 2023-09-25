@@ -1,12 +1,5 @@
 import React, { useState, useRef } from 'react'
-import {
-  CheckIcon,
-  XMarkIcon,
-  Square2StackIcon,
-  PencilSquareIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
-} from '@heroicons/react/24/outline'
+import { Square2StackIcon, PencilSquareIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { Input, InputProps } from '../input/Input'
 import { useDragging } from '../../hooks/useDragging'
 import { ItemIcon, CollectionIcon } from '../../icons/zotero'
@@ -73,7 +66,6 @@ export function UserMessage({ id, content, states, onSubmit }: UserMessageProps)
   const { setDropArea } = useDragging()
   const [isEdit, setIsEdit] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const inputRef = useRef()
   const isShortMessage = ref?.current?.offsetWidth && ref.current?.offsetWidth < 64
 
   function handleMouseEnter() {
@@ -101,14 +93,6 @@ export function UserMessage({ id, content, states, onSubmit }: UserMessageProps)
     onSubmit(...args)
   }
 
-  function handleConfirm() {
-    if (inputRef.current) {
-      onSubmit({ content: (inputRef.current as HTMLTextAreaElement).value, states }, id)
-      setDisplayMenu(false)
-      setIsEdit(false)
-    }
-  }
-
   function handleCancel() {
     setDropArea(undefined)
     setDisplayMenu(false)
@@ -126,27 +110,7 @@ export function UserMessage({ id, content, states, onSubmit }: UserMessageProps)
           ref={ref}
           className="bg-tomato p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-white break-words"
         >
-          <Input ref={inputRef} onSubmit={handleSubmit} id={id} content={content} inputStates={states} />
-          <div className="text-right">
-            <span className="inline-flex rounded-md shadow-sm mt-1">
-              <button
-                type="button"
-                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full mr-2"
-                aria-label="Cancel"
-                onClick={handleCancel}
-              >
-                <XMarkIcon className="w-4 h-4 text-black" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full"
-                aria-label="Confirm"
-                onClick={handleConfirm}
-              >
-                <CheckIcon className="w-4 h-4 text-black" aria-hidden="true" />
-              </button>
-            </span>
-          </div>
+          <Input onSubmit={handleSubmit} onCancel={handleCancel} id={id} content={content} inputStates={states} />
         </div>
       ) : (
         <div className="flex flex-col">

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react'
+import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useStates } from '../../hooks/useStates'
 import { useDragging } from '../../hooks/useDragging'
 import { States } from './States'
@@ -7,12 +8,13 @@ import { States as StatesSchema } from '../../../models/utils/states'
 
 export interface InputProps {
   onSubmit: (input: { content: string; states: StatesSchema }, id?: string) => void
+  onCancel?: () => void
   id?: string
   content?: string
   inputStates?: StatesSchema
 }
 
-export const Input = forwardRef(function InputBox({ onSubmit, id, content, inputStates }: InputProps, ref) {
+export const Input = function InputBox({ onSubmit, onCancel, id, content, inputStates }: InputProps) {
   const [dropText, setDropText] = useState<string>('')
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
@@ -25,8 +27,6 @@ export const Input = forwardRef(function InputBox({ onSubmit, id, content, input
     removeSelectedCollection,
     resetStates,
   } = useStates(inputStates)
-
-  useImperativeHandle(ref, () => inputRef.current)
 
   useEffect(() => {
     if (inputRef?.current !== null) {
@@ -66,6 +66,16 @@ export const Input = forwardRef(function InputBox({ onSubmit, id, content, input
     }
   }
 
+  function handleConfirm() {
+    if (inputRef.current) {
+      onSubmit({ content: (inputRef.current as HTMLTextAreaElement).value, states }, id)
+    }
+  }
+
+  function handleCancel() {
+    onCancel && onCancel()
+  }
+
   return (
     <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
       <States
@@ -86,6 +96,28 @@ export const Input = forwardRef(function InputBox({ onSubmit, id, content, input
           onKeyUp={handleKeyUp}
         />
       </div>
+      {id ? (
+        <div className="text-right">
+          <span className="inline-flex rounded-md shadow-sm mt-1">
+            <button
+              type="button"
+              className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full mr-2"
+              aria-label="Cancel"
+              onClick={handleCancel}
+            >
+              <XMarkIcon className="w-4 h-4 text-black" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full"
+              aria-label="Confirm"
+              onClick={handleConfirm}
+            >
+              <CheckIcon className="w-4 h-4 text-black" aria-hidden="true" />
+            </button>
+          </span>
+        </div>
+      ) : null}
       {isDragging && id === dropArea ? (
         <DragArea
           id={id}
@@ -99,4 +131,4 @@ export const Input = forwardRef(function InputBox({ onSubmit, id, content, input
       ) : null}
     </div>
   )
-})
+}
