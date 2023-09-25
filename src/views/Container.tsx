@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react'
 import { useMessages } from './hooks/useMessages'
-import { DialogContextProvider } from './hooks/useDialog'
+import { useDragging } from './hooks/useDragging'
 import { TestMenu } from './components/test/TestMenu'
 import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
@@ -11,21 +11,21 @@ import { BotMessage, BotMessageProps } from './components/message/BotMessage'
 import { BotIntermediateStep, BotIntermediateStepProps } from './components/message/BotIntermediateStep'
 import { Header } from './components/Header'
 import { MainMenu } from './components/menu/MainMenu'
-import { Input } from './components/Input'
+import { Input } from './components/input/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
-
-const DialogContext = createContext(null)
+import { States } from '../models/utils/states'
 
 interface UserInput {
   content: string
+  states: States
 }
 
-export default function Container(props: any, ref: any) {
+export function Container() {
   const [userInput, setUserInput] = useState<UserInput>()
   const { messages, addMessage, updateMessage, clearMessages } = useMessages()
-  const [isUpdate, setIsUpdate] = useState(false)
+  const { isDragging, setIsDragging } = useDragging()
   const [isLoading, setIsLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const langChainCallbackManager = CallbackManager.fromHandlers({
@@ -161,7 +161,8 @@ export default function Container(props: any, ref: any) {
     }
     let isSubscribed = true
     if (userInput) {
-      assistant.call(userInput.content).then(response => {
+      console.log({ userInput })
+      assistant.call(userInput.content, userInput.states).then(response => {
         try {
           handleAction(response as ClarificationActionResponse | ExecutorActionResponse, isSubscribed)
         } catch (e) {
@@ -174,74 +175,75 @@ export default function Container(props: any, ref: any) {
     }
   }, [userInput])
 
-  async function handleSubmit(content: string, id?: string) {
+  async function handleSubmit(input: { content: string; states: States }, id?: string) {
+    const { content, states } = input
     if (id) {
       const updatedUserMessage = {
         type: 'USER_MESSAGE' as const,
         id,
         content,
+        states,
       }
       assistant.rebuildMemory(updateMessage(updatedUserMessage))
-      setUserInput({ content })
+      setUserInput({ content, states })
     } else {
       const newUserMessage = {
         type: 'USER_MESSAGE' as const,
         content,
+        states,
       }
 
       addMessage(newUserMessage)
 
       if (isLoading) {
-        setUserInput({ content: userInput?.content + '\n' + content })
+        setUserInput({ content: userInput?.content + '\n' + content, states })
       } else {
-        setUserInput({ content })
+        setUserInput({ content, states })
       }
     }
   }
 
-  function handleDrag(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault()
-    e.stopPropagation()
-    console.log({ e })
-  }
-
   return (
-    <DialogContextProvider>
-      <div className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50">
-        <div
-          className="w-full h-[calc(100%-74px)] overflow-x-hidden overflow-y-scroll flex flex-col justify-start"
-          ref={containerRef}
-        >
-          <Header />
-          <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
-          {__env__ === 'development' && (
-            <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-          )}
-          {messages.length === 0 ? <ReleaseNote /> : null}
-          {/* <div
-            draggable={true}
-            className="w-[calc(100%-20px)] py-12 text-center border-dashed rounded-lg"
-            onDragOver={handleDrag}
-          >
-            Drag and Drop Area
-          </div> */}
-          {messages.map(({ type, ...props }) => {
-            switch (type) {
-              case 'USER_MESSAGE': {
-                return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
-              }
-              case 'BOT_MESSAGE': {
-                return <BotMessage key={props.id} {...(props as BotMessageProps)} />
-              }
-              case 'BOT_INTERMEDIATE_STEP': {
-                return <BotIntermediateStep key={props.id} {...(props as BotIntermediateStepProps)} />
-              }
+    <div
+      className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
+      onDragEnter={() => setIsDragging(isDragging + 1)}
+      onDragLeave={() => setIsDragging(isDragging - 1)}
+    >
+      <div
+        className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
+        ref={containerRef}
+      >
+        <Header />
+        <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
+        {__env__ === 'development' ? (
+          <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
+        ) : null}
+        {messages.length === 0 ? <ReleaseNote /> : null}
+        {messages.map(({ type, ...props }) => {
+          switch (type) {
+            case 'USER_MESSAGE': {
+              return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
             }
-          })}
+            case 'BOT_MESSAGE': {
+              return <BotMessage key={props.id} {...(props as BotMessageProps)} />
+            }
+            case 'BOT_INTERMEDIATE_STEP': {
+              return <BotIntermediateStep key={props.id} {...(props as BotIntermediateStepProps)} />
+            }
+          }
+        })}
+      </div>
+      <div className="flex-initial">
+        <div className="bottom-6 w-full z-40 m-0">
+          <Input onSubmit={handleSubmit} />
         </div>
-        <Input onSubmit={handleSubmit} isLoading={isLoading} />
+        {isLoading && (
+          <div className="absolute right-10 bottom-14">
+            <div className="dot-flashing "></div>
+          </div>
+        )}
         <Version />
       </div>
-    </DialogContextProvider>
+    </div>
   )
 }

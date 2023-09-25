@@ -6,50 +6,79 @@ import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { searchResultsAction } from './data/searchResults'
 import { qaResponseAction } from './data/qaResponse'
+import { States } from '../../../models/utils/states'
 
 const testMessages = [
   {
     type: 'BUTTON' as const,
     label: 'User hello',
-    message: { type: 'USER_MESSAGE' as const, content: 'Hello!' },
+    message: { type: 'USER_MESSAGE' as const, content: 'Hello!', states: { selectedItems: [] } },
   },
   {
     type: 'BUTTON' as const,
     label: 'Search ML',
-    message: { type: 'USER_MESSAGE' as const, content: 'Find some papers on machine learning.' },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'Find some papers on machine learning.',
+      states: { selectedItems: [] },
+    },
   },
   {
     type: 'BUTTON' as const,
     label: 'Unclear Search',
-    message: { type: 'USER_MESSAGE' as const, content: 'Can you help me search for papers?' },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'Can you help me search for papers?',
+      states: { selectedItems: [] },
+    },
   },
   {
     type: 'BUTTON' as const,
     label: 'QA ML',
-    message: { type: 'USER_MESSAGE' as const, content: 'How to use machine learning for materials discovery?' },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'How to use machine learning for materials discovery?',
+      states: { selectedItems: [] },
+    },
+  },
+  {
+    type: 'BUTTON' as const,
+    label: 'Stateful QA',
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'How to use machine learning for materials discovery?',
+      states: { selectedItems: [242] },
+    },
+  },
+  {
+    type: 'BUTTON' as const,
+    label: 'Collection States for QA',
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'Why is data accuracy important to R&D?',
+      states: {
+        selectedCollection: {
+          id: 4,
+          title: 'Consultancies',
+          label: 'Consultancies (26 items)',
+        },
+      },
+    },
   },
   {
     type: 'BUTTON' as const,
     label: 'QA Unknown',
-    message: { type: 'USER_MESSAGE' as const, content: 'How to use knowledge graphs in chemistry?' },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: 'How to use knowledge graphs in chemistry?',
+      states: { selectedItems: [] },
+    },
   },
   {
     type: 'BUTTON' as const,
     label: 'Summarize',
-    message: { type: 'USER_MESSAGE' as const, content: 'Summarize the search results.' },
+    message: { type: 'USER_MESSAGE' as const, content: 'Summarize the search results.', states: { selectedItems: [] } },
   },
-  // {
-  //   type: 'BUTTON' as const,
-  //   label: 'Bot lengthy',
-  //   message: {
-  //     type: 'BOT_MESSAGE' as const,
-  //     widget: 'MARKDOWN' as const,
-  //     input: {
-  //       content:
-  //         'This is a new bot message.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.\n\nThis is another line.',
-  //     },
-  //   },
-  // },
   {
     type: 'BUTTON' as const,
     label: 'Bot search output',
@@ -71,7 +100,7 @@ const testMessages = [
 ]
 
 interface TestMenuProps {
-  setUserInput: (input: { content: string }) => void
+  setUserInput: (input: { content: string; states: States }) => void
   addMessage: (message: Partial<Message>) => void
   assistant: ResearchAssistant
 }
@@ -85,7 +114,7 @@ export function TestMenu({ setUserInput, addMessage, assistant }: TestMenuProps)
       handleClick: () => {
         addMessage(message)
         if (message.type === 'USER_MESSAGE') {
-          setUserInput({ content: message.content })
+          setUserInput({ content: message.content, states: message.states })
         }
       },
     })),

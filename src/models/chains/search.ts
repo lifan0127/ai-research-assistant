@@ -22,13 +22,15 @@ import { OutputActionParser } from '../utils/parsers'
 import { ClarificationActionResponse, ErrorActionResponse, SearchActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
 import { getItemAndBestAttachment } from '../utils/zotero'
+import { States } from '../utils/states'
 
 type SearchMode = 'search' | 'qa'
 
 export async function searchZotero(
   query: SearchActionResponse['payload'],
   zoteroCallbacks: ZoteroCallbacks,
-  mode: SearchMode
+  mode: SearchMode,
+  collectionID?: number
 ) {
   const length = mode === 'search' ? 25 : 5
   if (isEmpty(query.years) || query.years.from === 0 || query.years.to === 0) {
@@ -41,6 +43,12 @@ export async function searchZotero(
   const { handleZoteroActionStart, handleZoteroActionEnd } = zoteroCallbacks
   handleZoteroActionStart('🔎 Searching Zotero database')
   const s = new Zotero.Search()
+  const collection = collectionID ? Zotero.Collections.get(collectionID) : null
+  if (collectionID) {
+    const { libraryID, key } = Zotero.Collections.getLibraryAndKeyFromID(collectionID) || {}
+    s.addCondition('libraryID', 'is', libraryID as any)
+    s.addCondition('collection', 'is', key as string)
+  }
   s.addCondition('itemType', 'isNot', 'attachment')
   authors.forEach(author => author.split(' ').forEach(word => s.addCondition('creator', 'contains', word)))
   tags.forEach(tag => s.addCondition('tag', 'is', tag))
@@ -84,7 +92,7 @@ export async function searchZotero(
   //   return { id, title, authors, itemType, year, abstract }
   // })
   handleZoteroActionEnd('✅ Search complete')
-  return { count: ids.length, query, results }
+  return { count: ids.length, query, results, collection }
 }
 
 const SEARCH_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
@@ -205,22 +213,13 @@ export interface SearchChainInput extends ChainInputs {
 export class SearchChain extends BaseChain {
   // LLM wrapper to use
   llm: BaseLanguageModel
-
   memory: BaseChatMemory
-
-  // Prompt to use to create search query.
   prompt = SEARCH_DEFAULT_PROMPT
-
   inputKey = 'input'
-
   outputKey = 'output'
-
   mode: SearchMode = 'search'
-
   langChainCallbackManager: CallbackManager | undefined
-
   zoteroCallbacks: ZoteroCallbacks
-
   tags = ['zotero', 'zotero-search']
 
   constructor(fields: SearchChainInput) {
@@ -254,8 +253,8 @@ export class SearchChain extends BaseChain {
       callbackManager: this.langChainCallbackManager,
       outputKey: this.outputKey,
     })
-
     const question: string = values[this.inputKey]
+    const { selectedCollection } = values.states || {}
 
     const output = await llmChain.call({ [this.inputKey]: question })
     const { action, payload } = JSON.parse(output[this.outputKey]) as
@@ -266,7 +265,12 @@ export class SearchChain extends BaseChain {
       return output
     }
     const searchQuery = payload as SearchActionResponse['payload']
-    const { query, count, results } = await searchZotero(searchQuery, this.zoteroCallbacks, this.mode)
+    const { query, count, results } = await searchZotero(
+      searchQuery,
+      this.zoteroCallbacks,
+      this.mode,
+      selectedCollection
+    )
     return {
       [this.outputKey]: JSON.stringify({
         action,

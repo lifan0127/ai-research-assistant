@@ -35,7 +35,7 @@ Write an answer for the question below solely based on the provided documents as
 
 If the question is not clear, ask for clarification. If no document is provided or the information is insufficient, say you cannot answer based on the user's Zotero library. DO NOT MAKE UP AN ANSWER.
 
-Answer in a concise, unbiased and scholarly tone. Include the item ID(s) of the document(s) in the "sources" field to support the answer.
+Answer in a concise, unbiased and scholarly tone. Include the item ID(s) of the document(s) in the "sources" field to support the answer. Do not include the item ID(s) in the answer itself.
     `
   ),
   new MessagesPlaceholder('history'),
@@ -151,7 +151,7 @@ export class QAChain extends BaseChain {
         functions,
         function_call: { name: 'qa' }, // TODO: Put chain metadata here until it is officially supported
         key: 'qa-chain',
-        title: '📖 Looking up the answer',
+        title: '📖 Generating the reply',
       } as any,
       outputParser,
       callbackManager: this.langChainCallbackManager,
@@ -221,25 +221,43 @@ export const loadQAChain = (params: loadQAChainInput) => {
 }
 
 interface RetrievalQAChainInput {
-  retrievalChain: SearchChain
+  searchChain: SearchChain
   qaChain: QAChain
 }
 
 class RetrievalQAChain extends BaseChain {
-  retrievalChain: SearchChain
+  searchChain: SearchChain
   qaChain: QAChain
   inputKey = 'input'
   outputKey = 'output'
+  tags = ['zotero', 'zotero-retrieval-qa']
 
   constructor(fields: RetrievalQAChainInput) {
     super()
-    this.retrievalChain = fields.retrievalChain
+    this.searchChain = fields.searchChain
     this.qaChain = fields.qaChain
   }
 
   /** @ignore */
   async _call(values: ChainValues, runManager?: CallbackManagerForChainRun): Promise<ChainValues> {
-    const { [this.outputKey]: retrievalOutput } = await this.retrievalChain.call(values)
+    console.log({ values })
+    const { selectedItems } = values?.states || {}
+    let retrievalOutput
+    if (selectedItems?.length) {
+      // Use the pre-selected items if provided
+      const results = await Promise.all(
+        selectedItems.map(async (id: number) => {
+          return await getItemAndBestAttachment(id, 'qa')
+        })
+      )
+      retrievalOutput = JSON.stringify({
+        action: 'retrieval',
+        payload: { widget: 'RETRIEVAL_RESULTS', input: { ids: selectedItems, results } },
+      })
+    } else {
+      // Otherwise run a search to get relevant items
+      retrievalOutput = (await this.searchChain.call(values))[this.outputKey]
+    }
     const { action, payload } = JSON.parse(retrievalOutput)
     console.log({ action, payload })
     if (action === 'clarification') {
@@ -271,10 +289,10 @@ export const loadRetrievalQAChain = (params: loadQAChainInput) => {
     modelName: OPENAI_GPT_MODEL,
   })
   const { prompt = QA_DEFAULT_PROMPT, langChainCallbackManager, zoteroCallbacks, memory } = params
-  const retrievalChain = loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory, mode: 'qa' })
+  const searchChain = loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory, mode: 'qa' })
   const qaChain = new QAChain({ prompt, memory, llm, langChainCallbackManager, zoteroCallbacks })
   const chain = new RetrievalQAChain({
-    retrievalChain,
+    searchChain,
     qaChain,
   })
   return chain

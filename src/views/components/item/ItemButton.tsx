@@ -37,7 +37,7 @@ export function ItemButton({ item, mode }: ItemButtonProps) {
 
   return (
     <a ref={ref} href="#" onClick={event => openItem(event, item, ref, dialog, mode)}>
-      <ItemIcon itemType={item.type} />
+      <ItemIcon type={item.type} />
     </a>
   )
 }

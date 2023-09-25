@@ -2,7 +2,7 @@ import { BasicTool, BasicOptions } from 'zotero-plugin-toolkit/dist/basic'
 import { ManagerTool } from 'zotero-plugin-toolkit/dist/basic'
 import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
-import Container from './Container'
+import { Providers } from './Providers'
 import { config } from '../../package.json'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -88,7 +88,7 @@ export class ReactRoot {
       'load',
       function () {
         const entry = dialog.document.getElementById('aria-entry-point')
-        ReactDOM.render(React.createElement(Container), entry)
+        ReactDOM.render(React.createElement(Providers), entry)
       },
       { once: true }
     )

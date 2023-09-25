@@ -81,6 +81,23 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
                     type: 'string',
                     description: 'A potentially modified version of the original user message for the route.',
                   },
+                  states: {
+                    type: 'object',
+                    description: 'A subset of the application states relevant to the user message.',
+                    properties: {
+                      selectedItems: {
+                        type: 'array',
+                        description: 'Zotero Item IDs, useful as sources for Q&A.',
+                        items: {
+                          type: 'number',
+                        },
+                      },
+                      selectedCollection: {
+                        type: 'number',
+                        description: 'Zotero Collection ID, useful for refining search scope.',
+                      },
+                    },
+                  },
                 },
                 required: ['route', 'input'],
               },
@@ -107,14 +124,23 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
 const DEFAULT_ROUTE_PROMPT = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
     `
-You are a helpful AI assistant for Zotero, a free and open-source reference management software.
-Your job is to analyze a user's request and use the routing function to invoke follow-up actions.
-- When you cannot confidently determine the user's intention, the action should be "clarification" and the payload should contain the message to politely ask for user clarification. This will trigger the user to provide more information through conversation.
-- After you have gathered enough information to understood the user's intention, the action should be "routing" and the payload should contain the name of the agent to handle the request and the input for the agent, which could be a potentially modified version of the original user message. 
+You are an AI assistant for Zotero, a reference management software.
+Your job is to analyze a user's request, in the context of the application states, and choose the appropriate follow-up actions.
+
+Requirements:
+- You should interpret the user request in the context of the application states, if present.
+- When you cannot confidently determine the user's intention, the action should be "clarification" and the payload should contain a message to politely express your doubt. The goal is have the user provide more information through conversation.
+- After you have gathered enough information to understood the user's intention, the action should be "routing" and the payload should contain the name of the route to handle the request, the input for the route, and optionally, the relevant application states. The name of the route must be one of the values provided to you. The input could be a potentially modified version of the original user message.
   `.trim()
   ),
   new MessagesPlaceholder('history'),
-  HumanMessagePromptTemplate.fromTemplate(`{input}`),
+  HumanMessagePromptTemplate.fromTemplate(
+    `
+{states}
+
+User Input: {input}
+  `.trim()
+  ),
 ])
 
 interface createRouterInput {
@@ -146,6 +172,7 @@ export const createRouter = ({
     outputKey: 'output',
     callbackManager,
     // verbose: true,
+    tags: ['router'],
   })
   return chain
 }

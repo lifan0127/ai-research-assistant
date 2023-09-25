@@ -60,5 +60,9 @@ export function useDialog() {
     dialog.close()
   }
 
-  return { mode, minimize, restore, close }
+  function focus() {
+    dialog.focus()
+  }
+
+  return { mode, minimize, restore, close, focus }
 }

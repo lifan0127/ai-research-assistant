@@ -2,11 +2,13 @@ import { BaseChain } from 'langchain/chains'
 import { BaseChatMemory, BufferWindowMemory } from 'langchain/memory'
 import { CallbackManager } from 'langchain/callbacks'
 import { serializeError } from 'serialize-error'
+import YAML from 'yaml'
 import { Routes, createRouter, createRouteFunctions } from './chains/router'
 import { loadSearchChain } from './chains/search'
 import { loadRetrievalQAChain } from './chains/qa'
 import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
 import { Message } from '../views/hooks/useMessages'
+import { serializeStates, States } from './utils/states'
 
 interface ResearchAssistantFields {
   langChainCallbackManager: CallbackManager
@@ -47,21 +49,22 @@ export class ResearchAssistant {
     this.errorCallbacks = errorCallbacks
   }
 
-  async call(input: string) {
+  async call(content: string, states: States) {
     try {
       // throw new Error('Test Error')
-      const { output } = await this.router.call({ input })
+      const { output } = await this.router.call({ input: content, states: serializeStates(states) })
       const { action, payload } = JSON.parse(output)
-      // console.log({ action, payload: JSON.stringify(payload) })
+      console.log({ action, payload: JSON.stringify(payload) })
       if (action === 'clarification') {
         payload._raw = output
         return { action, payload }
       }
-      const { route, input: updatedInput } = payload
+      const { route, input: updatedInput, states: relevantStates } = payload
       // console.log(JSON.stringify((this.memory?.chatHistory as any).messages, null, 2))
-      const { executor } = this.routes[route]
+      const selectedRoute = this.routes[route]
+      const executor = selectedRoute?.executor || this.routes.qa.executor
       // return { action: 'routing', payload: { widget: 'MARKDOWN', input: { content: 'test' } } }
-      const { output: executorOutput } = await executor.call({ input: updatedInput })
+      const { output: executorOutput } = await executor.call({ input: updatedInput, states: relevantStates })
 
       switch (route) {
         case 'search':
