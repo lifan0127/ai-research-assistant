@@ -1,5 +1,15 @@
 const releases = [
   {
+    date: '2023-09-24',
+    version: '0.3.0',
+    features: [
+      'Introducing drag-and-drop functionality for Zotero items and collections into Aria.',
+      'Enhanced Q&A based on the selected items or collection as contextual information.',
+      'Maintain view scroll position when toggling between normal and minimal window sizes.',
+    ],
+    bugFixes: ['Various bug fixes and performance improvements.'],
+  },
+  {
     date: '2023-08-17',
     version: '0.2.2',
     features: [
