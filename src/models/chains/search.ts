@@ -230,7 +230,7 @@ export class SearchChain extends BaseChain {
       return output
     }
     const searchQuery = payload as SearchActionResponse['payload']
-    console.log({ states: values.states, searchQuery })
+    // console.log({ states: values.states, searchQuery })
     const { query, count, results, collections } = await searchZotero(
       searchQuery,
       this.zoteroCallbacks,

@@ -234,7 +234,6 @@ class RetrievalQAChain extends BaseChain {
 
   /** @ignore */
   async _call(values: ChainValues, runManager?: CallbackManagerForChainRun): Promise<ChainValues> {
-    console.log({ values })
     const { items } = values?.states || {}
     let retrievalOutput
     if (items?.length) {
@@ -244,7 +243,6 @@ class RetrievalQAChain extends BaseChain {
           return await zot.getItemAndBestAttachment(id, 'qa')
         })
       )
-      console.log({ results })
       retrievalOutput = JSON.stringify({
         action: 'retrieval',
         payload: { widget: 'RETRIEVAL_RESULTS', input: { ids: items, results } },
