@@ -1,4 +1,4 @@
-import { compileItemInfo, compileAttachmentInfo } from './zotero'
+import { compileItemInfo, compileAttachmentInfo } from '../../apis/zotero/item'
 
 export async function parseDataTransfer(dataTransfer: DataTransfer) {
   const { items, types } = dataTransfer
@@ -18,7 +18,7 @@ export async function parseDataTransfer(dataTransfer: DataTransfer) {
           const item = await Zotero.Items.getAsync(id)
           if (item.isAttachment()) {
             return {
-              ...compileAttachmentInfo(item, 'search'),
+              ...compileAttachmentInfo(item),
               title: item.getDisplayTitle(),
               isAttachment: true,
             }
@@ -33,14 +33,14 @@ export async function parseDataTransfer(dataTransfer: DataTransfer) {
       }
     }
     case 'zotero/collection': {
-      console.log({ dataTransfer })
       const id = parseInt(dataTransfer.getData(type))
       const collection = Zotero.Collections.get(id) as Zotero.Collection
       const title = collection.name
-      const label = `${title} (${collection.getChildItems().length} items)`
+      const itemCount = collection.getChildItems().length
+      const label = `${title} (${itemCount} ${itemCount > 1 ? 'items' : 'item'})`
       return {
         type,
-        collection: { id, title, label },
+        collection: { id, title: label },
       }
     }
     case 'text/plain': {

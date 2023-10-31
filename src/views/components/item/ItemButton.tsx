@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { ItemIcon } from '../../icons/zotero'
-import { ItemInfo, AttachmentInfo } from '../../../models/utils/zotero'
+import { ItemInfo, AttachmentInfo } from '../../../apis/zotero/item'
 import { useDialog } from '../../hooks/useDialog'
 
 interface ItemButtonProps {

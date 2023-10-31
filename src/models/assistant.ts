@@ -8,7 +8,7 @@ import { loadSearchChain } from './chains/search'
 import { loadRetrievalQAChain } from './chains/qa'
 import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
 import { Message } from '../views/hooks/useMessages'
-import { serializeStates, States } from './utils/states'
+import { simplifyStates, serializeStates, States } from './utils/states'
 
 interface ResearchAssistantFields {
   langChainCallbackManager: CallbackManager
@@ -31,11 +31,13 @@ export class ResearchAssistant {
       //   executor: null
       // },
       search: {
-        description: "For search user's Zotero library related to a specific topic.",
+        description:
+          "For searching user's Zotero library related to a specific topic. Use this route when a user expects to see a list of search results.",
         executor: loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory, mode: 'search' }),
       },
       qa: {
-        description: "For question and answer based on user's Zotero library.",
+        description:
+          "For Q&A and other related requests based on user's Zotero library. Use this route when a user expects to see a single answer or summary.",
         executor: loadRetrievalQAChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
       },
       // help: {
@@ -52,7 +54,7 @@ export class ResearchAssistant {
   async call(content: string, states: States) {
     try {
       // throw new Error('Test Error')
-      const { output } = await this.router.call({ input: content, states: serializeStates(states) })
+      const { output } = await this.router.call({ input: content, states: simplifyStates(states) })
       const { action, payload } = JSON.parse(output)
       console.log({ action, payload: JSON.stringify(payload) })
       if (action === 'clarification') {
@@ -64,7 +66,11 @@ export class ResearchAssistant {
       const selectedRoute = this.routes[route]
       const executor = selectedRoute?.executor || this.routes.qa.executor
       // return { action: 'routing', payload: { widget: 'MARKDOWN', input: { content: 'test' } } }
-      const { output: executorOutput } = await executor.call({ input: updatedInput, states: relevantStates })
+
+      const { output: executorOutput } = await executor.call({
+        input: updatedInput,
+        states: relevantStates,
+      })
 
       switch (route) {
         case 'search':
@@ -96,7 +102,7 @@ export class ResearchAssistant {
     messages.forEach(message => {
       switch (message.type) {
         case 'USER_MESSAGE': {
-          return this.memory.chatHistory.addUserMessage(message.content)
+          return this.memory.chatHistory.addUserMessage(message.content.newValue)
         }
         case 'BOT_MESSAGE': {
           return this.memory.chatHistory.addAIChatMessage(message._raw)

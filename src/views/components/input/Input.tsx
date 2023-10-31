@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef, useImperativeHandle } from 'react'
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import React, { useState, useEffect, useRef } from 'react'
 import { useStates } from '../../hooks/useStates'
 import { useDragging } from '../../hooks/useDragging'
 import { States } from './States'
 import { DragArea } from './DragArea'
 import { States as StatesSchema } from '../../../models/utils/states'
+import { TextField, MentionValue } from './TextField'
+import { isEqual } from 'lodash'
 
 export interface InputProps {
-  onSubmit: (input: { content: string; states: StatesSchema }, id?: string) => void
+  onSubmit: (input: { content: MentionValue; states: StatesSchema }, id?: string) => void
   onCancel?: () => void
   id?: string
-  content?: string
+  content?: MentionValue
   inputStates?: StatesSchema
 }
 
@@ -18,85 +19,69 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
   const [dropText, setDropText] = useState<string>('')
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
-  const {
-    states,
-    addSelectedItems,
-    removeSelectedItem,
-    removeAllSelectedItems,
-    setSelectedCollection,
-    removeSelectedCollection,
-    resetStates,
-  } = useStates(inputStates)
+  const states = useStates(inputStates, content)
 
   useEffect(() => {
     if (inputRef?.current !== null) {
       const current = inputRef.current as HTMLTextAreaElement
-      current.style.height = current.scrollHeight + 'px'
       current.selectionStart = current.value.length
     }
-  })
+  }, [content])
+  // useEffect(() => {
+  //   if (inputRef?.current !== null) {
+  //     const current = inputRef.current as HTMLTextAreaElement
+  //     current.style.height = current.scrollHeight + 'px'
+  //     current.selectionStart = current.value.length
+  //   }
+  // })
 
-  useEffect(() => {
-    if (inputRef?.current !== null && dropText !== '') {
-      const current = inputRef.current as HTMLTextAreaElement
-      current.value += dropText?.trim()
-    }
-  }, [dropText])
+  // useEffect(() => {
+  //   if (inputRef?.current !== null && dropText !== '') {
+  //     const current = inputRef.current as HTMLTextAreaElement
+  //     current.value += dropText?.trim()
+  //   }
+  // }, [dropText])
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault()
-    }
-  }
+  // function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+  //   if (event.key === 'Enter' && !event.shiftKey) {
+  //     event.preventDefault()
+  //   }
+  // }
 
-  function handleKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (inputRef.current === null) {
-      return
+  function handleSubmit() {
+    onSubmit({ content: states.value, states: states.states }, id)
+    if (!id) {
+      states.reset()
     }
-    const current = inputRef.current as HTMLTextAreaElement
-    if (event.key === 'Enter' && !event.shiftKey && event.currentTarget.value !== '') {
-      event.preventDefault()
-      onSubmit({ content: event.currentTarget.value, states }, id)
-      resetStates()
-      current.value = ''
-      current.style.height = '1.5rem' // reset height to h-6
-    } else {
-      current.style.height = '1.5rem' // need this to trigger scrollHeight refresh when deleting lines
-      current.style.height = current.scrollHeight.toString() + 'px'
-    }
-  }
-
-  function handleConfirm() {
-    if (inputRef.current) {
-      onSubmit({ content: (inputRef.current as HTMLTextAreaElement).value, states }, id)
-    }
-  }
-
-  function handleCancel() {
-    onCancel && onCancel()
   }
 
   return (
     <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
-      <States
-        states={states}
-        removeSelectedItem={removeSelectedItem}
-        removeAllSelectedItems={removeAllSelectedItems}
-        removeSelectedCollection={removeSelectedCollection}
-      />
+      <States states={states} />
       <div>
-        <textarea
+        <TextField
+          ref={inputRef}
+          onSubmit={handleSubmit}
+          onCancel={onCancel}
+          displayButtons={id !== undefined}
+          states={states.states}
+          resetStates={states.reset}
+          value={states.value}
+          setValue={states.setValue}
+          forceSuggestionsAboveCursor={!id}
+        />
+        {/* <textarea
           id="aria-chat-input"
           ref={inputRef}
-          className="w-full h-6 max-h-64 resize-none border-none text-base overflow-y-auto text-black bg-white"
+          className="w-full h-16 max-h-64 resize-none border-none text-base overflow-y-auto text-black bg-white"
           placeholder="How can I help you today?"
           defaultValue={content}
           autoFocus
           onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-        />
+          // onKeyUp={handleKeyUp}
+        /> */}
       </div>
-      {id ? (
+      {/* {id ? (
         <div className="text-right">
           <span className="inline-flex rounded-md shadow-sm mt-1">
             <button
@@ -117,15 +102,14 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
             </button>
           </span>
         </div>
-      ) : null}
+      ) : null} */}
       {isDragging && id === dropArea ? (
         <DragArea
           id={id}
           setDropText={setDropText}
           onDragEnter={() => setIsDragging(isDragging + 1)}
           onDragLeave={() => setIsDragging(isDragging - 1)}
-          addSelectedItems={addSelectedItems}
-          setSelectedCollection={setSelectedCollection}
+          addSelection={states.add}
           inputRef={inputRef}
         />
       ) : null}

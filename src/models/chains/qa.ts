@@ -17,15 +17,7 @@ import { ZoteroCallbacks } from '../utils/callbacks'
 import { ReadOnlyBufferWindowMemory } from '../utils/memory'
 import { OutputActionParser } from '../utils/parsers'
 import { loadSearchChain, SearchChain } from './search'
-import { getItemAndBestAttachment } from '../utils/zotero'
-
-export async function createCitations(itemIds: number[]) {
-  const csl = Zotero.Styles.get('http://www.zotero.org/styles/american-chemical-society').getCiteProc()
-  csl.updateItems(itemIds)
-  const bibs = csl.makeBibliography()[1]
-  const items = await Promise.all(itemIds.map(async id => await getItemAndBestAttachment(id, 'citation')))
-  return items.map((item, i) => ({ ...item, bib: bibs[i] }))
-}
+import * as zot from '../../apis/zotero'
 
 // // Prompt credit: https://github.com/whitead/paper-qa/blob/main/paperqa/qaprompts.py
 const QA_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
@@ -41,6 +33,7 @@ Answer in a concise, unbiased and scholarly tone. Include the item ID(s) of the 
   new MessagesPlaceholder('history'),
   HumanMessagePromptTemplate.fromTemplate(
     `
+Context:
 {context}
 
 Question: {input}
@@ -79,7 +72,7 @@ const functions = [
                   },
                 },
               },
-              required: ['keywords'],
+              required: ['answer'],
             },
             {
               type: 'object',
@@ -149,7 +142,8 @@ export class QAChain extends BaseChain {
       memory: new ReadOnlyBufferWindowMemory(this.memory),
       llmKwargs: {
         functions,
-        function_call: { name: 'qa' }, // TODO: Put chain metadata here until it is officially supported
+        function_call: { name: 'qa' },
+        // TODO: Put chain metadata here until it is officially supported
         key: 'qa-chain',
         title: '📖 Generating the reply',
       } as any,
@@ -179,7 +173,7 @@ export class QAChain extends BaseChain {
         return all
       }
     }, [])
-    const citations = itemIds.length ? await createCitations(itemIds) : []
+    const citations = itemIds.length ? await zot.createCitations(itemIds) : []
     return {
       [this.outputKey]: JSON.stringify({
         action,
@@ -241,18 +235,19 @@ class RetrievalQAChain extends BaseChain {
   /** @ignore */
   async _call(values: ChainValues, runManager?: CallbackManagerForChainRun): Promise<ChainValues> {
     console.log({ values })
-    const { selectedItems } = values?.states || {}
+    const { items } = values?.states || {}
     let retrievalOutput
-    if (selectedItems?.length) {
+    if (items?.length) {
       // Use the pre-selected items if provided
       const results = await Promise.all(
-        selectedItems.map(async (id: number) => {
-          return await getItemAndBestAttachment(id, 'qa')
+        items.map(async (id: number) => {
+          return await zot.getItemAndBestAttachment(id, 'qa')
         })
       )
+      console.log({ results })
       retrievalOutput = JSON.stringify({
         action: 'retrieval',
-        payload: { widget: 'RETRIEVAL_RESULTS', input: { ids: selectedItems, results } },
+        payload: { widget: 'RETRIEVAL_RESULTS', input: { ids: items, results } },
       })
     } else {
       // Otherwise run a search to get relevant items

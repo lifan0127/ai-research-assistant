@@ -1,16 +1,22 @@
 import React from 'react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
-import { ItemIcon, CollectionIcon } from '../../icons/zotero'
-import { States } from '../../../models/utils/states'
+import { SelectionIcon } from '../../icons/zotero'
+import { States, SelectedItem, StateName, selectionConfig } from '../../../models/utils/states'
+import { useStates } from '../../hooks/useStates'
 
 interface ChipProps {
   children: React.ReactNode
   onDelete: () => void
+  name: StateName
 }
 
-function Chip({ children, onDelete }: ChipProps) {
+function Chip({ children, onDelete, name }: ChipProps) {
+  const backgroundColor = selectionConfig[name].backgroundColor
   return (
-    <div className="flex flex-initial mx-0 sm:mx-1 bg-rose-100 border-none cursor-default outline-none h-8 leading-8 rounded-xl px-2 align-middle mb-2 max-w-[100%] md:max-w-[30%] sm:max-w-[40%]">
+    <div
+      className="flex flex-initial mx-0 sm:mx-1 border-none cursor-default outline-none h-8 leading-8 rounded-xl px-2 align-middle mb-2 max-w-[100%] md:max-w-[22%] sm:max-w-[30%]"
+      style={{ backgroundColor }}
+    >
       {children}
       <span className="w-6 h-6 my-1 flex-none">
         <XCircleIcon onClick={onDelete} className="text-gray-400 hover:text-black" />
@@ -19,60 +25,49 @@ function Chip({ children, onDelete }: ChipProps) {
   )
 }
 
-function StatesContainer({ children }: { children: React.ReactNode }) {
+function SelectionContainer({ states, name }: { states: ReturnType<typeof useStates>; name: StateName }) {
+  const selections = states.states[name]
+  if (selections.length === 0) {
+    return null
+  }
   return (
     <div className="flex flex-wrap mx-0 sm:-mx-1 items-center justify-start flex-1 text-black text-sm w-[calc(100%-12px)] sm:w-full">
-      {children}
+      <span className="capitalize w-full sm:w-auto sm:h-8 sm:leading-8 mb-0 sm:mb-2 sm:mx-1 mx-0">{name}</span>
+      {selections.map(selection => {
+        const { id, type, title } = selection
+        return (
+          <Chip key={id} onDelete={() => states.remove(name, selection)} name={name}>
+            <span className="flex-none">
+              <SelectionIcon name={name} key={id} type={type} />
+            </span>
+            <span className="px-1 truncate flex-auto">{title}</span>
+          </Chip>
+        )
+      })}
+      {selections.length > 2 && (
+        <span
+          className="w-full sm:w-auto sm:h-8 sm:leading-8 mb-2 sm:mx-1 mx-0 text-gray-500 hover:text-tomato text-right sm:text-left"
+          onClick={() => states.removeAll(name)}
+        >
+          Remove all {name}
+        </span>
+      )}
     </div>
   )
 }
 
 interface StatesProps {
-  states: States
-  removeSelectedItem: (itemId: number) => void
-  removeAllSelectedItems: () => void
-  removeSelectedCollection: () => void
+  states: ReturnType<typeof useStates>
 }
 
-export function States({ states, removeSelectedItem, removeAllSelectedItems, removeSelectedCollection }: StatesProps) {
-  if (states.selectedItems && states.selectedItems.length > 0) {
-    return (
-      <StatesContainer>
-        <span className="w-full sm:w-auto sm:h-8 sm:leading-8 mb-0 sm:mb-2 sm:mx-1 mx-0">Items:</span>
-        {states.selectedItems.map(({ id, type, title }) => {
-          return (
-            <Chip key={id} onDelete={() => removeSelectedItem(id)}>
-              <span className="flex-none">
-                <ItemIcon key={id} type={type} />
-              </span>
-              <span className="px-1 truncate flex-auto">{title}</span>
-            </Chip>
-          )
-        })}
-        {states.selectedItems.length > 2 && (
-          <span
-            className="w-full sm:w-auto sm:h-8 sm:leading-8 mb-2 sm:mx-1 mx-0 text-gray-500 hover:text-tomato text-right sm:text-left"
-            onClick={() => removeAllSelectedItems()}
-          >
-            Remove all
-          </span>
-        )}
-      </StatesContainer>
-    )
-  } else if (states.selectedCollection) {
-    const { label } = states.selectedCollection
-    return (
-      <StatesContainer>
-        <span className="w-full sm:w-auto sm:h-8 sm:leading-8 mb-0 sm:mb-2 sm:mx-1 mx-0">Collection:</span>
-        <Chip onDelete={() => removeSelectedCollection()}>
-          <span className="flex-none">
-            <CollectionIcon />
-          </span>
-          <span className="px-1 truncate flex-auto">{label}</span>
-        </Chip>
-      </StatesContainer>
-    )
-  } else {
-    return null
-  }
+export function States({ states }: StatesProps) {
+  const stateNames: StateName[] = ['creators', 'tags', 'items', 'collections']
+
+  return (
+    <div>
+      {stateNames.map(name => (
+        <SelectionContainer key={name} states={states} name={name} />
+      ))}
+    </div>
+  )
 }

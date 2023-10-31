@@ -16,7 +16,6 @@ export interface AttachmentInfo {
     | 'attachment-link'
     | 'attachment-snapshot'
     | 'attachment-web-link'
-    | undefined
 }
 
 type ItemMode = 'search' | 'qa' | 'citation'
@@ -42,8 +41,8 @@ export function compileItemInfo(item: Zotero.Item, mode: ItemMode): ItemInfo {
   return itemInfo
 }
 
-export function compileAttachmentInfo(attachment: Zotero.Item, mode: ItemMode): AttachmentInfo {
-  let attachmentInfo: AttachmentInfo = { id: attachment.id, type: undefined }
+export function compileAttachmentInfo(attachment: Zotero.Item): AttachmentInfo {
+  let attachmentInfo: AttachmentInfo = { id: attachment.id, type: 'attachment-file' }
   const linkMode = attachment.attachmentLinkMode
   if (attachment.attachmentContentType === 'application/pdf' && attachment.isFileAttachment()) {
     if (linkMode === Zotero.Attachments.LINK_MODE_LINKED_FILE) {
@@ -75,6 +74,22 @@ export async function getItemAndBestAttachment(id: number, mode: ItemMode) {
   if (!attachment) {
     return { item: itemInfo }
   }
-  const attachmentInfo: AttachmentInfo = compileAttachmentInfo(attachment, mode)
+  const attachmentInfo: AttachmentInfo = compileAttachmentInfo(attachment)
   return { item: itemInfo, attachment: attachmentInfo }
+}
+
+export async function findItemByTitle(title: string) {
+  const s = new Zotero.Search()
+  s.addCondition('title', 'is', title)
+  const ids = await s.search()
+  if (ids.length === 0) {
+    return
+  }
+  const item = await Zotero.Items.getAsync(ids[0])
+  return compileItemInfo(item, 'search')
+}
+
+export async function getItemById(id: number) {
+  const item = await Zotero.Items.getAsync(id)
+  return compileItemInfo(item, 'search')
 }

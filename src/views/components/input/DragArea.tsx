@@ -1,29 +1,21 @@
 import React, { useState } from 'react'
 import { parseDataTransfer } from '../../../models/utils/dataTransfer'
-import { ItemInfo } from '../../../models/utils/zotero'
-import { SelectedCollection, SelectedItem } from '../../../models/utils/states'
+import { ItemInfo } from '../../../apis/zotero/item'
+import { StateName, StateSelection, SelectedItem, SelectedCollection } from '../../../models/utils/states'
 import { useDialog } from '../../hooks/useDialog'
 import { useDragging } from '../../hooks/useDragging'
+import { escapeTitle } from '../../../models/utils/states'
 
 export interface DragAreaProps {
   id?: string
   setDropText: (text: string) => void
   onDragEnter: (event: React.DragEvent<HTMLDivElement>) => void
   onDragLeave: (event: React.DragEvent<HTMLDivElement>) => void
-  addSelectedItems: (items: SelectedItem[]) => void
-  setSelectedCollection: (collection: SelectedCollection) => void
+  addSelection: (name: StateName, selections: StateSelection[]) => void
   inputRef: React.RefObject<HTMLTextAreaElement>
 }
 
-export function DragArea({
-  id,
-  setDropText,
-  onDragEnter,
-  onDragLeave,
-  addSelectedItems,
-  setSelectedCollection,
-  inputRef,
-}: DragAreaProps) {
+export function DragArea({ id, setDropText, onDragEnter, onDragLeave, addSelection, inputRef }: DragAreaProps) {
   const dialog = useDialog()
   const { setIsDragging } = useDragging()
   const [backgroundColor, setBackgroundColor] = useState('bg-white/50')
@@ -56,13 +48,20 @@ export function DragArea({
     const { type, ...data } = await parseDataTransfer(event.dataTransfer)
     switch (type) {
       case 'zotero/item': {
-        const { items } = data
-        addSelectedItems(items as ItemInfo[])
+        const { items = [] } = data
+        addSelection(
+          'items',
+          items.map(item => ({ ...item, title: escapeTitle(item.title || '') }))
+        )
         break
       }
       case 'zotero/collection': {
         const { collection } = data
-        setSelectedCollection(collection as { id: number; label: string })
+        if (collection) {
+          addSelection('collections', [
+            { ...collection, type: 'collection', title: escapeTitle(collection.title) },
+          ] as SelectedCollection[])
+        }
         break
       }
       case 'text/plain': {
@@ -75,22 +74,10 @@ export function DragArea({
     }
     dialog.focus()
     inputRef?.current?.focus()
-    console.log({ type, data })
-    // switch(item.type) {
-    //   case 'text/plain': {
-
-    //   }
-    // }
+    // console.log({ type, data })
   }
 
   return (
-    // <div
-    //   className={`fixed m-1 bottom-0 left-0 right-0 w-[calc(100%-20px)] min-h-32 h-1/3 border-4 border-dashed z-50 ${borderColor} rounded-lg ${textColor} text-4xl font-bold bg-white/50`}
-    //   onDragOver={handleDragOver}
-    //   onDragLeave={handleDragLeave}
-    //   onDragEnter={handleDrageEnter}
-    //   onDrop={handleDrop}
-    // >
     <div
       className={`absolute left-0 right-0 top-0 bottom-0 border-3 border-dashed z-50 border-gray-500 text-gray-500 font-bold ${backgroundColor}`}
       onDragOver={handleDragOver}

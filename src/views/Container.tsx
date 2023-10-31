@@ -15,10 +15,11 @@ import { Input } from './components/input/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
-import { States } from '../models/utils/states'
+import { States, areStatesEmpty } from '../models/utils/states'
+import { MentionValue } from './components/input/TextField'
 
 interface UserInput {
-  content: string
+  content: MentionValue
   states: States
 }
 
@@ -161,8 +162,7 @@ export function Container() {
     }
     let isSubscribed = true
     if (userInput) {
-      console.log({ userInput })
-      assistant.call(userInput.content, userInput.states).then(response => {
+      assistant.call(userInput.content.newValue, userInput.states).then(response => {
         try {
           handleAction(response as ClarificationActionResponse | ExecutorActionResponse, isSubscribed)
         } catch (e) {
@@ -175,7 +175,7 @@ export function Container() {
     }
   }, [userInput])
 
-  async function handleSubmit(input: { content: string; states: States }, id?: string) {
+  async function handleSubmit(input: { content: MentionValue; states: States }, id?: string) {
     const { content, states } = input
     if (id) {
       const updatedUserMessage = {
@@ -196,7 +196,30 @@ export function Container() {
       addMessage(newUserMessage)
 
       if (isLoading) {
-        setUserInput({ content: userInput?.content + '\n' + content, states })
+        // If either the older or the newer message has empty states (and therefore mentions), their text contents are merged and the non-empty states/mentions are kept. Otherwise the older message is discarded.
+        if (!userInput?.states || areStatesEmpty(userInput.states)) {
+          const previousValue = userInput?.content ? userInput.content.newValue + '\n' : ''
+          const previousPlainTextValue = userInput?.content ? userInput.content.newPlainTextValue + '\n' : ''
+          const mergedContent = {
+            newValue: previousValue + content.newValue,
+            newPlainTextValue: previousPlainTextValue + content.newPlainTextValue,
+            mentions: content.mentions.map(mention => ({
+              ...mention,
+              index: mention.index + previousValue.length + 1,
+              plainTextIndex: mention.plainTextIndex + previousPlainTextValue.length + 1,
+            })),
+          }
+          setUserInput({ content: mergedContent, states })
+        } else if (areStatesEmpty(states)) {
+          const mergedContent = {
+            newValue: userInput.content.newValue + '\n' + content.newValue,
+            newPlainTextValue: userInput.content.newPlainTextValue + '\n' + content.newPlainTextValue,
+            mentions: userInput.content.mentions,
+          }
+          setUserInput({ content: mergedContent, states: userInput.states })
+        } else {
+          setUserInput({ content, states })
+        }
       } else {
         setUserInput({ content, states })
       }
@@ -215,9 +238,9 @@ export function Container() {
       >
         <Header />
         <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
-        {/* {__env__ === 'development' ? (
+        {__env__ === 'development' ? (
           <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-        ) : null} */}
+        ) : null}
         {messages.length === 0 ? <ReleaseNote /> : null}
         {messages.map(({ type, ...props }) => {
           switch (type) {

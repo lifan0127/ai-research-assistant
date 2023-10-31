@@ -21,8 +21,9 @@ import { OPENAI_GPT_MODEL } from '../../constants'
 import { OutputActionParser } from '../utils/parsers'
 import { ClarificationActionResponse, ErrorActionResponse, SearchActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
-import { getItemAndBestAttachment } from '../utils/zotero'
-import { States } from '../utils/states'
+import { getItemAndBestAttachment } from '../../apis/zotero/item'
+import { SimplifiedStates, serializeStates } from '../utils/states'
+import * as zot from '../../apis/zotero'
 
 type SearchMode = 'search' | 'qa'
 
@@ -30,69 +31,26 @@ export async function searchZotero(
   query: SearchActionResponse['payload'],
   zoteroCallbacks: ZoteroCallbacks,
   mode: SearchMode,
-  collectionID?: number
+  collectionIDs?: number[]
 ) {
   const length = mode === 'search' ? 25 : 5
-  if (isEmpty(query.years) || query.years.from === 0 || query.years.to === 0) {
+  if (!query.years || isEmpty(query.years)) {
     query.years = { from: currentYear - 4, to: currentYear }
+  }
+  if (query.years.from === 0 || query.years.from === null) {
+    query.years.from = currentYear - 4
+  }
+  if (query.years.to === 0 || query.years.to === null) {
+    query.years.to = currentYear
   }
   if (query.years.from > query.years.to) {
     ;[query.years.from, query.years.to] = [query.years.to, query.years.from]
   }
-  const { keywords = [], authors = [], tags = [], years } = query
   const { handleZoteroActionStart, handleZoteroActionEnd } = zoteroCallbacks
   handleZoteroActionStart('🔎 Searching Zotero database')
-  const s = new Zotero.Search()
-  const collection = collectionID ? Zotero.Collections.get(collectionID) : null
-  if (collectionID) {
-    const { libraryID, key } = Zotero.Collections.getLibraryAndKeyFromID(collectionID) || {}
-    s.addCondition('libraryID', 'is', libraryID as any)
-    s.addCondition('collection', 'is', key as string)
-  }
-  s.addCondition('itemType', 'isNot', 'attachment')
-  authors.forEach(author => author.split(' ').forEach(word => s.addCondition('creator', 'contains', word)))
-  tags.forEach(tag => s.addCondition('tag', 'is', tag))
-  years.from && s.addCondition('date', 'isAfter', `${years.from - 1}`)
-  years.to && s.addCondition('date', 'isBefore', `${years.to + 1}`)
-  let ids: number[] = []
-  if (keywords.length > 0) {
-    for (let keyword of keywords) {
-      const sKw = cloneDeep(s)
-      sKw.addCondition('quicksearch-everything', 'contains', keyword)
-      const result = await sKw.search()
-      ids = [...ids, ...result]
-    }
-  } else {
-    s.addCondition('quicksearch-everything', 'contains', '')
-    ids = await s.search()
-  }
-
-  ids = uniq(ids)
-  const results = await Promise.all(
-    ids.slice(0, length).map(async id => {
-      return await getItemAndBestAttachment(id, 'search')
-    })
-  )
-  // const results = items.map(item => {
-  //   const id = item.id
-  //   const title = item.getDisplayTitle()
-  //   const creators = item.getCreators()
-  //   const authors =
-  //     creators.length === 0
-  //       ? undefined
-  //       : creators.length > 1
-  //       ? `${creators[0].lastName} et al.`
-  //       : `${creators[0].firstName} ${creators[0].lastName}`
-  //   const itemType = item.itemType
-  //   const year = new Date(item.getField('date') as string).getFullYear()
-  //   if (mode === 'search') {
-  //     return { id, title, authors, itemType, year }
-  //   }
-  //   const abstract = item.getField('abstractNote', false, true) || ''
-  //   return { id, title, authors, itemType, year, abstract }
-  // })
+  const { count, results, collections } = await zot.search({ ...query, length, collectionIDs })
   handleZoteroActionEnd('✅ Search complete')
-  return { count: ids.length, query, results, collection }
+  return { count, query, results, collections }
 }
 
 const SEARCH_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
@@ -100,20 +58,20 @@ const SEARCH_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
     `
 Compose an exhaustive search query for Zotero that includes broader, narrower, and associated terms to ensure a more extensive search coverage.
 Gather the following information from the user in a conversational manner:
-- A specific topic (required)
+- A specific topic or request (required)
 - Authors (optional)
 - Tags (optional)
+- Collections (optional)
 - Year range (optional)
-If you don't have the information, ask for clarification.
+If you don't have enough information, ask for clarification.
     `.trim()
   ),
   new MessagesPlaceholder('history'),
   HumanMessagePromptTemplate.fromTemplate(
     `
-<< INPUT >>
-{input}
+{states}
 
-<< OUTPUT >>
+User Input: {input}
     `.trim()
   ),
 ])
@@ -140,14 +98,14 @@ const functions = [
                 keywords: {
                   type: 'array',
                   description:
-                    'Keywords to search for in the Zotero database. For each keyword, include broader, narrower and other relevant terms.',
+                    'Keywords to search for in the Zotero database. For each keyword, include broader, narrower and other relevant terms. Keywords should be domain specific terminologies. Do not include common phrases such as paper, article, summary etc. Do not include tags that have been specified by the user.',
                   items: {
                     type: 'string',
                   },
                 },
-                authors: {
+                creators: {
                   type: 'array',
-                  description: 'Authors to search for in the Zotero database.',
+                  description: 'Creators (authors, editors) to search for in the Zotero database.',
                   items: {
                     type: 'string',
                   },
@@ -162,7 +120,9 @@ const functions = [
                 },
                 years: {
                   type: 'object',
-                  description: `Year range to search for in the Zotero database. For example, a reasonable year range is from 2020 to ${currentYear}. Do not populate this field if the user has not specifically mentioned year range in their message.`,
+                  description: `Year range to search for in the Zotero database. For example, a reasonable year range is from ${
+                    currentYear - 3
+                  } to ${currentYear}. Do not populate this field if the user has not specifically mentioned year range in their message.`,
                   properties: {
                     from: {
                       type: 'integer',
@@ -178,8 +138,15 @@ const functions = [
                     },
                   },
                 },
+                collections: {
+                  type: 'array',
+                  description: 'Collections to search for in the Zotero database.',
+                  items: {
+                    type: 'number',
+                  },
+                },
               },
-              required: ['keywords'],
+              required: [],
             },
             {
               type: 'object',
@@ -253,10 +220,8 @@ export class SearchChain extends BaseChain {
       callbackManager: this.langChainCallbackManager,
       outputKey: this.outputKey,
     })
-    const question: string = values[this.inputKey]
-    const { selectedCollection } = values.states || {}
-
-    const output = await llmChain.call({ [this.inputKey]: question })
+    const { collections: collectionIDs } = (values.states || {}) as SimplifiedStates
+    const output = await llmChain.call({ ...values, states: serializeStates(values.states) })
     const { action, payload } = JSON.parse(output[this.outputKey]) as
       | SearchActionResponse
       | ClarificationActionResponse
@@ -265,16 +230,17 @@ export class SearchChain extends BaseChain {
       return output
     }
     const searchQuery = payload as SearchActionResponse['payload']
-    const { query, count, results } = await searchZotero(
+    console.log({ states: values.states, searchQuery })
+    const { query, count, results, collections } = await searchZotero(
       searchQuery,
       this.zoteroCallbacks,
       this.mode,
-      selectedCollection
+      collectionIDs
     )
     return {
       [this.outputKey]: JSON.stringify({
         action,
-        payload: { widget: 'SEARCH_RESULTS', input: { query, count, results } },
+        payload: { widget: 'SEARCH_RESULTS', input: { query, count, results, collections } },
       }),
     }
   }

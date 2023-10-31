@@ -7,20 +7,36 @@ import { useDialog } from '../../hooks/useDialog'
 import { searchResultsAction } from './data/searchResults'
 import { qaResponseAction } from './data/qaResponse'
 import { States } from '../../../models/utils/states'
+import { defaultStates } from '../../hooks/useStates'
+import { MentionValue } from '../input/TextField'
+
+interface TestMessage {
+  type: 'BUTTON'
+  label: string
+  message: Partial<Message>
+}
 
 const testMessages = [
   {
     type: 'BUTTON' as const,
     label: 'User hello',
-    message: { type: 'USER_MESSAGE' as const, content: 'Hello!', states: { selectedItems: [] } },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: { newValue: 'Hello!', newPlainTextValue: 'Hello!', mentions: [] },
+      states: { ...defaultStates, items: [] },
+    },
   },
   {
     type: 'BUTTON' as const,
     label: 'Search ML',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'Find some papers on machine learning.',
-      states: { selectedItems: [] },
+      content: {
+        newValue: 'Find some papers on machine learning.',
+        newPlainTextValue: 'Find some papers on machine learning.',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [] },
     },
   },
   {
@@ -28,8 +44,12 @@ const testMessages = [
     label: 'Unclear Search',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'Can you help me search for papers?',
-      states: { selectedItems: [] },
+      content: {
+        newValue: 'Can you help me search for papers?',
+        newPlainTextValue: 'Can you help me search for papers?',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [] },
     },
   },
   {
@@ -37,8 +57,12 @@ const testMessages = [
     label: 'QA ML',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'How to use machine learning for materials discovery?',
-      states: { selectedItems: [] },
+      content: {
+        newValue: 'How to use machine learning for materials discovery?',
+        newPlainTextValue: 'How to use machine learning for materials discovery?',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [] },
     },
   },
   {
@@ -46,8 +70,12 @@ const testMessages = [
     label: 'Stateful QA',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'How to use machine learning for materials discovery?',
-      states: { selectedItems: [242] },
+      content: {
+        newValue: 'How to use machine learning for materials discovery?',
+        newPlainTextValue: 'How to use machine learning for materials discovery?',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [242] },
     },
   },
   {
@@ -55,13 +83,20 @@ const testMessages = [
     label: 'Collection States for QA',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'Why is data accuracy important to R&D?',
+      content: {
+        newValue: 'Why is data accuracy important to R&D?',
+        newPlainTextValue: 'Why is data accuracy important to R&D?',
+        mentions: [],
+      },
       states: {
-        selectedCollection: {
-          id: 4,
-          title: 'Consultancies',
-          label: 'Consultancies (26 items)',
-        },
+        ...defaultStates,
+        collections: [
+          {
+            id: 4,
+            title: 'Consultancies',
+            label: 'Consultancies (26 items)',
+          },
+        ],
       },
     },
   },
@@ -70,14 +105,26 @@ const testMessages = [
     label: 'QA Unknown',
     message: {
       type: 'USER_MESSAGE' as const,
-      content: 'How to use knowledge graphs in chemistry?',
-      states: { selectedItems: [] },
+      content: {
+        newValue: 'How to use knowledge graphs in chemistry?',
+        newPlainTextValue: 'How to use knowledge graphs in chemistry?',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [] },
     },
   },
   {
     type: 'BUTTON' as const,
     label: 'Summarize',
-    message: { type: 'USER_MESSAGE' as const, content: 'Summarize the search results.', states: { selectedItems: [] } },
+    message: {
+      type: 'USER_MESSAGE' as const,
+      content: {
+        newValue: 'Summarize the search results.',
+        newPlainTextValue: 'Summarize the search results.',
+        mentions: [],
+      },
+      states: { ...defaultStates, items: [] },
+    },
   },
   {
     type: 'BUTTON' as const,
@@ -100,7 +147,7 @@ const testMessages = [
 ]
 
 interface TestMenuProps {
-  setUserInput: (input: { content: string; states: States }) => void
+  setUserInput: (input: { content: MentionValue; states: States }) => void
   addMessage: (message: Partial<Message>) => void
   assistant: ResearchAssistant
 }

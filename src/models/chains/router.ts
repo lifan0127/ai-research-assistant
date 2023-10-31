@@ -11,15 +11,16 @@ import {
 import { JsonOutputFunctionsParser, OutputFunctionsParser } from 'langchain/output_parsers'
 import { ConversationChain } from 'langchain/chains'
 import { BaseChatMemory } from 'langchain/memory'
-import { Generation, ChatGeneration } from 'langchain/schema'
+import { ChainValues } from 'langchain/schema'
 import { StructuredOutputParser, OutputFixingParser } from 'langchain/output_parsers'
 import { config } from '../../../package.json'
 import { ChatOpenAI } from 'langchain/chat_models'
 import { create } from 'domain'
-import { CallbackManager } from 'langchain/callbacks'
+import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks'
 import { ClarificationActionResponse, RoutingActionResponse, ExecutorActionResponse } from '../utils/actions'
 import { OutputActionParser } from '../utils/parsers'
 import { OPENAI_GPT_MODEL } from '../../constants'
+import { serializeStates } from '../utils/states'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
 
@@ -85,16 +86,34 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
                     type: 'object',
                     description: 'A subset of the application states relevant to the user message.',
                     properties: {
-                      selectedItems: {
+                      creators: {
+                        type: 'array',
+                        description:
+                          'Creators (authors, editors) of the items in the Zotero library, useful for refining search scope.',
+                        items: {
+                          type: 'string',
+                        },
+                      },
+                      tags: {
+                        type: 'array',
+                        description: 'Tags of the items in the Zotero library, useful for refining search scope.',
+                        items: {
+                          type: 'string',
+                        },
+                      },
+                      items: {
                         type: 'array',
                         description: 'Zotero Item IDs, useful as sources for Q&A.',
                         items: {
                           type: 'number',
                         },
                       },
-                      selectedCollection: {
-                        type: 'number',
-                        description: 'Zotero Collection ID, useful for refining search scope.',
+                      collections: {
+                        type: 'array',
+                        description: 'Zotero Collection IDs, useful for refining search scope.',
+                        items: {
+                          type: 'number',
+                        },
                       },
                     },
                   },
@@ -128,7 +147,7 @@ You are an AI assistant for Zotero, a reference management software.
 Your job is to analyze a user's request, in the context of the application states, and choose the appropriate follow-up actions.
 
 Requirements:
-- You should interpret the user request in the context of the application states, if present.
+- You should interpret the user request in the context of the application states, which include a set of authors, tags, items and collections selected by the user.
 - When you cannot confidently determine the user's intention, the action should be "clarification" and the payload should contain a message to politely express your doubt. The goal is have the user provide more information through conversation.
 - After you have gathered enough information to understood the user's intention, the action should be "routing" and the payload should contain the name of the route to handle the request, the input for the route, and optionally, the relevant application states. The name of the route must be one of the values provided to you. The input could be a potentially modified version of the original user message.
   `.trim()
@@ -142,6 +161,14 @@ User Input: {input}
   `.trim()
   ),
 ])
+
+export class RouterChain extends ConversationChain {
+  /** @ignore */
+  async _call(values: ChainValues, runManager?: CallbackManagerForChainRun): Promise<ChainValues> {
+    const states = serializeStates(values.states)
+    return super._call({ ...values, states }, runManager)
+  }
+}
 
 interface createRouterInput {
   prompt?: ChatPromptTemplate
@@ -157,7 +184,7 @@ export const createRouter = ({
   callbackManager,
 }: createRouterInput) => {
   const outputParser = new OutputActionParser()
-  const chain = new ConversationChain({
+  const chain = new RouterChain({
     llm,
     prompt,
     memory,

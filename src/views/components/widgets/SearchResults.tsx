@@ -10,7 +10,7 @@ import {
 import { marked } from 'marked'
 import tablemark from 'tablemark'
 import { searchZotero } from '../../../models/chains/search'
-import { getItemAndBestAttachment } from '../../../models/utils/zotero'
+import { getItemAndBestAttachment } from '../../../apis/zotero/item'
 import { ItemButton } from '../item/ItemButton'
 
 interface SearchResult {
@@ -25,7 +25,12 @@ const columnHelper = createColumnHelper<SearchResult>()
 
 export interface SearchResultsProps extends Awaited<ReturnType<typeof searchZotero>> {}
 
-export function SearchResults({ query: { keywords, authors = [], years }, count, results }: SearchResultsProps) {
+export function SearchResults({
+  query: { keywords, authors = [], tags = [], years },
+  count,
+  results,
+  collections,
+}: SearchResultsProps) {
   const columns = [
     columnHelper.accessor('title', {
       header: 'Title',
@@ -122,6 +127,16 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
               <span className="font-bold">Authors:</span> {authors.join(', ')}
             </div>
           ) : null}
+          {tags.length > 0 ? (
+            <div>
+              <span className="font-bold">Tags:</span> {tags.join(', ')}
+            </div>
+          ) : null}
+          {collections.length > 0 ? (
+            <div>
+              <span className="font-bold">Collections:</span> {collections.map(col => col.name).join(', ')}
+            </div>
+          ) : null}
           <div>
             <span className="font-bold">Date Range:</span> {years?.from} - {years?.to}
           </div>
@@ -186,7 +201,10 @@ export function SearchResults({ query: { keywords, authors = [], years }, count,
             </div>
           </div>
         ) : (
-          <div>I couldn't find any result. Try modifying your search query or choosing another topic.</div>
+          <div>
+            I couldn't find any result. If this is not what you have anticipated, please try modifying your search query
+            or choosing another topic.
+          </div>
         )}
       </div>
     </div>
