@@ -1,7 +1,7 @@
 import React from 'react'
 import MarkdownReact from 'marked-react'
 import { marked } from 'marked'
-import { createCitations } from '../../../models/chains/qa'
+import { createCitations } from '../../../apis/zotero/citation'
 import { ItemButton } from '../item/ItemButton'
 
 export interface QAResponseProps {
