@@ -112,7 +112,7 @@ export function Container() {
       }
     }, 50)
     return () => clearTimeout(id)
-  })
+  }, [messages])
 
   useEffect(() => {
     function handleAction(
