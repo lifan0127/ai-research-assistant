@@ -7,7 +7,7 @@ import { Routes, createRouter, createRouteFunctions } from './chains/router'
 import { loadSearchChain } from './chains/search'
 import { loadRetrievalQAChain } from './chains/qa'
 import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
-import { Message } from '../views/hooks/useMessages'
+import { Message } from '../views/components/message/types'
 import { simplifyStates, serializeStates, States } from './utils/states'
 
 interface ResearchAssistantFields {
