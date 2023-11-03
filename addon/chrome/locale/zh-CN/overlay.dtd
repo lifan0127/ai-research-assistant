@@ -2,6 +2,7 @@
 <!ENTITY zotero.__addonRef__.itemmenu.test.label "插件模板">
 <!ENTITY zotero.__addonRef__.pref.enable.label "启用">
 <!ENTITY zotero.__addonRef__.pref.OPENAI_API_KEY.label "OpenAI API 密钥">
-
+<!ENTITY zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label "直接提交反馈，无需额外的确认弹窗。">
+<!ENTITY zotero.__addonRef__.pref.USER_EMAIL.label "用户邮箱">
 <!ENTITY zotero.__addonRef__.help.version.label "__addonName__ 版本 __buildVersion__">
 <!ENTITY zotero.__addonRef__.help.releasetime.label "构建时间 __buildTime__">

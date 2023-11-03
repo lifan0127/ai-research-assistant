@@ -11,7 +11,8 @@ import {
   selectionConfig,
   areStatesEmpty,
 } from '../../../models/utils/states'
-import { TextField, MentionValue } from '../input/TextField'
+import { TextField } from '../input/TextField'
+import { UserMessageProps } from './types'
 
 interface SelectionToggleProps {
   name: StateName
@@ -100,57 +101,50 @@ function StatesInfo({ states }: StatesInfoProps) {
   )
 }
 
-export interface UserMessageProps extends InputProps {
-  id: string
-  timestamp: string
-  type: 'USER_MESSAGE'
-  content: MentionValue
-  states: States
-}
-
-export function UserMessage({ id, content, states, onSubmit }: UserMessageProps) {
-  const [displayMenu, setDisplayMenu] = useState(false)
+export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }: UserMessageProps) {
+  // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
   const [isEdit, setIsEdit] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const isShortMessage = ref?.current?.offsetWidth && ref.current?.offsetWidth < 64
 
-  function handleMouseEnter() {
-    setDisplayMenu(true)
-  }
+  // function handleMouseEnter() {
+  //   setDisplayMenu(true)
+  // }
 
-  function handleMouseLeave() {
-    setDisplayMenu(false)
-  }
+  // function handleMouseLeave() {
+  //   setDisplayMenu(false)
+  // }
 
   function handleCopy() {
-    setDisplayMenu(false)
+    // setDisplayMenu(false)
     new ztoolkit.Clipboard().addText(content.newPlainTextValue, 'text/unicode').copy()
+    setCopyId(id)
   }
 
   function handleEdit() {
     setDropArea(id)
-    setDisplayMenu(false)
+    // setDisplayMenu(false)
     setIsEdit(true)
   }
 
   function handleSubmit(...args: Parameters<typeof onSubmit>) {
-    setDisplayMenu(false)
+    // setDisplayMenu(false)
     setIsEdit(false)
     onSubmit(...args)
   }
 
   function handleCancel() {
     setDropArea(undefined)
-    setDisplayMenu(false)
+    // setDisplayMenu(false)
     setIsEdit(false)
   }
 
   return (
     <div
       className="w-auto self-end max-w-[70%] my-2 pb-2"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      // onMouseEnter={handleMouseEnter}
+      // onMouseLeave={handleMouseLeave}
     >
       {isEdit ? (
         <div
@@ -166,8 +160,32 @@ export function UserMessage({ id, content, states, onSubmit }: UserMessageProps)
             className="relative self-end bg-tomato p-2 [&>*]:mx-2 [&_*]:my-0 [&_*]:leading-6 border border-neutral-500 rounded shadow-md shadow-black/20 text-white break-words"
           >
             <TextField states={states} isEdit={false} value={content} forceSuggestionsAboveCursor={false} />
-            {displayMenu && (
-              <div className={`absolute pb-3 text-sm -top-8 ${isShortMessage ? '-right-2' : '-left-2 pr-12'}`}>
+            <div className="flex pt-3">
+              <div className="flex-auto"></div>
+              <div className="flex-none flex flex-row space-x-2">
+                <div className="rounded border border-solid border-white bg-transparent text-white">
+                  <button
+                    type="button"
+                    className="relative inline-flex items-center bg-transparent hover:bg-red-800 focus:z-10 border-none px-2 py-1 rounded"
+                    aria-label="Copy"
+                    onClick={handleCopy}
+                  >
+                    <Square2StackIcon className="w-5 h-5 text-white" aria-hidden="true" />
+                    <span className="ml-2 text-sm text-white">{copyId === id ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+                <div className="rounded border border-solid border-white bg-transparent text-white">
+                  <button
+                    type="button"
+                    className="relative inline-flex items-center bg-transparent hover:bg-red-800 focus:z-10 border-none px-2 py-1 rounded"
+                    aria-label="Edit"
+                    onClick={handleEdit}
+                  >
+                    <PencilSquareIcon className="w-5 h-5 text-white" aria-hidden="true" />
+                    <span className="ml-2 text-sm text-white">Edit</span>
+                  </button>
+                </div>
+                {/* 
                 <div className="bg-white mb-3 rounded border border-neutral-500 shadow-md text-black">
                   <span className="inline-flex rounded-md shadow-sm">
                     <button
@@ -187,9 +205,9 @@ export function UserMessage({ id, content, states, onSubmit }: UserMessageProps)
                       <Square2StackIcon className="w-5 h-5 text-black" aria-hidden="true" />
                     </button>
                   </span>
-                </div>
+                </div> */}
               </div>
-            )}
+            </div>
           </div>
           <StatesInfo states={states} />
         </div>

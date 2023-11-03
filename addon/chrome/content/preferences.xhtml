@@ -5,19 +5,41 @@
       label="&zotero.__addonRef__.pref.enable.label;"
       preference="extensions.zotero.__addonRef__.enable"
     /> -->
+
     <vbox>
       <hbox>
         <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
       </hbox>
       <hbox>
-        <!-- <html:label for="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
+        <html:label for="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
           >&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</html:label
-        > -->
+        >
         <label>&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</label>
         <html:input
           type="password"
           id="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
           preference="extensions.zotero.__addonRef__.OPENAI_API_KEY"
+        ></html:input>
+      </hbox>
+      <hbox>
+        <label><html:br></html:br></label>
+      </hbox>
+      <hbox>
+        <checkbox
+          id="zotero-prefpane-__addonRef__-FEEDBACK_NO_CONFIRMATION"
+          label="&zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label;"
+          preference="extensions.zotero.__addonRef__.FEEDBACK_NO_CONFIRMATION"
+        />
+      </hbox>
+      <hbox>
+        <label><html:br></html:br></label>
+      </hbox>
+      <hbox>
+        <label>&zotero.__addonRef__.pref.USER_EMAIL.label;</label>
+        <html:input
+          type="email"
+          id="zotero-prefpane-__addonRef__-USER_EMAIL"
+          preference="extensions.zotero.__addonRef__.USER_EMAIL"
         ></html:input>
       </hbox>
       <hbox>

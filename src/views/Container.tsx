@@ -6,9 +6,10 @@ import { AgentAction } from 'langchain/schema'
 import { CallbackManager } from 'langchain/callbacks'
 import { ResearchAssistant } from '../models/assistant'
 import { ClarificationActionResponse, ErrorActionResponse, ExecutorActionResponse } from '../models/utils/actions'
-import { UserMessage, UserMessageProps } from './components/message/UserMessage'
-import { BotMessage, BotMessageProps } from './components/message/BotMessage'
-import { BotIntermediateStep, BotIntermediateStepProps } from './components/message/BotIntermediateStep'
+import { UserMessage } from './components/message/UserMessage'
+import { BotMessage } from './components/message/BotMessage'
+import { BotIntermediateStep } from './components/message/BotIntermediateStep'
+import { UserMessageProps, BotIntermediateStepProps, BotMessageProps } from './components/message/types'
 import { Header } from './components/Header'
 import { MainMenu } from './components/menu/MainMenu'
 import { Input } from './components/input/Input'
@@ -17,6 +18,8 @@ import { Version } from './components/Version'
 import './style.css'
 import { States, areStatesEmpty } from '../models/utils/states'
 import { MentionValue } from './components/input/TextField'
+import { Feedback } from './components/Feedback'
+import { useFeedback } from './hooks/useFeedback'
 
 interface UserInput {
   content: MentionValue
@@ -25,9 +28,11 @@ interface UserInput {
 
 export function Container() {
   const [userInput, setUserInput] = useState<UserInput>()
-  const { messages, addMessage, updateMessage, clearMessages } = useMessages()
+  const { messages, addMessage, editMessage, updateMessage, clearMessages } = useMessages()
   const { isDragging, setIsDragging } = useDragging()
+  const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } = useFeedback()
   const [isLoading, setIsLoading] = useState(false)
+  const [copyId, setCopyId] = useState<string>()
   const containerRef = useRef<HTMLDivElement>(null)
   const langChainCallbackManager = CallbackManager.fromHandlers({
     handleChainStart: (chain, inputs) => {
@@ -242,16 +247,41 @@ export function Container() {
           <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
         ) : null}
         {messages.length === 0 ? <ReleaseNote /> : null}
-        {messages.map(({ type, ...props }) => {
+        {messages.map(({ type, copyId: _1, setCopyId: _2, ...props }, index) => {
           switch (type) {
             case 'USER_MESSAGE': {
-              return <UserMessage key={props.id} {...(props as UserMessageProps)} onSubmit={handleSubmit} />
+              return (
+                <UserMessage
+                  key={props.id}
+                  copyId={copyId}
+                  setCopyId={setCopyId}
+                  {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId'>)}
+                  onSubmit={handleSubmit}
+                />
+              )
             }
             case 'BOT_MESSAGE': {
-              return <BotMessage key={props.id} {...(props as BotMessageProps)} />
+              return (
+                <BotMessage
+                  key={props.id}
+                  copyId={copyId}
+                  setCopyId={setCopyId}
+                  submitFeedback={submitFeedback}
+                  messageSlice={messages.slice(0, index + 1)}
+                  {...(props as Omit<BotMessageProps, 'submitFeedback' | 'messageSlice' | 'copyId' | 'setCopyId'>)}
+                  editMessage={editMessage}
+                />
+              )
             }
             case 'BOT_INTERMEDIATE_STEP': {
-              return <BotIntermediateStep key={props.id} {...(props as BotIntermediateStepProps)} />
+              return (
+                <BotIntermediateStep
+                  key={props.id}
+                  copyId={copyId}
+                  setCopyId={setCopyId}
+                  {...(props as Omit<BotIntermediateStepProps, 'copyId' | 'setCopyId'>)}
+                />
+              )
             }
           }
         })}
@@ -267,6 +297,7 @@ export function Container() {
         )}
         <Version />
       </div>
+      <Feedback open={openFeedback} setOpen={setOpenFeedback} callback={submitCallback} />
     </div>
   )
 }

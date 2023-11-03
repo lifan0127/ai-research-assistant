@@ -6,7 +6,7 @@ export function registerPrefsWindow() {
     pluginID: config.addonID,
     src: rootURI + 'chrome/content/preferences.xhtml',
     label: getString('prefs.title'),
-    image: `chrome://${config.addonRef}/content/icons/favicon.png`,
+    image: `chrome://${config.addonRef}/content/icons/favicon@0.333x.png`,
     extraDTD: [`chrome://${config.addonRef}/locale/overlay.dtd`],
     defaultXUL: true,
   }

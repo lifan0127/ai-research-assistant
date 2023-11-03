@@ -1,21 +1,21 @@
-import React, { useState, useRef, useCallback } from 'react'
-import { Square2StackIcon } from '@heroicons/react/24/outline'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  Square2StackIcon,
+  HandThumbUpIcon as HandThumbUpIconOutline,
+  HandThumbDownIcon as HandThumbDownIconOutline,
+} from '@heroicons/react/24/outline'
+import {
+  HandThumbUpIcon as HandThumbUpIconSolid,
+  HandThumbDownIcon as HandThumbDownIconSolid,
+} from '@heroicons/react/24/solid'
 import { marked } from 'marked'
 import { Markdown, MarkdownProps, copyMarkdown } from '../widgets/Markdown'
 import { SearchResults, SearchResultsProps, copySearchResults } from '../widgets/SearchResults'
 import { QAResponse, QAResponseProps, copyQAResponse } from '../widgets/QAResponse'
 import { Error, ErrorProps, copyError } from '../widgets/Error'
+import { BotIntermediateStepProps, BotMessageProps, UserMessageProps } from './types'
 
-export interface BotMessageProps {
-  id: string
-  timestamp: string
-  type: 'BOT_MESSAGE'
-  widget: 'MARKDOWN' | 'SEARCH_RESULTS' | 'QA_RESPONSE' | 'ERROR'
-  input: MarkdownProps | SearchResultsProps | QAResponseProps | ErrorProps
-  _raw: string
-}
-
-function MessageContent({ widget, input }: BotMessageProps) {
+function MessageContent({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
   switch (widget) {
     case 'MARKDOWN': {
       return <Markdown content={(input as MarkdownProps).content} />
@@ -35,7 +35,7 @@ function MessageContent({ widget, input }: BotMessageProps) {
   }
 }
 
-function copyBotMessage({ widget, input }: BotMessageProps) {
+function copyBotMessage({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
   switch (widget) {
     case 'MARKDOWN': {
       return copyMarkdown(input as MarkdownProps)
@@ -57,53 +57,109 @@ function copyBotMessage({ widget, input }: BotMessageProps) {
   }
 }
 
-export function BotMessage(props: BotMessageProps) {
-  const [displayMenu, setDisplayMenu] = useState(false)
+export function BotMessage({
+  submitFeedback,
+  messageSlice,
+  editMessage,
+  copyId,
+  setCopyId,
+  ...message
+}: BotMessageProps) {
+  const [vote, setVote] = useState(message.vote)
+  const [error, setError] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const width = props.widget === 'SEARCH_RESULTS' ? 'w-full sm:w-[85%]' : 'w-auto max-w-full sm:max-w-[70%]'
-  const isShortMessage = ref?.current?.offsetWidth && ref.current?.offsetWidth < 32
+  const width = message.widget === 'SEARCH_RESULTS' ? 'w-full sm:w-[85%]' : 'w-auto max-w-full sm:max-w-[70%]'
 
-  const handleMouseEnter = useCallback(() => {
-    !displayMenu && setDisplayMenu(true)
-  }, [displayMenu])
-
-  const handleMouseLeave = useCallback(() => {
-    displayMenu && setDisplayMenu(false)
-  }, [displayMenu])
+  useEffect(() => {
+    setVote(message.vote)
+  }, [message.vote])
 
   function handleCopy() {
-    copyBotMessage(props)
-    setDisplayMenu(false)
+    copyBotMessage(message)
+    setCopyId(message.id)
+  }
+
+  function handleVote(vote: 'up' | 'down') {
+    const { id, timestamp } = message
+    const serializedMessages = JSON.stringify(
+      messageSlice.map(message => ({
+        id: message.id,
+        timestamp: message.timestamp,
+        type: message.type,
+        content: (message as UserMessageProps).content,
+        states: (message as UserMessageProps).states,
+        widget: (message as BotMessageProps | BotIntermediateStepProps).widget,
+        input: (message as BotMessageProps | BotIntermediateStepProps).input,
+      }))
+    )
+
+    submitFeedback(
+      { id, timestamp, vote, user: null, messages: serializedMessages, env: __env__ },
+      (vote: 'up' | 'down') => editMessage({ ...message, type: 'BOT_MESSAGE', vote }),
+      (success: boolean) => {
+        if (success) {
+          setVote(vote)
+          setError(false)
+        } else {
+          setError(true)
+        }
+      }
+    )
   }
 
   return (
-    <div
-      className={`relative self-start ${width} my-2 pb-2`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className={`relative self-start ${width} my-2 pb-2`}>
       <div
         ref={ref}
         className="bg-white p-2 [&>*]:mx-2 [&_*]:my-0 [&_*]:leading-6 [&_ul]:pl-0 [&_ol]:pl-0 border border-neutral-500 rounded shadow-md text-black break-words"
       >
-        <MessageContent {...props} />
-      </div>
-      {displayMenu && (
-        <div className={`absolute pb-3 text-sm -top-8 ${isShortMessage ? 'left-0' : 'right-0 pl-12'}`}>
-          <div className="bg-white mb-3 rounded border border-neutral-500 shadow-md text-black">
-            <span className="isolate inline-flex rounded-md shadow-sm">
+        <MessageContent {...message} />
+        <div className="flex pt-3">
+          <div className="flex-none">
+            <div className="rounded border border-solid border-neutral-300">
               <button
                 type="button"
-                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
+                className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
                 aria-label="Copy"
                 onClick={handleCopy}
               >
-                <Square2StackIcon className="w-5 h-5 text-black" aria-hidden="true" />
+                <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+                <span className="ml-2 text-sm">{copyId === message.id ? 'Copied' : 'Copy'}</span>
               </button>
-            </span>
+            </div>
+          </div>
+          <div className="flex-auto"></div>
+          <div className="flex-none flex flex-col">
+            <div className="self-end">
+              <button
+                type="button"
+                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
+                aria-label="ThumbUp"
+                onClick={() => handleVote('up')}
+              >
+                {vote === 'up' ? (
+                  <HandThumbUpIconSolid className="w-5 h-5 text-tomato" aria-hidden="true" />
+                ) : (
+                  <HandThumbUpIconOutline className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+                )}
+              </button>
+              <button
+                type="button"
+                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
+                aria-label="ThumbDown"
+                onClick={() => handleVote('down')}
+              >
+                {vote === 'down' ? (
+                  <HandThumbDownIconSolid className="w-5 h-5 text-tomato" aria-hidden="true" />
+                ) : (
+                  <HandThumbDownIconOutline className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            {error ? <div className="text-xs text-red-500">Failed to submit feedback</div> : null}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

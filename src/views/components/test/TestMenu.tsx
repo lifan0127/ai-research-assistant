@@ -1,7 +1,7 @@
 import React from 'react'
 import { WrenchIcon } from '@heroicons/react/24/solid'
 import { DropdownMenu } from '../menu/DropdownMenu'
-import { Message } from '../../hooks/useMessages'
+import { Message } from '../message/types'
 import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { searchResultsAction } from './data/searchResults'

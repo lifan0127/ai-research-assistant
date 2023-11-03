@@ -353,6 +353,7 @@ export const searchResultsAction: any = {
           },
         },
       ],
+      collections: [],
     },
   },
 }

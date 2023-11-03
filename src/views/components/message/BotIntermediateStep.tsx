@@ -1,13 +1,6 @@
 import React from 'react'
-import { Markdown, MarkdownProps } from '../widgets/Markdown'
-
-export interface BotIntermediateStepProps {
-  id: string
-  timestamp: string
-  type: 'BOT_INTERMEDIATE_STEP'
-  widget: 'MARKDOWN'
-  input: MarkdownProps
-}
+import { Markdown } from '../widgets/Markdown'
+import { BotIntermediateStepProps } from './types'
 
 export function BotIntermediateStep({ input }: BotIntermediateStepProps) {
   return (

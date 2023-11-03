@@ -2,6 +2,8 @@
 <!ENTITY zotero.__addonRef__.itemmenu.test.label "addon template">
 <!ENTITY zotero.__addonRef__.pref.enable.label "Enable">
 <!ENTITY zotero.__addonRef__.pref.OPENAI_API_KEY.label "OpenAI API Key">
+<!ENTITY zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label "Submit feedback directly without an additiona popup for confirmation">
+<!ENTITY zotero.__addonRef__.pref.USER_EMAIL.label "User Email">
 
 <!ENTITY zotero.__addonRef__.help.version.label "__addonName__ VERSION __buildVersion__">
 <!ENTITY zotero.__addonRef__.help.releasetime.label "Build __buildTime__">
