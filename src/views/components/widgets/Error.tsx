@@ -3,6 +3,7 @@ import MarkdownReact from 'marked-react'
 import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
 import { OPENAI_GPT_MODEL } from '../../../constants'
+import { anonymizeError } from '../../../models/utils/error'
 
 interface ErrorContainerProps {
   error: any
@@ -11,6 +12,9 @@ interface ErrorContainerProps {
 
 function ErrorContainer({ error, children }: ErrorContainerProps) {
   const [showError, setShowError] = useState(false)
+  if (__env__ === 'production' && error.stack && typeof error.stack === 'string') {
+    error.stack = anonymizeError(error.stack)
+  }
 
   return (
     <>
@@ -20,7 +24,7 @@ function ErrorContainer({ error, children }: ErrorContainerProps) {
       </div>
       {showError ? (
         <pre className="overflow-auto !leading-tight text-xs max-h-64 !p-2 bg-gray-200/50">
-          {JSON.stringify(serializeError(error), null, 2)}
+          {JSON.stringify(error, null, 2)}
         </pre>
       ) : null}
     </>

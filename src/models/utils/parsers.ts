@@ -47,7 +47,6 @@ export class OutputActionParser extends BaseLLMOutputParser<string> {
         const result = {
           action: 'error',
           payload: {
-            message: errorObj.message,
             error: errorObj,
           },
         }
@@ -67,7 +66,13 @@ export class OutputActionParser extends BaseLLMOutputParser<string> {
         const result = await this.outputParser.parseResult(fixedGenerations)
         return JSON.stringify(result)
       } catch (error) {
-        throw error
+        const result = {
+          action: 'error',
+          payload: {
+            error: serializeError(error),
+          },
+        }
+        return JSON.stringify(result)
       }
     }
   }

@@ -83,11 +83,12 @@ export class ResearchAssistant {
       }
     } catch (error: any) {
       this.errorCallbacks.handleErrorEnd(error)
+      const errorObj = serializeError(error)
       return {
         action: 'error',
         payload: {
-          error,
-          _raw: JSON.stringify(serializeError(error), null, 2),
+          error: errorObj,
+          _raw: JSON.stringify(errorObj, null, 2),
         },
       }
     }

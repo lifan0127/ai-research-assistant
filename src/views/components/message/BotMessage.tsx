@@ -14,6 +14,7 @@ import { SearchResults, SearchResultsProps, copySearchResults } from '../widgets
 import { QAResponse, QAResponseProps, copyQAResponse } from '../widgets/QAResponse'
 import { Error, ErrorProps, copyError } from '../widgets/Error'
 import { BotIntermediateStepProps, BotMessageProps, UserMessageProps } from './types'
+import { anonymizeError } from '../../../models/utils/error'
 
 function MessageContent({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
   switch (widget) {
@@ -82,15 +83,24 @@ export function BotMessage({
   function handleVote(vote: 'up' | 'down') {
     const { id, timestamp } = message
     const serializedMessages = JSON.stringify(
-      messageSlice.map(message => ({
-        id: message.id,
-        timestamp: message.timestamp,
-        type: message.type,
-        content: (message as UserMessageProps).content,
-        states: (message as UserMessageProps).states,
-        widget: (message as BotMessageProps | BotIntermediateStepProps).widget,
-        input: (message as BotMessageProps | BotIntermediateStepProps).input,
-      }))
+      messageSlice.map(message => {
+        const input = (message as BotMessageProps | BotIntermediateStepProps).input
+        if (message.type === 'BOT_MESSAGE' && message.widget === 'ERROR') {
+          const errorInput = input as ErrorProps
+          if (errorInput.error.stack && typeof errorInput.error.stack === 'string') {
+            errorInput.error.stack = anonymizeError(errorInput.error.stack)
+          }
+        }
+        return {
+          id: message.id,
+          timestamp: message.timestamp,
+          type: message.type,
+          content: (message as UserMessageProps).content,
+          states: (message as UserMessageProps).states,
+          widget: (message as BotMessageProps | BotIntermediateStepProps).widget,
+          input,
+        }
+      })
     )
 
     submitFeedback(

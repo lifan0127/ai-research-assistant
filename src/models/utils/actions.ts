@@ -14,7 +14,6 @@ export interface ClarificationActionResponse extends BaseActionResponse {
 export interface ErrorActionResponse extends BaseActionResponse {
   action: 'error'
   payload: {
-    message: string
     error: object
     _raw: string
   }
