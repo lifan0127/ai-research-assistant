@@ -1,6 +1,6 @@
 {
   "name": "aria",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "AI Research Assistant Powered by Large Language Models",
   "config": {
     "addonName": "Aria",
