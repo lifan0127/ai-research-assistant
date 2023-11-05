@@ -1,5 +1,7 @@
 import { uniq, cloneDeep, flatten } from 'lodash'
 import { getItemAndBestAttachment } from './item'
+import retry, { Options } from 'async-retry'
+
 interface SearchInput {
   keywords?: string[]
   creators?: string[]
@@ -61,9 +63,9 @@ export async function search({
 
   const uniqueIds = uniq(ids)
   const results = await Promise.all(
-    uniqueIds.slice(0, length).map(async id => {
-      return await getItemAndBestAttachment(id, 'search')
-    })
+    uniqueIds
+      .slice(0, length)
+      .map(async id => await retry(async () => getItemAndBestAttachment(id, 'search'), { retries: 3 } as Options))
   )
   return { count: ids.length, results, collections }
 }

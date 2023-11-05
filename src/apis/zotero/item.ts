@@ -68,7 +68,6 @@ export async function getItemAndBestAttachment(id: number, mode: ItemMode) {
   if (mode === 'qa') {
     return { item: itemInfo }
   }
-
   const attachment = await item.getBestAttachment()
   // Ref: https://github.com/zotero/zotero/blob/17daf9fe8dc792b1554a2a17e153fb90290617b3/chrome/content/zotero/itemTree.jsx#L3777
   if (!attachment) {

@@ -10,6 +10,7 @@ import {
   SystemMessagePromptTemplate,
 } from 'langchain/prompts'
 import { ChainValues } from 'langchain/schema'
+import retry, { Options } from 'async-retry'
 import { config } from '../../../package.json'
 import { OPENAI_GPT_MODEL } from '../../constants'
 import { ClarificationActionResponse, ErrorActionResponse, QAActionResponse } from '../utils/actions'
@@ -239,9 +240,10 @@ class RetrievalQAChain extends BaseChain {
     if (items?.length) {
       // Use the pre-selected items if provided
       const results = await Promise.all(
-        items.map(async (id: number) => {
-          return await zot.getItemAndBestAttachment(id, 'qa')
-        })
+        items.map(
+          async (id: number) =>
+            await retry(async () => zot.getItemAndBestAttachment(id, 'qa'), { retries: 3 } as Options)
+        )
       )
       retrievalOutput = JSON.stringify({
         action: 'retrieval',

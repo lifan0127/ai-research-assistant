@@ -21,7 +21,6 @@ import { OPENAI_GPT_MODEL } from '../../constants'
 import { OutputActionParser } from '../utils/parsers'
 import { ClarificationActionResponse, ErrorActionResponse, SearchActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
-import { getItemAndBestAttachment } from '../../apis/zotero/item'
 import { SimplifiedStates, serializeStates } from '../utils/states'
 import * as zot from '../../apis/zotero'
 
