@@ -130,6 +130,16 @@ function bindPrefEvents() {
   //     addon.data.prefs!.window.alert(`Successfully changed to ${(e.target as HTMLInputElement).value}!`)
   //   })
   addon.data
+    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-0`)
+    ?.addEventListener('command', e => {
+      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    })
+  addon.data
+    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-1`)
+    ?.addEventListener('command', e => {
+      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    })
+  addon.data
     .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_API_KEY`)
     ?.addEventListener('change', e => {
       addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI API Key to take effect.`)

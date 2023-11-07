@@ -4,16 +4,16 @@ import { BaseLLMOutputParser } from 'langchain/schema/output_parser'
 import { serializeError } from 'serialize-error'
 import { LLMChain } from 'langchain/chains'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
-import { OPENAI_GPT_MODEL } from '../../constants'
 import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from 'langchain/prompts'
 import { config } from '../../../package.json'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
+const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
 
 const llm = new ChatOpenAI({
   temperature: 0,
   openAIApiKey: OPENAI_API_KEY,
-  modelName: OPENAI_GPT_MODEL,
+  modelName: OPENAI_MODEL,
 })
 const prompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(

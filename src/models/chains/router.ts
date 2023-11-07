@@ -19,15 +19,15 @@ import { create } from 'domain'
 import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks'
 import { ClarificationActionResponse, RoutingActionResponse, ExecutorActionResponse } from '../utils/actions'
 import { OutputActionParser } from '../utils/parsers'
-import { OPENAI_GPT_MODEL } from '../../constants'
 import { serializeStates } from '../utils/states'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
+const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
 
 const llm = new ChatOpenAI({
   temperature: 0,
   openAIApiKey: OPENAI_API_KEY,
-  modelName: OPENAI_GPT_MODEL,
+  modelName: OPENAI_MODEL,
 })
 
 export interface Routes {

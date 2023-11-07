@@ -1,11 +1,12 @@
 import React from 'react'
-import { OPENAI_GPT_MODEL } from '../../constants'
-import { version } from '../../../package.json'
+import { version, config } from '../../../package.json'
 
 export function Version() {
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+
   return (
     <div className="text-center w-full text-gray-400 text-sm py-0.5">
-      <span>Version: {version}</span> <span>(Model: {OPENAI_GPT_MODEL})</span>
+      <span>Version: {version}</span> <span>(Model: {OPENAI_MODEL})</span>
     </div>
   )
 }

@@ -2,9 +2,8 @@ import React, { useState } from 'react'
 import MarkdownReact from 'marked-react'
 import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
-import { OPENAI_GPT_MODEL } from '../../../constants'
 import { anonymizeError } from '../../../models/utils/error'
-
+import { config } from '../../../../package.json'
 interface ErrorContainerProps {
   error: any
   children: React.ReactNode
@@ -36,6 +35,8 @@ export interface ErrorProps {
 }
 
 export function Error({ error }: ErrorProps) {
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+
   if (error?.response?.data?.error) {
     const { code, message } = error.response.data.error
     switch (code) {
@@ -68,9 +69,9 @@ export function Error({ error }: ErrorProps) {
         return (
           <ErrorContainer error={error}>
             <div>
-              <h4 className="pb-2">Model '{OPENAI_GPT_MODEL}' is not available</h4>
+              <h4 className="pb-2">Model '{OPENAI_MODEL}' is not available</h4>
               <ul className="list-none p-0">
-                <li>{`The model '${OPENAI_GPT_MODEL}' does not exist or you do not have access to it.`}</li>
+                <li>{`The model '${OPENAI_MODEL}' does not exist or you do not have access to it.`}</li>
                 <li>
                   Learn more:{' '}
                   <button

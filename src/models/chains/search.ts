@@ -17,7 +17,6 @@ import { uniq, cloneDeep, isEmpty } from 'lodash'
 import { BaseChatMemory, BufferWindowMemory } from 'langchain/memory'
 import { config } from '../../../package.json'
 import { ReadOnlyBufferWindowMemory } from '../utils/memory'
-import { OPENAI_GPT_MODEL } from '../../constants'
 import { OutputActionParser } from '../utils/parsers'
 import { ClarificationActionResponse, ErrorActionResponse, SearchActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
@@ -267,10 +266,11 @@ interface LoadSearchChainInput {
 
 export const loadSearchChain = (params: LoadSearchChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,
-    modelName: OPENAI_GPT_MODEL,
+    modelName: OPENAI_MODEL,
   })
   const { prompt = SEARCH_DEFAULT_PROMPT, langChainCallbackManager, zoteroCallbacks, memory, mode } = params
   const chain = new SearchChain({ prompt, memory, llm, langChainCallbackManager, zoteroCallbacks, mode })

@@ -11,9 +11,24 @@
         <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
       </hbox>
       <hbox>
-        <html:label for="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
-          >&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</html:label
+        <label>&zotero.__addonRef__.pref.OPENAI_MODEL.label;</label>
+        <radiogroup
+          id="zotero-prefpane-__addonRef__-OPENAI_MODEL"
+          label="&zotero.__addonRef__.pref.OPENAI_MODEL.label;"
+          preference="extensions.zotero.__addonRef__.OPENAI_MODEL"
         >
+          <radio label="GPT-4" value="gpt-4-0613" id="zotero-prefpane-__addonRef__-OPENAI_MODEL-0" />
+          <radio
+            label="GPT-4 Turbo (Preview)"
+            value="gpt-4-1106-preview"
+            id="zotero-prefpane-__addonRef__-OPENAI_MODEL-1"
+          />
+        </radiogroup>
+      </hbox>
+      <hbox>
+        <label><html:br></html:br></label>
+      </hbox>
+      <hbox>
         <label>&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</label>
         <html:input
           type="password"
