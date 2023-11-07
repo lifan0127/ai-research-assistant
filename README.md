@@ -31,6 +31,12 @@ Before using Aria, you need to provide an [OpenAI API Key](https://platform.open
 
 After restart, you should see the activated Aria window (as shown above) and can start using it through conversations.
 
+## Model Selection
+
+You can now choose between the base GPT-4 model and the new GPT-4 Turbo model (Preview).
+
+![Aria](assets/images/model-selection.png)
+
 ## Update
 
 - Aria can perform automatic update when internet access is available. To check for available update, select <em>Tools</em> from the top menu bar, and then click on <em>Addons</em>.
