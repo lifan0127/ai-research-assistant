@@ -1,5 +1,5 @@
-import { Embeddings } from 'langchain/embeddings'
-import { VectorStore } from 'langchain/vectorstores'
+import { Embeddings } from 'langchain/embeddings/base'
+import { VectorStore } from 'langchain/vectorstores/base'
 import { Document } from 'langchain/document'
 import { InMemoryDocstore } from 'langchain/stores/doc/in_memory'
 import init, { createIndex, runSearch, InitOutput } from './vector_search'
