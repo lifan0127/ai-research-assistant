@@ -2,7 +2,7 @@
 // import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
 // import { config } from '../../../package.json'
 // import { OpenAI } from 'langchain'
-// import { ChatOpenAI } from 'langchain/chat_models'
+// import { ChatOpenAI } from 'langchain/chat_models/openai'
 // import { AgentExecutor, ChatConversationalAgent, initializeAgentExecutor } from 'langchain/agents'
 // import { loadZoteroSearchChainAsTool } from '../chains/search'
 // import { ZoteroItem } from '../tools/zoteroItem'

@@ -7,7 +7,7 @@ import {
   HumanMessagePromptTemplate,
   MessagesPlaceholder,
 } from 'langchain/prompts'
-import { ChatOpenAI } from 'langchain/chat_models'
+import { ChatOpenAI } from 'langchain/chat_models/openai'
 import { ChainInputs, BaseChain, ConversationChain } from 'langchain/chains'
 import { Generation, ChatGeneration } from 'langchain/schema'
 import { ChainTool } from 'langchain/tools'
