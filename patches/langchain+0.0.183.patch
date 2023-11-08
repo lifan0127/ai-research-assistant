@@ -1,8 +1,8 @@
 diff --git a/node_modules/langchain/dist/chat_models/openai.js b/node_modules/langchain/dist/chat_models/openai.js
-index 76d7f4b..0bef018 100644
+index 63b3cab..9de00f1 100644
 --- a/node_modules/langchain/dist/chat_models/openai.js
 +++ b/node_modules/langchain/dist/chat_models/openai.js
-@@ -620,6 +620,8 @@ export class ChatOpenAI extends BaseChatModel {
+@@ -632,6 +632,8 @@ export class ChatOpenAI extends BaseChatModel {
                  baseURL: endpoint,
                  timeout: this.timeout,
                  maxRetries: 0,
