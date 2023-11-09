@@ -91,12 +91,23 @@ export function BotMessage({
             errorInput.error.stack = anonymizeError(errorInput.error.stack)
           }
         }
+        let purgedStates
+        if (message.type === 'USER_MESSAGE' && message.states.images.length > 0) {
+          const states = (message as UserMessageProps).states
+          purgedStates = {
+            ...states,
+            images: states.images.map(({ image, ...rest }) => ({
+              ...rest,
+              image: image.slice(0, 64) + '...',
+            })),
+          }
+        }
         return {
           id: message.id,
           timestamp: message.timestamp,
           type: message.type,
           content: (message as UserMessageProps).content,
-          states: (message as UserMessageProps).states,
+          states: purgedStates,
           widget: (message as BotMessageProps | BotIntermediateStepProps).widget,
           input,
         }

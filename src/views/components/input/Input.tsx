@@ -3,8 +3,8 @@ import { useStates } from '../../hooks/useStates'
 import { useDragging } from '../../hooks/useDragging'
 import { States } from './States'
 import { DragArea } from './DragArea'
-import { States as StatesSchema } from '../../../models/utils/states'
-import { TextField, MentionValue } from './TextField'
+import { States as StatesSchema, MentionValue } from '../../../models/utils/states'
+import { TextField } from './TextField'
 import { isEqual } from 'lodash'
 
 export interface InputProps {
@@ -106,7 +106,8 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
       {isDragging && id === dropArea ? (
         <DragArea
           id={id}
-          setDropText={setDropText}
+          value={states.value}
+          setValue={states.setValue}
           onDragEnter={() => setIsDragging(isDragging + 1)}
           onDragLeave={() => setIsDragging(isDragging - 1)}
           addSelection={states.add}

@@ -101,6 +101,30 @@ function StatesInfo({ states }: StatesInfoProps) {
   )
 }
 
+interface GalleryProps {
+  images: States['images']
+}
+
+function Gallery({ images }: GalleryProps) {
+  if (!images || images.length === 0) {
+    return null
+  }
+  return (
+    <div className="flex flex-row flex-wrap items-end self-end">
+      {images.map(({ id, title, image }) => (
+        <div key={id} className="relative border border-solid border-neutral-300">
+          <div className="h-6 flex flex-row px-1" style={{ backgroundColor: selectionConfig.images.backgroundColor }}>
+            <div className="flex-none text-sm">{id}</div>
+          </div>
+          <div className="h-40">
+            <img className="h-full aspect-auto" src={image} title={title} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }: UserMessageProps) {
   // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
@@ -210,6 +234,7 @@ export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }
             </div>
           </div>
           <StatesInfo states={states} />
+          <Gallery images={states.images} />
         </div>
       )}
     </div>

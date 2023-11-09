@@ -16,8 +16,7 @@ import { Input } from './components/input/Input'
 import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
-import { States, areStatesEmpty } from '../models/utils/states'
-import { MentionValue } from './components/input/TextField'
+import { States, areStatesEmpty, MentionValue } from '../models/utils/states'
 import { Feedback } from './components/Feedback'
 import { useFeedback } from './hooks/useFeedback'
 
@@ -53,11 +52,17 @@ export function Container() {
           break
         }
         default: {
+          let input = (inputs as any).input
+          if (Array.isArray(input)) {
+            // TODO: extract the appropriate input text for complex input schema
+            input = undefined
+            // input = input[0].content.find((message: any) => message.type === 'text')?.text
+          }
           const newBotIntermediateStep = {
             type: 'BOT_INTERMEDIATE_STEP' as const,
             widget: 'MARKDOWN' as const,
             input: {
-              content: `${title} (__Input:__ ${(inputs as any).input})`,
+              content: !!input ? `${title} (__Input:__ ${input})` : title,
               // content: (
               //   <div>
               //     {title}{' '}

@@ -9,6 +9,7 @@ import { loadRetrievalQAChain } from './chains/qa'
 import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
 import { Message } from '../views/components/message/types'
 import { simplifyStates, serializeStates, States } from './utils/states'
+import { loadVisionChain } from './chains/vision'
 
 interface ResearchAssistantFields {
   langChainCallbackManager: CallbackManager
@@ -40,6 +41,10 @@ export class ResearchAssistant {
           "For Q&A and other related requests based on user's Zotero library. Use this route when a user expects to see a single answer or summary.",
         executor: loadRetrievalQAChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
       },
+      vision: {
+        description: 'For visual analysis of provided images, typically based on Zotero annotations',
+        executor: loadVisionChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
+      },
       // help: {
       //   description: 'For help with how to use AI assistant for Zotero.',
       //   executor: null
@@ -69,12 +74,13 @@ export class ResearchAssistant {
 
       const { output: executorOutput } = await executor.call({
         input: updatedInput,
-        states: relevantStates,
+        relevantStates,
+        states,
       })
-
       switch (route) {
         case 'search':
-        case 'qa': {
+        case 'qa':
+        case 'vision': {
           const { action, payload } = JSON.parse(executorOutput)
           // console.log({ route, action, payload: JSON.stringify(payload) })
           payload._raw = executorOutput

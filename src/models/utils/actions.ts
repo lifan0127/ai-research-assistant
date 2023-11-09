@@ -51,6 +51,14 @@ export interface QAActionResponse extends BaseActionResponse {
   }
 }
 
+export interface VisionActionResponse extends BaseActionResponse {
+  action: 'vision'
+  payload: {
+    message: string
+    _raw: string
+  }
+}
+
 export interface ExecutorActionResponse extends BaseActionResponse {
   action: 'search' | 'qa'
   payload: {

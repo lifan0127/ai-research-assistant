@@ -1,7 +1,7 @@
 import React from 'react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 import { SelectionIcon } from '../../icons/zotero'
-import { States, SelectedItem, StateName, selectionConfig } from '../../../models/utils/states'
+import { States, SelectedImage, StateName, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 
 interface ChipProps {
@@ -30,12 +30,29 @@ function SelectionContainer({ states, name }: { states: ReturnType<typeof useSta
   if (selections.length === 0) {
     return null
   }
+
   return (
-    <div className="flex flex-wrap mx-0 sm:-mx-1 items-center justify-start flex-1 text-black text-sm w-[calc(100%-12px)] sm:w-full">
+    <div className="flex flex-wrap mx-0 sm:-mx-1 items-center justify-start flex-1 text-black text-sm w-[calc(100%-12px)] sm:w-full space-x-1">
       <span className="capitalize w-full sm:w-auto sm:h-8 sm:leading-8 mb-0 sm:mb-2 sm:mx-1 mx-0">{name}</span>
       {selections.map(selection => {
         const { id, type, title } = selection
-        return (
+        return name === 'images' ? (
+          <div key={id} className="relative border border-solid border-neutral-300">
+            <div className="h-6 flex flex-row px-1" style={{ backgroundColor: selectionConfig[name].backgroundColor }}>
+              <div className="flex-none text-sm">{id}</div>
+              <div className="grow"></div>
+              <div className="flex-none w-6 h-6">
+                <XCircleIcon
+                  onClick={() => states.remove(name, selection)}
+                  className="text-gray-400 hover:text-black"
+                />
+              </div>
+            </div>
+            <div className="h-40">
+              <img className="h-full aspect-auto" src={(selection as SelectedImage).image} title={title} />
+            </div>
+          </div>
+        ) : (
           <Chip key={id} onDelete={() => states.remove(name, selection)} name={name}>
             <span className="flex-none">
               <SelectionIcon name={name} key={id} type={type} />
@@ -61,8 +78,7 @@ interface StatesProps {
 }
 
 export function States({ states }: StatesProps) {
-  const stateNames: StateName[] = ['creators', 'tags', 'items', 'collections']
-
+  const stateNames: StateName[] = ['creators', 'tags', 'items', 'collections', 'images']
   return (
     <div>
       {stateNames.map(name => (

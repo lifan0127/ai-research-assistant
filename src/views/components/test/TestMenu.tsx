@@ -6,9 +6,8 @@ import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { searchResultsAction } from './data/searchResults'
 import { qaResponseAction } from './data/qaResponse'
-import { States } from '../../../models/utils/states'
+import { States, MentionValue } from '../../../models/utils/states'
 import { defaultStates } from '../../hooks/useStates'
-import { MentionValue } from '../input/TextField'
 
 interface TestMessage {
   type: 'BUTTON'

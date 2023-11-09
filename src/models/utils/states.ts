@@ -1,24 +1,32 @@
 import { ItemInfo, AttachmentInfo } from '../../apis/zotero/item'
 
-export type StateName = 'items' | 'collections' | 'creators' | 'tags'
+export type StateName = 'items' | 'collections' | 'creators' | 'tags' | 'images'
 
 export type SelectedItem = ItemInfo | (AttachmentInfo & { title: string })
 export type SelectedCollection = { id: number; type: 'collection'; title: string }
 export type SelectedCreator = { id: string; type: 'creator'; title: string }
 export type SelectedTag = { id: string; type: 'tag'; title: string }
-export type StateSelection = SelectedItem | SelectedCollection | SelectedCreator | SelectedTag
-export type StateSelections = SelectedItem[] | SelectedCollection[] | SelectedCreator[] | SelectedTag[]
+export type SelectedImage = { id: string; type: 'image'; title: string; image: string }
+export type StateSelection = SelectedItem | SelectedCollection | SelectedCreator | SelectedTag | SelectedImage
+export type StateSelections =
+  | SelectedItem[]
+  | SelectedCollection[]
+  | SelectedCreator[]
+  | SelectedTag[]
+  | SelectedImage[]
 export type States = {
   items: SelectedItem[]
   collections: SelectedCollection[]
   creators: SelectedCreator[]
   tags: SelectedTag[]
+  images: SelectedImage[]
 }
 export type SimplifiedStates = {
   items?: number[]
   collections?: number[]
   creators?: string[]
   tags?: string[]
+  images?: string[]
 }
 
 export function simplifyStates(states: States): SimplifiedStates {
@@ -27,6 +35,7 @@ export function simplifyStates(states: States): SimplifiedStates {
     collections: states.items.length > 0 ? states.collections.map(collection => collection.id) : undefined,
     creators: states.items.length > 0 ? states.creators.map(creator => creator.id) : undefined,
     tags: states.items.length > 0 ? states.tags.map(tag => tag.id) : undefined,
+    images: states.images.length > 0 ? states.images.map(image => image.id) : undefined,
   }
   return simplifiedStates
 }
@@ -37,7 +46,8 @@ export function areStatesEmpty(states: States | SimplifiedStates) {
     (!states.items || states.items.length === 0) &&
     (!states.collections || states.collections.length) === 0 &&
     (!states.creators || states.creators.length) === 0 &&
-    (!states.tags || states.tags.length) === 0
+    (!states.tags || states.tags.length) === 0 &&
+    (!states.images || states.images.length) === 0
   )
 }
 
@@ -67,7 +77,8 @@ export function serializeStates(states: SimplifiedStates) {
     serializeState(states, 'creators') +
     serializeState(states, 'tags') +
     serializeState(states, 'items') +
-    serializeState(states, 'collections')
+    serializeState(states, 'collections') +
+    serializeState(states, 'images')
   )
 }
 
@@ -121,4 +132,20 @@ export const selectionConfig = {
     // borderBottom: 'solid rgb(245 158 11)', // amber-500
     borderBottom: 'solid rgb(251 191 36)', // amber-400
   },
+  images: {
+    label: {
+      singular: 'image',
+      plural: 'images',
+    },
+    prefix: '~',
+    colorClass: 'teal',
+    backgroundColor: 'rgb(204 251 241)', // teal-100
+    borderBottom: 'solid rgb(45 212 191)', // teal-400
+  },
+}
+
+export interface MentionValue {
+  newValue: string
+  newPlainTextValue: string
+  mentions: { childIndex: number; display: string; id: string; index: number; plainTextIndex: number }[]
 }

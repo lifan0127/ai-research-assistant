@@ -3,8 +3,7 @@ import { SearchResultsProps } from '../widgets/SearchResults'
 import { QAResponseProps } from '../widgets/QAResponse'
 import { ErrorProps } from '../widgets/Error'
 import { InputProps } from '../input/Input'
-import { MentionValue } from '../input/TextField'
-import { States } from '../../../models/utils/states'
+import { States, MentionValue } from '../../../models/utils/states'
 
 export interface FeedbackContent {
   id: string

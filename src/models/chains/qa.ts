@@ -3,6 +3,7 @@ import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks
 import { BaseChain, ChainInputs, ConversationChain } from 'langchain/chains'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
 import { BaseChatMemory } from 'langchain/memory'
+import { serializeStates } from '../utils/states'
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -151,7 +152,6 @@ export class QAChain extends BaseChain {
       callbackManager: this.langChainCallbackManager,
       outputKey: this.outputKey,
     })
-    const intermediateStep: string[] = []
     const output = await llmChain.call(values)
     const { action, payload } = JSON.parse(output[this.outputKey]) as
       | QAActionResponse
@@ -235,7 +235,7 @@ class RetrievalQAChain extends BaseChain {
 
   /** @ignore */
   async _call(values: ChainValues, runManager?: CallbackManagerForChainRun): Promise<ChainValues> {
-    const { items } = values?.states || {}
+    const { items } = values?.relevantStates || {}
     let retrievalOutput
     if (items?.length) {
       // Use the pre-selected items if provided
@@ -251,10 +251,12 @@ class RetrievalQAChain extends BaseChain {
       })
     } else {
       // Otherwise run a search to get relevant items
-      retrievalOutput = (await this.searchChain.call(values))[this.outputKey]
+      retrievalOutput = (await this.searchChain.call({ input: values.input, states: values.relevantStates }))[
+        this.outputKey
+      ]
     }
     const { action, payload } = JSON.parse(retrievalOutput)
-    console.log({ action, payload })
+    console.log({ retrievalOutput: { action, payload } })
     if (action === 'clarification') {
       return { [this.outputKey]: retrievalOutput }
     }

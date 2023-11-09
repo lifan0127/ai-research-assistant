@@ -1,21 +1,28 @@
 import React, { useState } from 'react'
 import { parseDataTransfer } from '../../../models/utils/dataTransfer'
 import { ItemInfo } from '../../../apis/zotero/item'
-import { StateName, StateSelection, SelectedItem, SelectedCollection } from '../../../models/utils/states'
+import {
+  StateName,
+  StateSelection,
+  SelectedItem,
+  SelectedCollection,
+  SelectedImage,
+} from '../../../models/utils/states'
 import { useDialog } from '../../hooks/useDialog'
 import { useDragging } from '../../hooks/useDragging'
-import { escapeTitle } from '../../../models/utils/states'
+import { escapeTitle, MentionValue } from '../../../models/utils/states'
 
 export interface DragAreaProps {
   id?: string
-  setDropText: (text: string) => void
+  value: MentionValue
+  setValue: (text: MentionValue) => void
   onDragEnter: (event: React.DragEvent<HTMLDivElement>) => void
   onDragLeave: (event: React.DragEvent<HTMLDivElement>) => void
   addSelection: (name: StateName, selections: StateSelection[]) => void
   inputRef: React.RefObject<HTMLTextAreaElement>
 }
 
-export function DragArea({ id, setDropText, onDragEnter, onDragLeave, addSelection, inputRef }: DragAreaProps) {
+export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSelection, inputRef }: DragAreaProps) {
   const dialog = useDialog()
   const { setIsDragging } = useDragging()
   const [backgroundColor, setBackgroundColor] = useState('bg-white/50')
@@ -64,10 +71,19 @@ export function DragArea({ id, setDropText, onDragEnter, onDragLeave, addSelecti
         }
         break
       }
+      case 'zotero/annotation-image': {
+        const { image, libraryID, key } = data
+        const id = `${libraryID}/${key}`
+        addSelection('images', [{ title: `Figure (${id})`, id, image }] as SelectedImage[])
+      }
       case 'text/plain': {
         const { text } = data
         if (text && text !== '') {
-          setDropText(text as string)
+          setValue({
+            newValue: value.newValue + text,
+            newPlainTextValue: value.newPlainTextValue + text,
+            mentions: value.mentions,
+          })
         }
         break
       }

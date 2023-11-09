@@ -6,13 +6,7 @@ import { isEqual } from 'lodash'
 import * as zot from '../../../apis/zotero'
 import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
-import { escapeTitle, StateName } from '../../../models/utils/states'
-
-export interface MentionValue {
-  newValue: string
-  newPlainTextValue: string
-  mentions: { childIndex: number; display: string; id: string; index: number; plainTextIndex: number }[]
-}
+import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
 
 const editStyles = {
   control: {
@@ -123,6 +117,17 @@ const collectionEditStyle = {
 }
 
 const collectionDisplayStyle = {
+  ...mentionDisplayStyle,
+  textDecoration: 'underline',
+}
+
+const imageEditStyle = {
+  ...mentionEditStyle,
+  // backgroundColor: selectionConfig.collections.backgroundColor,
+  borderBottom: selectionConfig.images.borderBottom,
+}
+
+const imageDisplayStyle = {
   ...mentionDisplayStyle,
   textDecoration: 'underline',
 }
@@ -285,6 +290,13 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             appendSpaceOnAdd={true}
             style={isEdit ? collectionEditStyle : collectionDisplayStyle}
             renderSuggestion={tokenizedHighlighter}
+          />
+          <Mention
+            trigger="~"
+            data={[]}
+            markup="~[__display__](__id__)"
+            appendSpaceOnAdd={true}
+            style={isEdit ? imageEditStyle : imageDisplayStyle}
           />
         </MentionsInput>
         {displayButtons ? (

@@ -11,8 +11,8 @@ import {
   StateSelection,
   StateSelections,
   selectionConfig,
+  MentionValue,
 } from '../../models/utils/states'
-import { MentionValue } from '../components/input/TextField'
 import * as zot from '../../apis/zotero'
 import { title } from 'process'
 
@@ -21,6 +21,7 @@ export const defaultStates: States = {
   tags: [],
   items: [],
   collections: [],
+  images: [],
 }
 
 export const defaultValue: MentionValue = {
@@ -80,8 +81,20 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
         title: Zotero.Utilities.Internal.Base64.decode(id),
         type: 'creator' as const,
       }))
+
+      // Handle mentioned images
+      const images = (mentionsByType.images || []).map(([display, id]) => {
+        const image = states.images.find(image => image.id === id)!.image
+        return {
+          id: id,
+          title: display,
+          type: 'image' as const,
+          image,
+        }
+      })
+
       // Reset states
-      reset({ ...states, items, collections, tags, creators }, value)
+      reset({ ...states, items, collections, tags, creators, images }, value)
     }
     updateStates()
   }, [value.mentions])

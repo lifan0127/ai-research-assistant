@@ -57,7 +57,7 @@ export function SelectionIcon({
 }: {
   name: StateName
   id?: number
-  type?: Zotero.Item.ItemType | 'collection' | 'creator' | 'tag'
+  type?: Zotero.Item.ItemType | 'collection' | 'creator' | 'tag' | 'image'
 }) {
   switch (name) {
     case 'items': {
@@ -72,6 +72,7 @@ export function SelectionIcon({
     case 'creators': {
       return <CreatorIcon />
     }
+    case 'images':
     default: {
       return null
     }

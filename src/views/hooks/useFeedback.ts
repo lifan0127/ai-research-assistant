@@ -36,7 +36,6 @@ export function useFeedback() {
       if (success) {
         editMessageVote(content.vote)
       }
-      console.log({ success })
       callback(success)
     } else {
       setOpenFeedback(true)

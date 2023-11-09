@@ -115,6 +115,13 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
                           type: 'number',
                         },
                       },
+                      images: {
+                        type: 'array',
+                        description: 'Images provided by the user related to their question',
+                        items: {
+                          type: 'string',
+                        },
+                      },
                     },
                   },
                 },

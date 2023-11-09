@@ -1,11 +1,13 @@
 import { compileItemInfo, compileAttachmentInfo } from '../../apis/zotero/item'
 
 export async function parseDataTransfer(dataTransfer: DataTransfer) {
-  const { items, types } = dataTransfer
+  const { items, types, files } = dataTransfer
   const type = types.includes('zotero/item')
     ? 'zotero/item'
     : types.includes('zotero/collection')
     ? 'zotero/collection'
+    : types.includes('zotero/annotation')
+    ? 'zotero/annotation'
     : 'text/plain'
   switch (type) {
     case 'zotero/item': {
@@ -43,6 +45,27 @@ export async function parseDataTransfer(dataTransfer: DataTransfer) {
         collection: { id, title: label },
       }
     }
+    case 'zotero/annotation': {
+      const {
+        attachmentItemID,
+        id: key,
+        type: annotationType,
+        image,
+      } = JSON.parse(dataTransfer.getData('zotero/annotation'))[0]
+      if (annotationType !== 'image') {
+        return {
+          type: 'text/plain',
+          text: `Sorry. Only image-based annotations are currently supported.`,
+        }
+      }
+      const libraryID = (await Zotero.Items.getAsync(attachmentItemID)).libraryID
+      return {
+        type: 'zotero/annotation-image',
+        image,
+        libraryID,
+        key,
+      }
+    }
     case 'text/plain': {
       return {
         type,
@@ -51,3 +74,5 @@ export async function parseDataTransfer(dataTransfer: DataTransfer) {
     }
   }
 }
+
+Zotero.Annotations

@@ -218,8 +218,8 @@ export class SearchChain extends BaseChain {
       callbackManager: this.langChainCallbackManager,
       outputKey: this.outputKey,
     })
-    const { collections: collectionIDs } = (values.states || {}) as SimplifiedStates
-    const output = await llmChain.call({ ...values, states: serializeStates(values.states) })
+    const { collections: collectionIDs } = (values.relevantStates || {}) as SimplifiedStates
+    const output = await llmChain.call({ ...values, states: serializeStates(values.relevantStates) })
     const { action, payload } = JSON.parse(output[this.outputKey]) as
       | SearchActionResponse
       | ClarificationActionResponse
