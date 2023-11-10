@@ -20,7 +20,8 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 ![Autocompletion](assets/videos/autocompletion.gif)
 
 ### Visual Analysis (GPT-4 Vision)
-<a href="https://youtu.be/lGeJCsNHBR4?si=sCnnaZCYI2CN8NJ3&t=132" target="_blank"><i>How to create a draggable area in PDF?</i></a>
+
+[_How to use Zotero area annotation to create a draggable area in PDF?_](https://youtu.be/lGeJCsNHBR4?si=sCnnaZCYI2CN8NJ3&t=132)
 
 ![Visual Analysis](assets/videos/gpt-4-vision.gif)
 
