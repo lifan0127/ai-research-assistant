@@ -5,16 +5,30 @@
 [![Latest release](https://img.shields.io/github/v/release/lifan0127/ai-research-assistant)](https://github.com/lifan0127/ai-research-assistant/releases)
 ![Downloads latest release](https://img.shields.io/github/downloads/lifan0127/ai-research-assistant/latest/total)
 
-> ## If you have previously installed Aria (formerly Zotero RA) version 0.0.10 or below, please manually remove it under Tools => Add-ons => Remove. Because the legacy versions have incompetible plugin ID and cannot be auto-updated.
-
 Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the acronym of "AI Research Assistant" in reverse order.
 
 ![Aria](assets/images/aria.png)
 
+## Features
+
+### Use Drag-and-Drop to Reference Your Zotero Items and Collections
+
+![Drag and Drop](assets/videos/drag-and-drop.gif)
+
+### Autocompletion for Authors, Tags, Items and More
+
+![Autocompletion](assets/videos/autocompletion.gif)
+
+### Visual Analysis (GPT-4 Vision)
+
+![Visual Analysis](assets/videos/gpt-4-vision.gif)
+
+
 ## Zotero and GPT Requirements
 
 - Currently, only Zotero 6 is supported. Compatibility with Zotero 7 has not been tested.
-- Since v0.1.0, Aria requires the OpenAI GPT-4 model. ([how can I access GPT-4?](https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4))
+- Aria requires the OpenAI GPT-4 model family. ([how can I access GPT-4?](https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4))
+- The visual analysis feature requires the preview access to the GPT-4 Vision model.
 
 ## Installation
 
@@ -47,7 +61,7 @@ You can now choose between the base GPT-4 model and the new GPT-4 Turbo model (P
 The following are known limitations based on user feedback.
 
 - Currently Aria can query your Zotero library through the Zotero search API. The ability to query the Zotero SQLite database for document count and other metrics will be delivered in a future release.
-- Aria has no awareness of your Zotero application state (selected item, current tab, highlighted text) and therefore cannot answer the related questions. This capability will be added over time.
+- Aria has limited awareness of your Zotero application state (selected item, current tab, highlighted text). However, you can use the drag-n-drop and the autocompeltion features to provide such context within your message.
 
 ## Troubleshooting
 
@@ -60,4 +74,11 @@ The following are known limitations based on user feedback.
 ## Development
 
 Refer to the [Zotero Plugin Development](https://www.zotero.org/support/dev/client_coding/plugin_development) guide to find instructions on how to setup the plugin in your local environment.
+
+## Feedback
+
+You can now submit feedback and share your chat session to help improve Aria. Let's make Aria better together!
+
+![Visual Analysis](assets/videos/feedback.gif)
+
 
