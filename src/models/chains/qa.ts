@@ -256,7 +256,7 @@ class RetrievalQAChain extends BaseChain {
       ]
     }
     const { action, payload } = JSON.parse(retrievalOutput)
-    console.log({ retrievalOutput: { action, payload } })
+
     if (action === 'clarification') {
       return { [this.outputKey]: retrievalOutput }
     }

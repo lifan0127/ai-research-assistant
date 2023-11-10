@@ -42,7 +42,8 @@ export class ResearchAssistant {
         executor: loadRetrievalQAChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
       },
       vision: {
-        description: 'For visual analysis of provided images, typically based on Zotero annotations',
+        description:
+          'For visual analysis of provided images, typically based on Zotero annotations. If the user input includes any images, you must choose this route or clarification.',
         executor: loadVisionChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
       },
       // help: {
