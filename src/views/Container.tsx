@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, createContext, useContext } from 'react'
+import React, { useState, useEffect, useRef, useMemo, createContext, useContext, useCallback } from 'react'
 import { useMessages } from './hooks/useMessages'
 import { useDragging } from './hooks/useDragging'
 import { TestMenu } from './components/test/TestMenu'
@@ -19,6 +19,7 @@ import './style.css'
 import { States, areStatesEmpty, MentionValue } from '../models/utils/states'
 import { Feedback } from './components/Feedback'
 import { useFeedback } from './hooks/useFeedback'
+import { config } from '../../package.json'
 
 interface UserInput {
   content: MentionValue
@@ -26,6 +27,7 @@ interface UserInput {
 }
 
 export function Container() {
+  const [scale, setScale] = useState((Zotero.Prefs.get(`${config.addonRef}.DEFAULT_ZOOM_LEVEL`) as number) || 100)
   const [userInput, setUserInput] = useState<UserInput>()
   const { messages, addMessage, editMessage, updateMessage, clearMessages } = useMessages()
   const { isDragging, setIsDragging } = useDragging()
@@ -236,73 +238,114 @@ export function Container() {
     }
   }
 
+  const setScaleAndSave = useCallback(
+    (scale: number) => {
+      const constraintScale = Math.max(25, Math.min(400, scale))
+      Zotero.Prefs.set(`${config.addonRef}.DEFAULT_ZOOM_LEVEL`, constraintScale)
+      setScale(constraintScale)
+    },
+    [scale]
+  )
+
+  const containerStyle = useMemo(() => {
+    switch (scale) {
+      case 1: {
+        return {
+          width: 'calc(100% - 20px)',
+        }
+      }
+      default: {
+        const constraintScale = Math.max(25, Math.min(400, scale))
+        const sizePct = Math.round(10000 / constraintScale)
+        const posPct = Math.round(50 * (2 - 100 / constraintScale))
+        return {
+          // width: `${sizePct}%`,
+          height: `${sizePct}%`,
+          left: `${posPct}%`,
+          top: `${posPct}%`,
+          transform: `scale(${constraintScale / 100}) translate(-50%, -50%)`,
+          width: `calc(${sizePct}% - 20px)`,
+        }
+      }
+    }
+  }, [scale])
+
   return (
-    <div
-      className="fixed m-0 w-[calc(100%-20px)] h-full px-3 pt-0 pb-4 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
-      onDragEnter={() => setIsDragging(isDragging + 1)}
-      onDragLeave={() => setIsDragging(isDragging - 1)}
-    >
+    <div>
       <div
-        className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
-        ref={containerRef}
+        className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
+        style={containerStyle}
+        onDragEnter={() => setIsDragging(isDragging + 1)}
+        onDragLeave={() => setIsDragging(isDragging - 1)}
       >
-        <Header />
-        <MainMenu containerRef={containerRef} assistant={assistant} clearMessages={clearMessages} />
-        {__env__ === 'development' ? (
-          <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-        ) : null}
-        {messages.length === 0 ? <ReleaseNote /> : null}
-        {messages.map(({ type, copyId: _1, setCopyId: _2, ...props }, index) => {
-          switch (type) {
-            case 'USER_MESSAGE': {
-              return (
-                <UserMessage
-                  key={props.id}
-                  copyId={copyId}
-                  setCopyId={setCopyId}
-                  {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId'>)}
-                  onSubmit={handleSubmit}
-                />
-              )
+        <div
+          className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
+          ref={containerRef}
+        >
+          <Header />
+          <MainMenu
+            containerRef={containerRef}
+            assistant={assistant}
+            clearMessages={clearMessages}
+            scale={scale}
+            setScale={setScaleAndSave}
+          />
+          {__env__ === 'development' ? (
+            <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
+          ) : null}
+          {messages.length === 0 ? <ReleaseNote /> : null}
+          {messages.map(({ type, copyId: _1, setCopyId: _2, ...props }, index) => {
+            switch (type) {
+              case 'USER_MESSAGE': {
+                return (
+                  <UserMessage
+                    key={props.id}
+                    copyId={copyId}
+                    setCopyId={setCopyId}
+                    {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId'>)}
+                    onSubmit={handleSubmit}
+                  />
+                )
+              }
+              case 'BOT_MESSAGE': {
+                return (
+                  <BotMessage
+                    key={props.id}
+                    copyId={copyId}
+                    setCopyId={setCopyId}
+                    submitFeedback={submitFeedback}
+                    messageSlice={messages.slice(0, index + 1)}
+                    {...(props as Omit<BotMessageProps, 'submitFeedback' | 'messageSlice' | 'copyId' | 'setCopyId'>)}
+                    editMessage={editMessage}
+                  />
+                )
+              }
+              case 'BOT_INTERMEDIATE_STEP': {
+                return (
+                  <BotIntermediateStep
+                    key={props.id}
+                    copyId={copyId}
+                    setCopyId={setCopyId}
+                    {...(props as Omit<BotIntermediateStepProps, 'copyId' | 'setCopyId'>)}
+                  />
+                )
+              }
             }
-            case 'BOT_MESSAGE': {
-              return (
-                <BotMessage
-                  key={props.id}
-                  copyId={copyId}
-                  setCopyId={setCopyId}
-                  submitFeedback={submitFeedback}
-                  messageSlice={messages.slice(0, index + 1)}
-                  {...(props as Omit<BotMessageProps, 'submitFeedback' | 'messageSlice' | 'copyId' | 'setCopyId'>)}
-                  editMessage={editMessage}
-                />
-              )
-            }
-            case 'BOT_INTERMEDIATE_STEP': {
-              return (
-                <BotIntermediateStep
-                  key={props.id}
-                  copyId={copyId}
-                  setCopyId={setCopyId}
-                  {...(props as Omit<BotIntermediateStepProps, 'copyId' | 'setCopyId'>)}
-                />
-              )
-            }
-          }
-        })}
-      </div>
-      <div className="flex-initial">
-        <div className="bottom-6 w-full z-40 m-0">
-          <Input onSubmit={handleSubmit} />
+          })}
         </div>
-        {isLoading && (
-          <div className="absolute right-10 bottom-14">
-            <div className="dot-flashing "></div>
+        <div className="flex-initial">
+          {isLoading ? (
+            <div className="absolute right-10 pt-4 z-10">
+              <div className="dot-flashing "></div>
+            </div>
+          ) : null}
+          <div className="bottom-6 w-full z-40 m-0">
+            <Input onSubmit={handleSubmit} />
           </div>
-        )}
-        <Version />
+          <Version />
+        </div>
+        <Feedback open={openFeedback} setOpen={setOpenFeedback} callback={submitCallback} />
       </div>
-      <Feedback open={openFeedback} setOpen={setOpenFeedback} callback={submitCallback} />
     </div>
   )
 }

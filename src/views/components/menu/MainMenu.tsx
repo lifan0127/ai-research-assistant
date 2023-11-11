@@ -1,16 +1,39 @@
 import React from 'react'
 import { Bars3Icon } from '@heroicons/react/24/outline'
+import { PlusCircleIcon, MinusCircleIcon } from '@heroicons/react/20/solid'
 import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { DropdownMenu } from './DropdownMenu'
+
+interface ScaleButtonGroupProps {
+  scale: number
+  zoomIn: () => void
+  zoomOut: () => void
+  reset: () => void
+}
+
+function ScaleButtonGroup({ scale, zoomIn, zoomOut, reset }: ScaleButtonGroupProps) {
+  return (
+    <div className="px-4 py-2 flex flex-row">
+      <div>Zoom:</div>
+      <div className="h-5 inline-flex rounded-md shadow-sm">
+        <MinusCircleIcon className="opacity-50 hover:opacity-90" onClick={zoomOut} />
+        <span className="text-center">{scale.toFixed(2)}</span>
+        <PlusCircleIcon className="opacity-50 hover:opacity-90" onClick={zoomIn} />
+      </div>
+    </div>
+  )
+}
 
 interface MenuProps {
   containerRef: React.RefObject<HTMLDivElement>
   assistant: ResearchAssistant
   clearMessages: () => void
+  scale: number
+  setScale: (scale: number) => void
 }
 
-export function MainMenu({ containerRef, assistant, clearMessages }: MenuProps) {
+export function MainMenu({ containerRef, assistant, clearMessages, scale, setScale }: MenuProps) {
   const dialog = useDialog()
 
   const items = [
@@ -25,6 +48,21 @@ export function MainMenu({ containerRef, assistant, clearMessages }: MenuProps) 
           }
         }, 50)
       },
+    },
+    {
+      type: 'COMPONENT' as const,
+      label: 'Zoom',
+      Component: ScaleButtonGroup,
+      props: {
+        scale,
+        zoomIn: () => setScale(scale + 25),
+        zoomOut: () => setScale(scale - 25),
+        reset: () => setScale(1),
+      },
+    },
+    {
+      type: 'SEPARATOR' as const,
+      label: 'Separator 1',
     },
     {
       type: 'BUTTON' as const,

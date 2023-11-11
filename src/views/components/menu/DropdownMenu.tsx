@@ -7,14 +7,22 @@ interface ButtonItem {
   handleClick: () => void
 }
 
+interface Separator {
+  type: 'SEPARATOR'
+  label: string
+}
+
 interface ComponentItem {
   type: 'COMPONENT'
   label: string
-  component: React.FC | JSX.Element
+  Component: (props: any) => JSX.Element
+  props: {
+    [key: string]: any
+  }
 }
 
 interface DropdownMenuProps {
-  items: (ButtonItem | ComponentItem)[]
+  items: (ButtonItem | ComponentItem | Separator)[]
   Icon: any
   position: string
 }
@@ -40,10 +48,10 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
           open ? 'visible' : 'invisible'
         } absolute right-0 list-none bg-white m-0 mt-1 p-0 shadow-md text-s`}
       >
-        {items.map(items => {
-          switch (items.type) {
+        {items.map((item, index) => {
+          switch (item.type) {
             case 'BUTTON': {
-              const { label, handleClick } = items
+              const { label, handleClick } = item
               return (
                 <li key={label}>
                   <button
@@ -56,8 +64,20 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
               )
             }
             case 'COMPONENT': {
-              const { label, component } = items
-              return <Fragment key={label}>{component}</Fragment>
+              const { label, Component, props } = item
+              return (
+                <li key={label}>
+                  <Component {...props} />
+                </li>
+              )
+            }
+            case 'SEPARATOR': {
+              const { label } = item
+              return (
+                <li key={label}>
+                  <hr className="px-2" />
+                </li>
+              )
             }
           }
         })}
