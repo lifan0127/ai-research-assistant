@@ -102,36 +102,21 @@ export class ReactRoot {
   }
 
   private registerShortcut() {
+    // Keycodes: https://github.com/windingwind/zotero-plugin-toolkit/blob/da8a602b81a7586b51a29baff86d22d0422b6580/src/managers/shortcut.ts#L746
     const shortCut = new ShortcutManager()
     shortCut.register('event', {
       id: 'aria-plugin-key',
-      modifiers: 'shift',
-      key: 'r',
+      modifiers: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift',
+      key: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r',
       callback: event => {
         if (this.dialog) {
           this.dialog.focus()
         } else {
           this.launchApp()
         }
-        // if (!this.root) {
-        //   this.launchApp()
-        // } else {
-        //   // setVisibility('visible')
-        // }
-        // this.focus()
       },
     })
   }
-
-  // private focus() {
-  //   this.activeElement = this.document.activeElement as HTMLElement
-  //   const chatInputNode = this.root.querySelector('#aria-chat-input') as HTMLInputElement
-  //   chatInputNode?.focus()
-  // }
-
-  // private unfocus() {
-  //   this.activeElement?.focus()
-  // }
 }
 
 export class ReactRootManager extends ManagerTool {

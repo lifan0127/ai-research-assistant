@@ -1,15 +1,19 @@
 <vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})">
-  <groupbox>
-    <!-- <checkbox
+  <!-- <groupbox> -->
+  <!-- <checkbox
       id="zotero-prefpane-__addonRef__-enable"
       label="&zotero.__addonRef__.pref.enable.label;"
       preference="extensions.zotero.__addonRef__.enable"
     /> -->
 
-    <vbox>
-      <hbox>
+  <!-- <hbox>
         <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
-      </hbox>
+      </hbox> -->
+  <groupbox>
+    <vbox class="groupbox-title" pack="start">
+      <caption label="&zotero.__addonRef__.pref.model_configuration_label;"></caption>
+    </vbox>
+    <box class="groupbox-body" flex="1">
       <hbox>
         <label>&zotero.__addonRef__.pref.OPENAI_MODEL.label;</label>
         <radiogroup
@@ -23,15 +27,7 @@
             value="gpt-4-1106-preview"
             id="zotero-prefpane-__addonRef__-OPENAI_MODEL-1"
           />
-          <!-- <radio
-            label="GPT-4 Turbo with vision (Preview)"
-            value="gpt-4-vision-preview"
-            id="zotero-prefpane-__addonRef__-OPENAI_MODEL-2"
-          /> -->
         </radiogroup>
-      </hbox>
-      <hbox>
-        <label><html:br></html:br></label>
       </hbox>
       <hbox>
         <label>&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</label>
@@ -41,30 +37,14 @@
           preference="extensions.zotero.__addonRef__.OPENAI_API_KEY"
         ></html:input>
       </hbox>
-      <hbox>
-        <label><html:br></html:br></label>
-      </hbox>
-      <hbox>
-        <checkbox
-          id="zotero-prefpane-__addonRef__-FEEDBACK_NO_CONFIRMATION"
-          label="&zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label;"
-          preference="extensions.zotero.__addonRef__.FEEDBACK_NO_CONFIRMATION"
-        />
-      </hbox>
-      <hbox>
-        <label><html:br></html:br></label>
-      </hbox>
-      <hbox>
-        <label>&zotero.__addonRef__.pref.USER_EMAIL.label;</label>
-        <html:input
-          type="email"
-          id="zotero-prefpane-__addonRef__-USER_EMAIL"
-          preference="extensions.zotero.__addonRef__.USER_EMAIL"
-        ></html:input>
-      </hbox>
-      <hbox>
-        <label><html:br></html:br></label>
-      </hbox>
+    </box>
+  </groupbox>
+  <label><html:br></html:br></label>
+  <groupbox>
+    <hbox class="groupbox-title" pack="start">
+      <caption label="&zotero.__addonRef__.pref.ui_customization_label;"></caption>
+    </hbox>
+    <box class="groupbox-body" flex="1">
       <hbox>
         <label>&zotero.__addonRef__.pref.DEFAULT_ZOOM_LEVEL.label;</label>
         <html:input
@@ -76,16 +56,82 @@
           preference="extensions.zotero.__addonRef__.DEFAULT_ZOOM_LEVEL"
         ></html:input>
       </hbox>
+      <label></label>
       <hbox>
-        <label><html:br></html:br></label>
+        <label>&zotero.__addonRef__.pref.keyboard_shortcut_label;</label>
+        <!-- <menulist
+          id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER"
+          label="&zotero.__addonRef__.pref.SHORTCUT_MODIFIER.label;"
+          native="true"
+          preference="extensions.zotero.__addonRef__.SHORTCUT_MODIFIER"
+          sizetopopup="always"
+        >
+          <menupopup>
+            <menuitem id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-shift" label="Shift" value="shift" />
+            <menuitem
+              id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-ctrl-shift"
+              label="Ctrl + Shift"
+              value="control shift"
+            />
+            <menuitem id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-alt-shift" label="Alt + Shift" value="alt shift" />
+          </menupopup>
+        </menulist> -->
+        <radiogroup
+          id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER"
+          label="&zotero.__addonRef__.pref.SHORTCUT_MODIFIER.label;"
+          preference="extensions.zotero.__addonRef__.SHORTCUT_MODIFIER"
+        >
+          <radio label="Shift" value="shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-shift" />
+          <radio
+            label="Ctrl + Shift"
+            value="control shift"
+            id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-ctrl-shift"
+          />
+          <radio label="Alt + Shift" value="alt shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-alt-shift" />
+        </radiogroup>
+        <vbox>
+          <label> + </label>
+        </vbox>
+        <vbox>
+          <html:input
+            id="zotero-prefpane-__addonRef__-SHORTCUT_KEY"
+            label="&zotero.__addonRef__.pref.SHORTCUT_KEY.label;"
+            preference="extensions.zotero.__addonRef__.SHORTCUT_KEY"
+            maxlength="1"
+            size="1"
+          />
+        </vbox>
+      </hbox>
+    </box>
+  </groupbox>
+  <label><html:br></html:br></label>
+  <groupbox>
+    <hbox class="groupbox-title" pack="start">
+      <caption label="&zotero.__addonRef__.pref.feedback_submission_label;"></caption>
+    </hbox>
+    <box class="groupbox-body" flex="1">
+      <hbox>
+        <label>&zotero.__addonRef__.pref.USER_EMAIL.label;</label>
+        <html:input
+          type="email"
+          id="zotero-prefpane-__addonRef__-USER_EMAIL"
+          preference="extensions.zotero.__addonRef__.USER_EMAIL"
+        ></html:input>
       </hbox>
       <hbox>
-        <label value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"></label>
+        <checkbox
+          id="zotero-prefpane-__addonRef__-FEEDBACK_NO_CONFIRMATION"
+          label="&zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label;"
+          preference="extensions.zotero.__addonRef__.FEEDBACK_NO_CONFIRMATION"
+        />
       </hbox>
-    </vbox>
-    <!-- <hbox class="virtualized-table-container" flex="1" height="300px">
-      <html:div id="__addonRef__-table-container" />
-    </hbox> -->
+    </box>
+  </groupbox>
+  <label><html:br></html:br></label>
+  <groupbox>
+    <box class="groupbox-body" flex="1">
+      <label value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"></label>
+    </box>
   </groupbox>
 </vbox>
 <!-- <vbox>
