@@ -47,7 +47,7 @@ interface SuggestItemsInput {
 
 export async function suggestItems({ qtext, limit = 10 }: SuggestItemsInput) {
   const s = new Zotero.Search()
-  s.addCondition('quicksearch', 'contains', qtext)
+  s.addCondition('title', 'contains', qtext)
   s.addCondition('itemType', 'isNot', 'attachment')
   let ids = await s.search()
   return Promise.all(
