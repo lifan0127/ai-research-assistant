@@ -2,6 +2,15 @@ import ZoteroToolkit from 'zotero-plugin-toolkit/dist/index'
 import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
 import hooks from './hooks'
 import { config } from '../package.json'
+import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
+import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
+import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
+import { LargePrefHelper } from 'zotero-plugin-toolkit/dist/helpers/largePref'
+import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
+import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
+import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
+import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
+import { ReactRootManager } from './views/root'
 
 class Addon {
   public data: {
@@ -20,7 +29,7 @@ class Addon {
     }
     popup: {
       window?: Window
-      messages: any[]
+      messages: any
     }
   }
   // Lifecycle hooks
@@ -29,12 +38,17 @@ class Addon {
   public api: {}
 
   constructor() {
+    const ztoolkit = new CustomToolkit()
     this.data = {
       alive: true,
       env: __env__,
-      ztoolkit: new CustomToolkit(),
+      ztoolkit,
       popup: {
-        messages: [],
+        messages: new ztoolkit.LargePref(
+          `extensions.zotero.${config.addonRef}.messageKeys`,
+          `${config.addonRef}.message.`,
+          'parser'
+        ),
       },
     }
     this.hooks = hooks
@@ -57,15 +71,6 @@ class Addon {
  * You can now add the modules under the `MyToolkit` class.
  */
 
-import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
-import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
-import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
-import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
-import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
-import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
-import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
-import { ReactRootManager } from './views/root'
-
 export class CustomToolkit extends BasicTool {
   UI: UITool
   PreferencePane: PreferencePaneManager
@@ -73,6 +78,7 @@ export class CustomToolkit extends BasicTool {
   Prompt: PromptManager
   Shortcut: ShortcutManager
   Clipboard: typeof ClipboardHelper
+  LargePref: typeof LargePrefHelper
   ProgressWindow: typeof ProgressWindowHelper
 
   constructor() {
@@ -83,6 +89,7 @@ export class CustomToolkit extends BasicTool {
     this.ReactRoot = new ReactRootManager(this)
     this.Prompt = new PromptManager(this)
     this.Clipboard = ClipboardHelper
+    this.LargePref = LargePrefHelper
     this.ProgressWindow = ProgressWindowHelper
     this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
   }
