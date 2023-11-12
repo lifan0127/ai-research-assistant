@@ -41,17 +41,22 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ## Quickstart
 
-Aria can be activated through the "Shift + R" shortcut.
+By default, Aria can be activated by clicking the "Aria" button on Zoterol toolbar or through the "Shift + R" shortcut.
 
 Before using Aria, you need to provide an [OpenAI API Key](https://platform.openai.com/account/api-keys). Follow the in-app instruction to add a key and <b>restart Zotero</b>. ([screenshots](docs/configuration.md))
 
 After restart, you should see the activated Aria window (as shown above) and can start using it through conversations.
 
-## Model Selection
 
-You can now choose between the base GPT-4 model and the new GPT-4 Turbo model (Preview).
+## Preferences
 
-![Aria](assets/images/model-selection.png)
+Aria is configurable through Edit > Preferences > Aria. Please note that some changes require Zotero restart.
+
+- __Model Selection__: Choose between the base GPT-4 model and the new GPT-4 Turbo model (Preview).
+- __Zoom Level__: Adjust the zoom level to fit your screen resolution 
+- __Keyboard shortcut__: Change the keyboard shortcut combination to better fit your workflow.
+
+![Aria](assets/images/preferences.png)
 
 ## Update
 
