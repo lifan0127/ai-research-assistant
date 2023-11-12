@@ -44,9 +44,8 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
       </div>
 
       <ul
-        className={`${
-          open ? 'visible' : 'invisible'
-        } absolute right-0 list-none bg-white m-0 mt-1 p-0 shadow-md text-s`}
+        className={`${open ? 'visible' : 'invisible'} absolute right-0 list-none m-0 mt-1 p-0 shadow-md text-s`}
+        style={{ background: '-moz-field' }}
       >
         {items.map((item, index) => {
           switch (item.type) {
