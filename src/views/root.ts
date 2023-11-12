@@ -20,6 +20,7 @@ export class ReactRoot {
     this.ui = new UITool()
     this.document = this.base.getGlobal('document')
     this.registerStyle()
+    this.registerToolbar()
     this.registerShortcut()
   }
 
@@ -32,6 +33,42 @@ export class ReactRoot {
       },
     })
     this.document.documentElement.appendChild(styles)
+  }
+
+  private registerToolbar() {
+    const existingAriaBtns = this.document.querySelectorAll('#zotero-tb-aria')
+    existingAriaBtns.forEach(btn => btn.remove())
+    const ariaBtn = this.ui.createElement(this.document, 'toolbarbutton', {
+      id: 'zotero-tb-aria',
+      attributes: {
+        class: 'zotero-tb-button',
+        label: 'Aria',
+        tooltiptext: 'Launch Aria',
+      },
+      children: [
+        {
+          tag: 'image',
+          attributes: {
+            class: 'toolbarbutton-icon',
+            src: `chrome://${config.addonRef}/content/icons/favicon@16x16.png`,
+          },
+        },
+      ],
+      listeners: [
+        {
+          type: 'click',
+          listener: () => {
+            if (!this.dialog) {
+              this.launchApp()
+            }
+          },
+        },
+      ],
+    })
+    const toolbarNode = this.document.getElementById('zotero-tb-advanced-search')
+    if (toolbarNode) {
+      toolbarNode.after(ariaBtn)
+    }
   }
 
   private launchApp() {
