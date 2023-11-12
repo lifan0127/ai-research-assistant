@@ -41,7 +41,7 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ## Quickstart
 
-By default, Aria can be activated by clicking the "Aria" button on Zoterol toolbar or through the "Shift + R" shortcut.
+By default, Aria can be activated by clicking the ![Aria launch button](addon/chrome/content/icons/favicon@0.167x.png) button on Zoterol toolbar or through the "Shift + R" shortcut.
 
 Before using Aria, you need to provide an [OpenAI API Key](https://platform.openai.com/account/api-keys). Follow the in-app instruction to add a key and <b>restart Zotero</b>. ([screenshots](docs/configuration.md))
 
