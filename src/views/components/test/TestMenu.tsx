@@ -6,6 +6,7 @@ import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { searchResultsAction } from './data/searchResults'
 import { qaResponseAction } from './data/qaResponse'
+import { urlMessageAction } from './data/urlMessage'
 import { States, MentionValue } from '../../../models/utils/states'
 import { defaultStates } from '../../hooks/useStates'
 
@@ -123,6 +124,15 @@ const testMessages = [
         mentions: [],
       },
       states: { ...defaultStates, items: [] },
+    },
+  },
+  {
+    type: 'BUTTON' as const,
+    label: 'Bot with URL',
+    message: {
+      type: 'BOT_MESSAGE' as const,
+      ...urlMessageAction.payload,
+      _raw: JSON.stringify(urlMessageAction),
     },
   },
   {

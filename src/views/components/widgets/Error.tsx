@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import MarkdownReact from 'marked-react'
+import { Markdown } from './Markdown'
 import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
@@ -92,10 +92,10 @@ export function Error({ error }: ErrorProps) {
   console.log({ error })
   return (
     <ErrorContainer error={error}>
-      <MarkdownReact>
-        Apologies for the inconvenience. Something has gone wrong within Aria. Please check the error stack for detailed
-        information about the issue.
-      </MarkdownReact>
+      <Markdown
+        content="Apologies for the inconvenience. Something has gone wrong within Aria. Please check the error stack for detailed
+        information about the issue."
+      />
     </ErrorContainer>
   )
 }

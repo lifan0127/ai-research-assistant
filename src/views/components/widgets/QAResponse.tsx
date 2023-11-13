@@ -1,5 +1,5 @@
 import React from 'react'
-import MarkdownReact from 'marked-react'
+import { Markdown } from './Markdown'
 import { marked } from 'marked'
 import { createCitations } from '../../../apis/zotero/citation'
 import { ItemButton } from '../item/ItemButton'
@@ -12,7 +12,7 @@ export interface QAResponseProps {
 export function QAResponse({ answer, sources }: QAResponseProps) {
   return (
     <div>
-      <MarkdownReact>{answer}</MarkdownReact>
+      <Markdown content={answer} />
       {sources.length > 0 ? (
         <div className="text-sm">
           <h4 className="p-0 m-0 !mt-4 mb-1 text-tomato">References</h4>

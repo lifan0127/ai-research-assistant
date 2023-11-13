@@ -74,7 +74,7 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
               const { label } = item
               return (
                 <li key={label}>
-                  <hr className="px-2" />
+                  <hr className="mx-4 opacity-25" />
                 </li>
               )
             }
