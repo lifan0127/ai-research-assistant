@@ -16,7 +16,8 @@
           "update_link": "https://github.com/lifan0127/ai-research-assistant/releases/latest/download/aria.xpi",
           "applications": {
             "zotero": {
-              "strict_min_version": "6.999"
+              "strict_min_version": "5.999",
+              "strict_max_version": "6.999"
             }
           }
         }

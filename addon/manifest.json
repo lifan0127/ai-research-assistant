@@ -12,7 +12,7 @@
     "zotero": {
       "id": "__addonID__",
       "update_url": "__updaterdf__",
-      "strict_min_version": "6.999",
+      "strict_min_version": "5.999",
       "strict_max_version": "6.999"
     }
   }
