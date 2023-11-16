@@ -50,7 +50,7 @@ export function Feedback({ open, setOpen, callback }: FeedbackProps) {
                       autoComplete="email"
                       placeholder="name@example.com"
                       defaultValue={Zotero.Prefs.get(`${config.addonRef}.USER_EMAIL`) as string}
-                      className="w-full mb-2 sm:mb-4 rounded-md border-0 box-border text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 px-2 py-1 placeholder:text-gray-400 sm:text-smR"
+                      className="w-full mb-2 sm:mb-4 rounded-md border-0 box-border text-gray-900 shadow-sm bg-white ring-1 ring-inset ring-gray-300 px-2 py-1 placeholder:text-gray-400 sm:text-smR"
                     />
                   </div>
                 </div>
@@ -63,11 +63,11 @@ export function Feedback({ open, setOpen, callback }: FeedbackProps) {
                         name="auto-submission"
                         type="checkbox"
                         defaultChecked={Zotero.Prefs.get(`${config.addonRef}.FEEDBACK_NO_CONFIRMATION`) as boolean}
-                        className="h-4 w-4 m-0 rounded border-neutral-300"
+                        className="h-4 w-4 m-0 rounded border-neutral-300 accent-white"
                       />
                     </div>
                     <div className="ml-3 text-sm leading-4 inline-block">
-                      <label htmlFor="auto-submission" className="font-medium">
+                      <label htmlFor="auto-submission" className="font-medium text-gray-900">
                         Submit future feedback without confirmation
                       </label>
                     </div>
