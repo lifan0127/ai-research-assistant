@@ -205,10 +205,14 @@ interface loadQAChainInput {
 export const loadQAChain = (params: loadQAChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+  const OPENAI_BASE_URL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,
     modelName: OPENAI_MODEL,
+    configuration: {
+      baseURL: OPENAI_BASE_URL,
+    },
   })
   const { prompt = QA_DEFAULT_PROMPT, langChainCallbackManager, zoteroCallbacks, memory } = params
   const chain = new QAChain({ prompt, memory, llm, langChainCallbackManager, zoteroCallbacks })
@@ -281,10 +285,14 @@ class RetrievalQAChain extends BaseChain {
 export const loadRetrievalQAChain = (params: loadQAChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+  const OPENAI_BASE_URL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,
     modelName: OPENAI_MODEL,
+    configuration: {
+      baseURL: OPENAI_BASE_URL,
+    },
   })
   const { prompt = QA_DEFAULT_PROMPT, langChainCallbackManager, zoteroCallbacks, memory } = params
   const searchChain = loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory, mode: 'qa' })

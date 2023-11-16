@@ -4,6 +4,7 @@
 <!ENTITY zotero.__addonRef__.pref.model_configuration_label "模型配置">
 <!ENTITY zotero.__addonRef__.pref.OPENAI_MODEL.label "OpenAI 模型">
 <!ENTITY zotero.__addonRef__.pref.OPENAI_API_KEY.label "OpenAI API 密钥">
+<!ENTITY zotero.__addonRef__.pref.OPENAI_BASE_URL.label "OpenAI API 基址">
 <!ENTITY zotero.__addonRef__.pref.ui_customization_label "用户界面定制">
 <!ENTITY zotero.__addonRef__.pref.DEFAULT_ZOOM_LEVEL.label "默认放大倍数(&#37;)">
 <!ENTITY zotero.__addonRef__.pref.keyboard_shortcut_label "自定义快捷键">

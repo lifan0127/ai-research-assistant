@@ -9,11 +9,15 @@ import { config } from '../../../package.json'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
 const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
-
+const OPENAI_BASE_URL =
+  (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
 const llm = new ChatOpenAI({
   temperature: 0,
   openAIApiKey: OPENAI_API_KEY,
   modelName: OPENAI_MODEL,
+  configuration: {
+    baseURL: OPENAI_BASE_URL,
+  },
 })
 const prompt = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
