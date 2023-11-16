@@ -114,7 +114,7 @@ function Gallery({ images }: GalleryProps) {
       {images.map(({ id, title, image }) => (
         <div key={id} className="relative border border-solid border-neutral-300">
           <div className="h-6 flex flex-row px-1" style={{ backgroundColor: selectionConfig.images.backgroundColor }}>
-            <div className="flex-none text-sm">{id}</div>
+            <div className="flex-none text-sm text-black">{id}</div>
           </div>
           <div className="h-40">
             <img className="h-full aspect-auto" src={image} title={title} />

@@ -39,7 +39,7 @@ function SelectionContainer({ states, name }: { states: ReturnType<typeof useSta
         return name === 'images' ? (
           <div key={id} className="relative border border-solid border-neutral-300">
             <div className="h-6 flex flex-row px-1" style={{ backgroundColor: selectionConfig[name].backgroundColor }}>
-              <div className="flex-none text-sm">{id}</div>
+              <div className="flex-none text-sm text-black">{id}</div>
               <div className="grow"></div>
               <div className="flex-none w-6 h-6">
                 <XCircleIcon
