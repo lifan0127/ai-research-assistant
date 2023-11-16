@@ -3,7 +3,7 @@
     "aria@apex974.com": {
       "updates": [
         {
-          "version": "0.6.3",
+          "version": "0.6.4",
           "update_link": "https://github.com/lifan0127/ai-research-assistant/releases/latest/download/aria.xpi",
           "applications": {
             "gecko": {
@@ -12,7 +12,7 @@
           }
         },
         {
-          "version": "0.6.3",
+          "version": "0.6.4",
           "update_link": "https://github.com/lifan0127/ai-research-assistant/releases/latest/download/aria.xpi",
           "applications": {
             "zotero": {
