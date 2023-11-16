@@ -13,7 +13,7 @@ const editStyles = {
     backgroundColor: '#fff',
     fontSize: 14,
     fontWeight: 'normal',
-    color: 'black',
+    color: '#000',
     maxHeight: '16rem',
   },
   '&multiLine': {
@@ -33,6 +33,8 @@ const editStyles = {
       border: 'none',
       overflow: 'auto',
       lineHeight: '1.5rem',
+      backgroundColor: '#fff',
+      color: '#000',
     },
   },
   suggestions: {
