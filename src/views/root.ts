@@ -22,6 +22,8 @@ export class ReactRoot {
     this.registerStyle()
     this.registerToolbar()
     this.registerShortcut()
+    // As message entries are no longer stored in preferences (due to the size limit), we need to remove the existing entries. This may be removed after several upgrade cycles.
+    this.removeMessagesInPrefs()
   }
 
   private registerStyle() {
@@ -36,24 +38,14 @@ export class ReactRoot {
   }
 
   private registerToolbar() {
-    const existingAriaBtns = this.document.querySelectorAll('#zotero-tb-aria')
-    existingAriaBtns.forEach(btn => btn.remove())
     const ariaBtn = this.ui.createElement(this.document, 'toolbarbutton', {
       id: 'zotero-tb-aria',
+      removeIfExists: true,
       attributes: {
         class: 'zotero-tb-button',
-        label: 'Aria',
         tooltiptext: 'Launch Aria',
+        style: 'list-style-image: url(chrome://aria/content/icons/favicon@16x16.png)',
       },
-      children: [
-        {
-          tag: 'image',
-          attributes: {
-            class: 'toolbarbutton-icon',
-            src: `chrome://${config.addonRef}/content/icons/favicon@16x16.png`,
-          },
-        },
-      ],
       listeners: [
         {
           type: 'click',
@@ -68,6 +60,22 @@ export class ReactRoot {
     const toolbarNode = this.document.getElementById('zotero-tb-advanced-search')
     if (toolbarNode) {
       toolbarNode.after(ariaBtn)
+    }
+  }
+
+  private removeMessagesInPrefs() {
+    try {
+      const rootKey = 'extensions.zotero.aria.messageKeys'
+      const rootVal = Zotero.Prefs.get(rootKey, true)
+      if (typeof rootVal !== 'string') {
+        return
+      }
+      const messageKeys = JSON.parse(rootVal) || []
+      messageKeys.forEach((key: string) => Zotero.Prefs.clear('aria.message.' + key, true))
+      Zotero.Prefs.clear(rootKey, true)
+      console.log('Aria messages in prefs removed.')
+    } catch (error) {
+      console.log('Error removing Aria messages in prefs', error)
     }
   }
 

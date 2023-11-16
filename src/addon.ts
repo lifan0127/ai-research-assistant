@@ -5,12 +5,12 @@ import { config } from '../package.json'
 import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
 import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
 import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
-import { LargePrefHelper } from 'zotero-plugin-toolkit/dist/helpers/largePref'
 import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
 import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
 import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
 import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
 import { ReactRootManager } from './views/root'
+import { Messages } from './modules/messages'
 
 class Addon {
   public data: {
@@ -28,8 +28,8 @@ class Addon {
       rows: Array<{ [dataKey: string]: string }>
     }
     popup: {
-      window?: Window
-      messages: any
+      window: Window
+      messages: Messages
     }
   }
   // Lifecycle hooks
@@ -44,11 +44,8 @@ class Addon {
       env: __env__,
       ztoolkit,
       popup: {
-        messages: new ztoolkit.LargePref(
-          `extensions.zotero.${config.addonRef}.messageKeys`,
-          `${config.addonRef}.message.`,
-          'parser'
-        ),
+        window,
+        messages: new Messages(),
       },
     }
     this.hooks = hooks
@@ -78,7 +75,7 @@ export class CustomToolkit extends BasicTool {
   Prompt: PromptManager
   Shortcut: ShortcutManager
   Clipboard: typeof ClipboardHelper
-  LargePref: typeof LargePrefHelper
+  // LargePref: typeof LargePrefHelper
   ProgressWindow: typeof ProgressWindowHelper
 
   constructor() {
@@ -89,7 +86,7 @@ export class CustomToolkit extends BasicTool {
     this.ReactRoot = new ReactRootManager(this)
     this.Prompt = new PromptManager(this)
     this.Clipboard = ClipboardHelper
-    this.LargePref = LargePrefHelper
+    // this.LargePref = LargePrefHelper
     this.ProgressWindow = ProgressWindowHelper
     this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
   }
