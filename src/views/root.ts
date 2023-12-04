@@ -80,37 +80,6 @@ export class ReactRoot {
   }
 
   private launchApp() {
-    // const existingRoot = this.document.getElementById('aria-react-root')
-    // existingRoot?.remove()
-    // this.root = this.ui.createElement(this.document, 'div', {
-    //   id: 'aria-react-root',
-    //   styles: {
-    //     position: 'fixed',
-    //     left: '0',
-    //     top: '0',
-    //     width: '0',
-    //     height: '0',
-    //   },
-    //   // listeners: [
-    //   //   {
-    //   //     type: 'click',
-    //   //     listener: event => {
-    //   //       if (event.target === event.currentTarget) {
-    //   //         this.root.style.visibility = 'hidden'
-    //   //         this.unfocus()
-    //   //       }
-    //   //     },
-    //   //   },
-    //   // ],
-    // })
-    // this.document.documentElement.appendChild(this.root)
-    // this.document.addEventListener('keyup', (event: KeyboardEvent) => {
-    //   if (event.key === 'Escape') {
-    //     setVisibility('hidden')
-    //     this.unfocus()
-    //   }
-    // })
-    // ReactDOM.render(React.createElement(Container), this.root)
     const windowArgs = {
       _initPromise: Zotero.Promise.defer(),
     }
@@ -121,7 +90,7 @@ export class ReactRoot {
     const dialog = (window as any).openDialog(
       'chrome://aria/content/popup.xul',
       `${config.addonRef}-aria`,
-      `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top}`,
+      `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
       windowArgs
     )
     // Assign the dialog to the addon object so that it can be accessed from within the addon
