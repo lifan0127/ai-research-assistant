@@ -37,27 +37,26 @@ export interface ErrorProps {
 export function Error({ error }: ErrorProps) {
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
 
-  if (error?.response?.data?.error) {
-    const { code, message } = error.response.data.error
-    switch (code) {
+  if (error && error.code) {
+    switch (error.code) {
       case 'invalid_api_key': {
         return (
           <ErrorContainer error={error}>
             <div>
-              <h4 className="pb-2">OpenAI API key is required to use Aria</h4>
+              <h4 className="pb-2">Valid OpenAI API key is required to use Aria</h4>
               <ul className="list-none p-0">
                 <li>
-                  Select <em>Edit</em> from the top menu bar, and then select <em>Preferences</em> from the dropdown
-                  menu.
+                  Select <strong>Edit</strong> from the top menu bar, and then select <strong>Preferences</strong> from
+                  the dropdown menu.
                 </li>
                 <li>
-                  On the top panel or the left-hand side panel, select <em>Aria</em>.
+                  On the top panel or the left-hand side panel, select <strong>Aria</strong>.
                 </li>
                 <li>
-                  Locate the <em>OpenAI API key</em> field and enter your API key in the text box.
+                  Locate the <strong>OpenAI API key</strong> field and enter your API key in the text box.
                 </li>
                 <li>
-                  Click the <em>Close</em> button to save your chagne and <strong>restart Zotero</strong>
+                  Click the <strong>Close</strong> button to save your chagne and <strong>restart Zotero</strong>
                 </li>
               </ul>
             </div>
@@ -89,7 +88,6 @@ export function Error({ error }: ErrorProps) {
       }
     }
   }
-  console.log({ error })
   return (
     <ErrorContainer error={error}>
       <Markdown
