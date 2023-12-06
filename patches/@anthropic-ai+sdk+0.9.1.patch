@@ -1,0 +1,59 @@
+diff --git a/node_modules/@anthropic-ai/sdk/_shims/node-runtime.mjs b/node_modules/@anthropic-ai/sdk/_shims/node-runtime.mjs
+index e6635d2..baafcfb 100644
+--- a/node_modules/@anthropic-ai/sdk/_shims/node-runtime.mjs
++++ b/node_modules/@anthropic-ai/sdk/_shims/node-runtime.mjs
+@@ -1,8 +1,8 @@
+ import * as nf from 'node-fetch';
+ import * as fd from 'formdata-node';
+-import KeepAliveAgent from 'agentkeepalive';
+-import { AbortController as AbortControllerPolyfill } from 'abort-controller';
+-import { ReadStream as FsReadStream } from 'node:fs';
++// import KeepAliveAgent from 'agentkeepalive';
++// import { AbortController as AbortControllerPolyfill } from 'abort-controller';
++// import { ReadStream as FsReadStream } from 'node:fs';
+ import { FormDataEncoder } from 'form-data-encoder';
+ import { Readable } from 'node:stream';
+ import { MultipartBody } from "./MultipartBody.mjs";
+@@ -18,8 +18,8 @@ async function fileFromPath(path, ...args) {
+     // @ts-ignore
+     return await _fileFromPath(path, ...args);
+ }
+-const defaultHttpAgent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
+-const defaultHttpsAgent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
++// const defaultHttpAgent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
++// const defaultHttpsAgent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
+ async function getMultipartRequestOptions(form, opts) {
+     const encoder = new FormDataEncoder(form);
+     const readable = Readable.from(encoder);
+@@ -32,11 +32,11 @@ async function getMultipartRequestOptions(form, opts) {
+     return { ...opts, body: body, headers };
+ }
+ export function getRuntime() {
+-    // Polyfill global object if needed.
+-    if (typeof AbortController === 'undefined') {
+-        // @ts-expect-error (the types are subtly different, but compatible in practice)
+-        globalThis.AbortController = AbortControllerPolyfill;
+-    }
++    // // Polyfill global object if needed.
++    // if (typeof AbortController === 'undefined') {
++    //     // @ts-expect-error (the types are subtly different, but compatible in practice)
++    //     globalThis.AbortController = AbortControllerPolyfill;
++    // }
+     return {
+         kind: 'node',
+         fetch: nf.default,
+@@ -48,9 +48,11 @@ export function getRuntime() {
+         File: fd.File,
+         ReadableStream,
+         getMultipartRequestOptions,
+-        getDefaultAgent: (url) => (url.startsWith('https') ? defaultHttpsAgent : defaultHttpAgent),
++        // getDefaultAgent: (url) => (url.startsWith('https') ? defaultHttpsAgent : defaultHttpAgent),
++        getDefaultAgent: () => undefined,
+         fileFromPath,
+-        isFsReadStream: (value) => value instanceof FsReadStream,
++        // isFsReadStream: (value) => value instanceof FsReadStream,
++        isFsReadStream: () => false,
+     };
+ }
+ //# sourceMappingURL=node-runtime.mjs.map
+\ No newline at end of file

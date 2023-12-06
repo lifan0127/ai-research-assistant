@@ -1,0 +1,27 @@
+diff --git a/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js b/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js
+index 035e3fe..96a5e6d 100644
+--- a/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js
++++ b/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js
+@@ -63,8 +63,10 @@ export let initialBaseURI =
+ // @ts-ignore
+ typeof self !== "undefined" && self.location
+     ? //@ts-ignore
+-        /* #__PURE__ */ new URL(self.location.origin + self.location.pathname + location.search)
+-    : /* #__PURE__ */ new URL("https://github.com/cfworker");
++           /* #__PURE__ */ { href: self.location.origin + self.location.pathname + location.search }
++       : /* #__PURE__ */ { href: "https://github.com/cfworker" };
++    //     /* #__PURE__ */ new URL(self.location.origin + self.location.pathname + location.search)
++    // : /* #__PURE__ */ new URL("https://github.com/cfworker");
+ export function dereference(schema, lookup = Object.create(null), baseURI = initialBaseURI, basePointer = "") {
+     if (schema && typeof schema === "object" && !Array.isArray(schema)) {
+         const id = schema.$id || schema.id;
+diff --git a/node_modules/@langchain/core/dist/utils/stream.js b/node_modules/@langchain/core/dist/utils/stream.js
+index 51e65e3..1ef6462 100644
+--- a/node_modules/@langchain/core/dist/utils/stream.js
++++ b/node_modules/@langchain/core/dist/utils/stream.js
+@@ -1,3 +1,5 @@
++class ReadableStream {}
++
+ /*
+  * Support async iterator syntax for ReadableStreams in all environments.
+  * Source: https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
