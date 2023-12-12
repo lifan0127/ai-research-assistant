@@ -24,7 +24,7 @@ const editStyles = {
     highlighter: {
       padding: 0,
       border: 'none',
-      overflow: 'hidden',
+      overflow: 'visible',
       maxHeight: '16rem',
       lineHeight: '1.5rem',
     },
@@ -33,7 +33,7 @@ const editStyles = {
       border: 'none',
       overflow: 'auto',
       lineHeight: '1.5rem',
-      backgroundColor: '#fff',
+      backgroundColor: 'transparent',
       color: '#000',
     },
   },
