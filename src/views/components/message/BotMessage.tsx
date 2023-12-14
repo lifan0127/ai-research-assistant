@@ -9,54 +9,166 @@ import {
   HandThumbDownIcon as HandThumbDownIconSolid,
 } from '@heroicons/react/24/solid'
 import { marked } from 'marked'
-import { Markdown, MarkdownProps, copyMarkdown } from '../widgets/Markdown'
-import { SearchResults, SearchResultsProps, copySearchResults } from '../widgets/SearchResults'
-import { QAResponse, QAResponseProps, copyQAResponse } from '../widgets/QAResponse'
-import { Error, ErrorProps, copyError } from '../widgets/Error'
+import * as Markdown from '../widgets/Markdown'
+import * as SearchResults from '../widgets/SearchResults'
+import * as QAResponse from '../widgets/QAResponse'
+import * as Error from '../widgets/Error'
 import { BotIntermediateStepProps, BotMessageProps, UserMessageProps } from './types'
 import { anonymizeError } from '../../../models/utils/error'
 
-function MessageContent({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
-  switch (widget) {
-    case 'MARKDOWN': {
-      return <Markdown content={(input as MarkdownProps).content} />
-    }
-    case 'SEARCH_RESULTS': {
-      return <SearchResults {...(input as SearchResultsProps)} />
-    }
-    case 'QA_RESPONSE': {
-      return <QAResponse {...(input as QAResponseProps)} />
-    }
-    case 'ERROR': {
-      return <Error {...(input as ErrorProps)} />
-    }
-    default: {
-      return <Markdown content={`Unknown widget: ${widget}. Input: ${JSON.stringify(input)}`} />
-    }
-  }
+const widgetMap = {
+  MARKDOWN: Markdown,
+  SEARCH_RESULTS: SearchResults,
+  QA_RESPONSE: QAResponse,
+  ERROR: Error,
 }
 
-function copyBotMessage({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
-  switch (widget) {
-    case 'MARKDOWN': {
-      return copyMarkdown(input as MarkdownProps)
-    }
-    case 'SEARCH_RESULTS': {
-      return copySearchResults(input as SearchResultsProps)
-    }
-    case 'QA_RESPONSE': {
-      return copyQAResponse(input as QAResponseProps)
-    }
-    case 'ERROR': {
-      return copyError(input as ErrorProps)
-    }
-    default: {
-      const textContent = '<pre>' + JSON.stringify(input, null, 2) + '</pre>'
-      const htmlContent = marked(textContent)
-      return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
-    }
+function MessageContent({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
+  const Widget = widgetMap[widget]
+  if (Widget !== undefined) {
+    return <Widget.Component {...(input as any)} />
   }
+  return <Markdown.Component content={`Unknown widget: ${widget}. Input: ${JSON.stringify(input)}`} />
+  // switch (widget) {
+  //   case 'MARKDOWN': {
+  //     return <Markdown.Component content={(input as Markdown.Props).content} />
+  //   }
+  //   case 'SEARCH_RESULTS': {
+  //     return <SearchResults.Component {...(input as SearchResultsProps)} />
+  //   }
+  //   case 'QA_RESPONSE': {
+  //     return <QAResponse {...(input as QAResponseProps)} />
+  //   }
+  //   case 'ERROR': {
+  //     return <Error {...(input as ErrorProps)} />
+  //   }
+  //   default: {
+  //     return <Markdown content={`Unknown widget: ${widget}. Input: ${JSON.stringify(input)}`} />
+  //   }
+  // }
 }
+
+function defaultCopy(input: any) {
+  const textContent = '<pre>' + JSON.stringify(input, null, 2) + '</pre>'
+  const htmlContent = marked(textContent)
+  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
+}
+
+interface CopyActionProps {
+  copyId: BotMessageProps['copyId']
+  setCopyId: BotMessageProps['setCopyId']
+  id: BotMessageProps['id']
+  label: string
+  action: (input: any) => void
+  input: BotMessageProps['input']
+}
+
+function CopyAction({ copyId, setCopyId, id, label, action, input }: CopyActionProps) {
+  function handleCopy() {
+    action(input)
+    setCopyId(id)
+  }
+  return (
+    <div className="rounded border border-solid border-neutral-300">
+      <button
+        type="button"
+        className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
+        aria-label="Copy"
+        onClick={handleCopy}
+      >
+        <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+        <span className="ml-2 text-sm">{copyId === id ? 'Copied' : 'Copy'}</span>
+      </button>
+    </div>
+  )
+}
+
+interface CreateNoteActionProps {
+  label: string
+  action: (input: any) => void
+  input: BotMessageProps['input']
+}
+
+function CreateNoteAction({ label, action, input }: CreateNoteActionProps) {
+  return (
+    <div className="rounded border border-solid border-neutral-300">
+      <button
+        type="button"
+        className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
+        aria-label="Copy"
+        onClick={async () => await action(input)}
+      >
+        <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+        <span className="ml-2 text-sm">{label}</span>
+      </button>
+    </div>
+  )
+}
+
+function MessageActions({
+  id,
+  widget,
+  input,
+  copyId,
+  setCopyId,
+}: Pick<BotMessageProps, 'id' | 'widget' | 'input' | 'copyId' | 'setCopyId'>) {
+  const Widget = widgetMap[widget]
+
+  if (Widget !== undefined) {
+    return (
+      <>
+        {Widget.actions.map(({ label, action }, index) => {
+          switch (label) {
+            case 'Copy': {
+              return (
+                <CopyAction
+                  key={index}
+                  copyId={copyId}
+                  setCopyId={setCopyId}
+                  id={id}
+                  label={label}
+                  action={action}
+                  input={input}
+                />
+              )
+            }
+            case 'Create Note': {
+              return <CreateNoteAction key={index} label={label} action={action} input={input} />
+            }
+            default: {
+              return null
+            }
+          }
+        })}
+      </>
+    )
+  }
+  return <CopyAction copyId={copyId} setCopyId={setCopyId} id={id} label="Copy" action={defaultCopy} input={input} />
+}
+
+// function copyBotMessage({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
+//   const Widget = widgetMap[widget] || Markdown
+//   return Widget.actions.copy(input as Widget.Props)
+//   switch (widget) {
+//     case 'MARKDOWN': {
+//       return copyMarkdown(input as MarkdownProps)
+//     }
+//     case 'SEARCH_RESULTS': {
+//       return copySearchResults(input as SearchResultsProps)
+//     }
+//     case 'QA_RESPONSE': {
+//       return copyQAResponse(input as QAResponseProps)
+//     }
+//     case 'ERROR': {
+//       return copyError(input as ErrorProps)
+//     }
+//     default: {
+//       const textContent = '<pre>' + JSON.stringify(input, null, 2) + '</pre>'
+//       const htmlContent = marked(textContent)
+//       return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
+//     }
+//   }
+// }
 
 export function BotMessage({
   submitFeedback,
@@ -75,18 +187,13 @@ export function BotMessage({
     setVote(message.vote)
   }, [message.vote])
 
-  function handleCopy() {
-    copyBotMessage(message)
-    setCopyId(message.id)
-  }
-
   function handleVote(vote: 'up' | 'down') {
     const { id, timestamp } = message
     const serializedMessages = JSON.stringify(
       messageSlice.map(message => {
         const input = (message as BotMessageProps | BotIntermediateStepProps).input
         if (message.type === 'BOT_MESSAGE' && message.widget === 'ERROR') {
-          const errorInput = input as ErrorProps
+          const errorInput = input as Error.Props
           if (errorInput.error.stack && typeof errorInput.error.stack === 'string') {
             errorInput.error.stack = anonymizeError(errorInput.error.stack)
           }
@@ -136,18 +243,8 @@ export function BotMessage({
       >
         <MessageContent {...message} />
         <div className="flex pt-3">
-          <div className="flex-none">
-            <div className="rounded border border-solid border-neutral-300">
-              <button
-                type="button"
-                className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
-                aria-label="Copy"
-                onClick={handleCopy}
-              >
-                <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
-                <span className="ml-2 text-sm">{copyId === message.id ? 'Copied' : 'Copy'}</span>
-              </button>
-            </div>
+          <div className="flex-none flex space-x-2">
+            <MessageActions {...message} copyId={copyId} setCopyId={setCopyId} />
           </div>
           <div className="flex-auto"></div>
           <div className="flex-none flex flex-col">

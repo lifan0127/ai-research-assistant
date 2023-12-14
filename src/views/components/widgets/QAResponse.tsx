@@ -1,18 +1,20 @@
 import React from 'react'
-import { Markdown } from './Markdown'
+import * as Markdown from './Markdown'
 import { marked } from 'marked'
 import { createCitations } from '../../../apis/zotero/citation'
 import { ItemButton } from '../item/ItemButton'
+import { createCollection } from '../../../apis/zotero/collection'
+import { ARIA_LIBRARY } from '../../../constants'
 
-export interface QAResponseProps {
+export interface Props {
   answer: string
   sources: Awaited<ReturnType<typeof createCitations>>
 }
 
-export function QAResponse({ answer, sources }: QAResponseProps) {
+export function Component({ answer, sources }: Props) {
   return (
     <div>
-      <Markdown content={answer} />
+      <Markdown.Component content={answer} />
       {sources.length > 0 ? (
         <div className="text-sm">
           <h4 className="p-0 m-0 !mt-4 mb-1 text-tomato">References</h4>
@@ -33,7 +35,7 @@ export function QAResponse({ answer, sources }: QAResponseProps) {
   )
 }
 
-export function copyQAResponse({ answer, sources = [] }: QAResponseProps) {
+function compileContent({ answer, sources = [] }: Props) {
   const textContent =
     sources.length === 0
       ? answer
@@ -45,5 +47,35 @@ ${answer}
 ${sources.map(({ bib }) => bib).join('\n')}
   `.trim()
   const htmlContent = marked(textContent)
+  return { textContent, htmlContent }
+}
+
+function copy(props: Props) {
+  const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
+
+async function createNote(props: Props) {
+  const { htmlContent } = compileContent(props)
+  const item = new Zotero.Item('note')
+  item.setNote(
+    '<div data-schema-version="8">' +
+      `<h1>New Search Results from Aria - ${new Date().toLocaleString()}</h1>` +
+      marked(htmlContent) +
+      '</div>'
+  )
+  const ariaCollection = await createCollection(ARIA_LIBRARY)
+  item.addToCollection(ariaCollection.id)
+  await item.saveTx()
+}
+
+export const actions = [
+  {
+    label: 'Copy',
+    action: copy,
+  },
+  {
+    label: 'Create Note',
+    action: createNote,
+  },
+]

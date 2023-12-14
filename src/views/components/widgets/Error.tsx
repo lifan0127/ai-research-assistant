@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
-import { Markdown } from './Markdown'
+import * as Markdown from './Markdown'
 import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
-interface ErrorContainerProps {
+interface ContainerProps {
   error: any
   children: React.ReactNode
 }
 
-function ErrorContainer({ error, children }: ErrorContainerProps) {
+function Container({ error, children }: ContainerProps) {
   const [showError, setShowError] = useState(false)
   if (__env__ === 'production' && error.stack && typeof error.stack === 'string') {
     error.stack = anonymizeError(error.stack)
@@ -30,18 +30,18 @@ function ErrorContainer({ error, children }: ErrorContainerProps) {
   )
 }
 
-export interface ErrorProps {
+export interface Props {
   error: any
 }
 
-export function Error({ error }: ErrorProps) {
+export function Component({ error }: Props) {
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
 
   if (error && error.code) {
     switch (error.code) {
       case 'invalid_api_key': {
         return (
-          <ErrorContainer error={error}>
+          <Container error={error}>
             <div>
               <h4 className="pb-2">Valid OpenAI API key is required to use Aria</h4>
               <ul className="list-none p-0">
@@ -60,13 +60,13 @@ export function Error({ error }: ErrorProps) {
                 </li>
               </ul>
             </div>
-          </ErrorContainer>
+          </Container>
         )
       }
       case 'model_not_found': {
         const supportArticleUrl = 'https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4'
         return (
-          <ErrorContainer error={error}>
+          <Container error={error}>
             <div>
               <h4 className="pb-2">Model '{OPENAI_MODEL}' is not available</h4>
               <ul className="list-none p-0">
@@ -83,23 +83,30 @@ export function Error({ error }: ErrorProps) {
                 </li>
               </ul>
             </div>
-          </ErrorContainer>
+          </Container>
         )
       }
     }
   }
   return (
-    <ErrorContainer error={error}>
-      <Markdown
+    <Container error={error}>
+      <Markdown.Component
         content="Apologies for the inconvenience. Something has gone wrong within Aria. Please check the error stack for detailed
         information about the issue."
       />
-    </ErrorContainer>
+    </Container>
   )
 }
 
-export function copyError({ error }: ErrorProps) {
+function copy({ error }: Props) {
   const textContent = '<pre>' + JSON.stringify(serializeError(error), null, 2) + '</pre>'
   const htmlContent = marked(textContent)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
+
+export const actions = [
+  {
+    label: 'Copy',
+    action: copy,
+  },
+]

@@ -12,6 +12,8 @@ import tablemark from 'tablemark'
 import { searchZotero } from '../../../models/chains/search'
 import { getItemAndBestAttachment } from '../../../apis/zotero/item'
 import { ItemButton } from '../item/ItemButton'
+import { createCollection } from '../../../apis/zotero/collection'
+import { ARIA_LIBRARY } from '../../../constants'
 
 interface SearchResult {
   title: string
@@ -23,14 +25,9 @@ interface SearchResult {
 
 const columnHelper = createColumnHelper<SearchResult>()
 
-export interface SearchResultsProps extends Awaited<ReturnType<typeof searchZotero>> {}
+export interface Props extends Awaited<ReturnType<typeof searchZotero>> {}
 
-export function SearchResults({
-  query: { keywords, authors = [], tags = [], years },
-  count,
-  results,
-  collections,
-}: SearchResultsProps) {
+export function Component({ query: { keywords, authors = [], tags = [], years }, count, results, collections }: Props) {
   const columns = [
     columnHelper.accessor('title', {
       header: 'Title',
@@ -211,7 +208,7 @@ export function SearchResults({
   )
 }
 
-export function copySearchResults({ query: { keywords, authors, tags, years }, count, results }: SearchResultsProps) {
+function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
   const data = results.map(({ item, attachment }) => {
     return {
       title: item.title as string,
@@ -240,5 +237,35 @@ ${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
 ${tablemark(data, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
   `.trim()
   const htmlContent = marked(textContent)
+  return { textContent, htmlContent }
+}
+
+function copy(props: Props) {
+  const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
+
+async function createNote(pros: Props) {
+  const { htmlContent } = compileContent(pros)
+  const item = new Zotero.Item('note')
+  item.setNote(
+    '<div data-schema-version="8">' +
+      `<h1>New Search Results from Aria - ${new Date().toLocaleString()}</h1>` +
+      marked(htmlContent) +
+      '</div>'
+  )
+  const ariaCollection = await createCollection(ARIA_LIBRARY)
+  item.addToCollection(ariaCollection.id)
+  await item.saveTx()
+}
+
+export const actions = [
+  {
+    label: 'Copy',
+    action: copy,
+  },
+  {
+    label: 'Create Note',
+    action: createNote,
+  },
+]
