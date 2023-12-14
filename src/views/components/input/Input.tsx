@@ -13,9 +13,10 @@ export interface InputProps {
   id?: string
   content?: MentionValue
   inputStates?: StatesSchema
+  disabled?: boolean
 }
 
-export const Input = function InputBox({ onSubmit, onCancel, id, content, inputStates }: InputProps) {
+export const Input = function InputBox({ onSubmit, onCancel, id, content, inputStates, disabled = false }: InputProps) {
   const [dropText, setDropText] = useState<string>('')
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
@@ -59,17 +60,23 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
     <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
       <States states={states} />
       <div>
-        <TextField
-          ref={inputRef}
-          onSubmit={handleSubmit}
-          onCancel={onCancel}
-          displayButtons={id !== undefined}
-          states={states.states}
-          resetStates={states.reset}
-          value={states.value}
-          setValue={states.setValue}
-          forceSuggestionsAboveCursor={!id}
-        />
+        {disabled ? (
+          <div className="leading-6 w-full text-neutral-500">
+            Please finish editing and close the message edit window to resume the conversation here.
+          </div>
+        ) : (
+          <TextField
+            ref={inputRef}
+            onSubmit={handleSubmit}
+            onCancel={onCancel}
+            displayButtons={id !== undefined}
+            states={states.states}
+            resetStates={states.reset}
+            value={states.value}
+            setValue={states.setValue}
+            forceSuggestionsAboveCursor={!id}
+          />
+        )}
         {/* <textarea
           id="aria-chat-input"
           ref={inputRef}

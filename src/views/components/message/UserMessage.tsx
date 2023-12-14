@@ -125,7 +125,7 @@ function Gallery({ images }: GalleryProps) {
   )
 }
 
-export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }: UserMessageProps) {
+export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId, editId, setEditId }: UserMessageProps) {
   // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
   const [isEdit, setIsEdit] = useState(false)
@@ -149,19 +149,22 @@ export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }
   function handleEdit() {
     setDropArea(id)
     // setDisplayMenu(false)
-    setIsEdit(true)
+    // setIsEdit(true)
+    setEditId(id)
   }
 
   function handleSubmit(...args: Parameters<typeof onSubmit>) {
-    // setDisplayMenu(false)
-    setIsEdit(false)
+    setDropArea(undefined)
+    // setIsEdit(false)
+    setEditId(undefined)
     onSubmit(...args)
   }
 
   function handleCancel() {
     setDropArea(undefined)
     // setDisplayMenu(false)
-    setIsEdit(false)
+    // setIsEdit(false)
+    setEditId(undefined)
   }
 
   return (
@@ -170,7 +173,7 @@ export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId }
       // onMouseEnter={handleMouseEnter}
       // onMouseLeave={handleMouseLeave}
     >
-      {isEdit ? (
+      {id === editId ? (
         <div
           ref={ref}
           className="bg-tomato p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-black break-words min-w-[320px]"

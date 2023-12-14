@@ -1,7 +1,7 @@
-import { MarkdownProps } from '../widgets/Markdown'
-import { SearchResultsProps } from '../widgets/SearchResults'
-import { QAResponseProps } from '../widgets/QAResponse'
-import { ErrorProps } from '../widgets/Error'
+import { Props as MarkdownProps } from '../widgets/Markdown'
+import { Props as SearchResultsProps } from '../widgets/SearchResults'
+import { Props as QAResponseProps } from '../widgets/QAResponse'
+import { Props as ErrorProps } from '../widgets/Error'
 import { InputProps } from '../input/Input'
 import { States, MentionValue } from '../../../models/utils/states'
 
@@ -53,6 +53,8 @@ export interface UserMessageProps extends InputProps {
   states: States
   copyId?: string
   setCopyId: (id: string) => void
+  editId?: string
+  setEditId: (id: string | undefined) => void
 }
 
 export type Message = UserMessageProps | BotMessageProps | BotIntermediateStepProps

@@ -259,7 +259,6 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
           forceSuggestionsAboveCursor={forceSuggestionsAboveCursor}
           allowSpaceInQuery={true}
           autoFocus={isEdit}
-          disabled={!isEdit}
         >
           <Mention
             trigger="#"

@@ -34,6 +34,7 @@ export function Container() {
   const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } = useFeedback()
   const [isLoading, setIsLoading] = useState(false)
   const [copyId, setCopyId] = useState<string>()
+  const [editId, setEditId] = useState<string | undefined>()
   const containerRef = useRef<HTMLDivElement>(null)
   const langChainCallbackManager = CallbackManager.fromHandlers({
     handleChainStart: (chain, inputs) => {
@@ -294,20 +295,24 @@ export function Container() {
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
           ) : null}
           {messages.length === 0 ? <ReleaseNote /> : null}
-          {messages.map(({ type, copyId: _1, setCopyId: _2, ...props }, index) => {
-            switch (type) {
+          {messages.map((message, index) => {
+            switch (message.type) {
               case 'USER_MESSAGE': {
+                const { copyId: _1, setCopyId: _2, editId: _3, setEditId: _4, ...props } = message
                 return (
                   <UserMessage
                     key={props.id}
                     copyId={copyId}
                     setCopyId={setCopyId}
-                    {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId'>)}
+                    editId={editId}
+                    setEditId={setEditId}
+                    {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId' | 'editId' | 'setEditId'>)}
                     onSubmit={handleSubmit}
                   />
                 )
               }
               case 'BOT_MESSAGE': {
+                const { copyId: _1, setCopyId: _2, ...props } = message
                 return (
                   <BotMessage
                     key={props.id}
@@ -321,6 +326,7 @@ export function Container() {
                 )
               }
               case 'BOT_INTERMEDIATE_STEP': {
+                const { copyId: _1, setCopyId: _2, ...props } = message
                 return (
                   <BotIntermediateStep
                     key={props.id}
@@ -340,7 +346,7 @@ export function Container() {
             </div>
           ) : null}
           <div className="bottom-6 w-full z-40 m-0">
-            <Input onSubmit={handleSubmit} />
+            <Input disabled={editId !== undefined} onSubmit={handleSubmit} />
           </div>
           <Version />
         </div>
