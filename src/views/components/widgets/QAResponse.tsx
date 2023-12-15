@@ -60,7 +60,7 @@ async function createNote(props: Props) {
   const item = new Zotero.Item('note')
   item.setNote(
     '<div data-schema-version="8">' +
-      `<h1>New Search Results from Aria - ${new Date().toLocaleString()}</h1>` +
+      `<h1>New Q&A Response from Aria - ${new Date().toLocaleString()}</h1>` +
       marked(htmlContent) +
       '</div>'
   )
