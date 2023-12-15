@@ -4,6 +4,7 @@ import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
+import { FilePickerHelper } from 'zotero-plugin-toolkit/dist/helpers/filePicker'
 interface ContainerProps {
   error: any
   children: React.ReactNode
@@ -36,6 +37,19 @@ export interface Props {
 
 export function Component({ error }: Props) {
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+
+  async function saveMessageHistoryFile(file: string) {
+    const filename = await new FilePickerHelper(
+      `${Zotero.getString('fileInterface.import')} JSONL Document`,
+      'save',
+      [['JSONL File(*.jsonl)', '*.jsonl']],
+      file.split('/').pop()
+    ).open()
+    if (filename) {
+      const content = (await Zotero.File.getContentsAsync(file, 'utf-8')) as string
+      await Zotero.File.putContentsAsync(filename, content)
+    }
+  }
 
   if (error && error.code) {
     switch (error.code) {
@@ -80,6 +94,26 @@ export function Component({ error }: Props) {
                     {supportArticleUrl}
                   </button>
                   .
+                </li>
+              </ul>
+            </div>
+          </Container>
+        )
+      }
+      case 'load_message_history_error': {
+        return (
+          <Container error={error}>
+            <div>
+              <h4 className="pb-2">Unable to parse your message history</h4>
+              <ul className="list-none p-0">
+                <li>Unfortunately, your message history may have been corrupted and cannot be loaded into Aria.</li>
+                <li>
+                  <button
+                    className="inline p-0 whitespace-nowrap border-none text-tomato bg-transparent hover:underline"
+                    onClick={async () => await saveMessageHistoryFile(error.file)}
+                  >
+                    Click here to download a copy of your message history for troubleshooting.
+                  </button>
                 </li>
               </ul>
             </div>

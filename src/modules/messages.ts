@@ -45,24 +45,56 @@ export class Messages {
     )
 
     let outStr: any = {}
-    let line: any = '',
-      hasMore
-    do {
-      hasMore = converterStream.readString(1024, outStr) // Read up to 1024 bytes at a time
-      let part = outStr.value
-      let lines = part.split('\n')
-      lines[0] = line + lines[0]
-      for (let i = 0; i < lines.length - 1; i++) {
-        let line = lines[i].trim()
-        if (line) {
-          messages.push(JSON.parse(line))
-        }
-      }
-      line = lines[lines.length - 1]
-    } while (hasMore)
+    let lineBuffer = ''
+    let hasMore
+    try {
+      do {
+        hasMore = converterStream.readString(1024, outStr)
+        lineBuffer += outStr.value
 
-    converterStream.close()
-    inputStream.close()
+        while (lineBuffer.includes('\n')) {
+          let eolIndex = lineBuffer.indexOf('\n')
+          let line = lineBuffer.substring(0, eolIndex)
+          lineBuffer = lineBuffer.substring(eolIndex + 1)
+
+          if (line.trim()) {
+            messages.push(JSON.parse(line.trim())) // Trim and parse the line
+          }
+        }
+      } while (hasMore)
+    } catch (e) {
+      // Rename and clear the file
+      const corruptedFilePath = OS.Path.join(
+        Zotero.DataDirectory._dir,
+        config.addonRef,
+        `messages_corrupted_${new Date().valueOf()}.jsonl`
+      )
+      this.file.copyTo(null as any, `messages_corrupted_${new Date().valueOf()}.jsonl`)
+
+      // Clear the original file
+      const foStream = Components.classes['@mozilla.org/network/file-output-stream;1'].createInstance(
+        Components.interfaces.nsIFileOutputStream
+      )
+      foStream.init(this.file, 0x02 | 0x20, 0o666, 0) // 0x02: write, 0x20: truncate
+      foStream.close()
+      const error = {
+        code: 'load_message_history_error',
+        file: corruptedFilePath,
+      }
+      return [
+        {
+          type: 'BOT_MESSAGE',
+          widget: 'ERROR' as const,
+          input: {
+            error,
+          },
+          _raw: JSON.stringify(error),
+        },
+      ]
+    } finally {
+      converterStream.close()
+      inputStream.close()
+    }
 
     return messages
   }
@@ -104,33 +136,58 @@ export class Messages {
     inputStream.init(this.file, 0x01, 0o444, 0) // read only
     outputStream.init(tempFile, 0x02 | 0x08 | 0x20, 0o666, 0) // write, create, truncate
 
-    // Create a converter stream for UTF-8 encoding
-    const converterStream = Components.classes['@mozilla.org/intl/converter-output-stream;1'].createInstance(
+    // Create a converter stream for reading UTF-8 encoding
+    const converterInputStream = Components.classes['@mozilla.org/intl/converter-input-stream;1'].createInstance(
+      Components.interfaces.nsIConverterInputStream
+    )
+    converterInputStream.init(
+      inputStream,
+      'UTF-8',
+      0,
+      Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER
+    )
+
+    // Create a converter stream for writing UTF-8 encoding
+    const converterOutputStream = Components.classes['@mozilla.org/intl/converter-output-stream;1'].createInstance(
       Components.interfaces.nsIConverterOutputStream
     )
-    converterStream.init(outputStream, 'UTF-8', 0, 0)
+    converterOutputStream.init(outputStream, 'UTF-8', 0, 0)
 
-    const lineInputStream = inputStream.QueryInterface(Components.interfaces.nsILineInputStream)
-    let line: any = {}
-    let hasMore = false
+    let outStr: any = {}
+    let lineBuffer = ''
     let currentLineIndex = 0
+    let hasMore = true
 
-    do {
-      hasMore = lineInputStream.readLine(line)
+    while (hasMore) {
+      hasMore = converterInputStream.readString(1024, outStr)
+      lineBuffer += outStr.value
+      let eolIndex
 
-      // Replace the line if it's the edited one
-      let lineToWrite = currentLineIndex === messageIndex ? JSON.stringify(updatedMessage) + '\n' : line.value + '\n'
+      while ((eolIndex = lineBuffer.indexOf('\n')) >= 0) {
+        // Extract a line
+        let line = lineBuffer.substring(0, eolIndex)
+        lineBuffer = lineBuffer.substring(eolIndex + 1)
 
-      converterStream.writeString(lineToWrite)
+        // Replace the line if it's the edited one
+        let lineToWrite = currentLineIndex === messageIndex ? JSON.stringify(updatedMessage) + '\n' : line + '\n'
 
-      if (trim && currentLineIndex === messageIndex) {
-        break // Stop writing after updating the required line if trim is true
+        converterOutputStream.writeString(lineToWrite)
+
+        if (trim && currentLineIndex === messageIndex) {
+          break // Stop writing after updating the required line if trim is true
+        }
+        currentLineIndex++
       }
-      currentLineIndex++
-    } while (hasMore)
+    }
 
-    inputStream.close()
-    converterStream.close() // Closes the underlying file output stream as well
+    // Handle any remaining data in the buffer
+    if (lineBuffer) {
+      converterOutputStream.writeString(lineBuffer)
+    }
+
+    // Close the streams
+    converterInputStream.close() // Closes the underlying file input stream as well
+    converterOutputStream.close() // Closes the underlying file output stream as well
 
     // Replace the old file with the new file
     tempFile.moveTo(this.file.parent, this.file.leafName)

@@ -153,6 +153,38 @@ const testMessages = [
       _raw: JSON.stringify(qaResponseAction),
     },
   },
+  {
+    type: 'BUTTON' as const,
+    label: 'Bot Error',
+    message: {
+      type: 'BOT_MESSAGE',
+      widget: 'ERROR',
+      input: {
+        error: {
+          status: 400,
+          headers: {},
+          attemptNumber: 1,
+          retriesLeft: 6,
+          name: 'Error',
+          message: '400 status code (no body)',
+          stack:
+            '@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:830:19\n_APIError@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55850:5\nBadRequestError<@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55925:11\ngenerate@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55878:14\nmakeStatusError@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:56603:12\nmakeRequest@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:56643:20\n',
+        },
+      },
+      _raw: JSON.stringify({
+        status: 400,
+        headers: {},
+        attemptNumber: 1,
+        retriesLeft: 6,
+        name: 'Error',
+        message: '400 status code (no body)',
+        stack:
+          '@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:830:19\\n_APIError@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55850:5\\nBadRequestError<@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55925:11\\ngenerate@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:55878:14\\nmakeStatusError@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:56603:12\\nmakeRequest@resource://gre/modules/addons/XPIProvider.jsm -> file:///home/fan/Repos/ai-research-assistant/builds/addon/bootstrap.js -> file:///home/fan/Repos/ai-research-assistant/builds/addon//chrome/content/scripts/index.js:56643:20\\n',
+      }),
+      id: 'ZT9Rp02st5jhLlhd',
+      timestamp: '2023-12-14T19:36:21.176Z',
+    },
+  },
 ]
 
 interface TestMenuProps {

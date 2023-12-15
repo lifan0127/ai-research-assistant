@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Message } from '../components/message/types'
 import { generateMessageId } from '../../models/utils/identifiers'
 
 export function useMessages() {
   const messageStore = addon.data.popup.messages
-  const [messages, setMessages] = useState<Message[]>(messageStore.loadMessages())
+  const loadedMessages = useMemo(() => messageStore.loadMessages(), [])
+  const [messages, setMessages] = useState<Message[]>(loadedMessages)
 
   function addMessage(message: Partial<Message>) {
     const newMessage = { ...message, id: generateMessageId(), timestamp: new Date().toISOString() } as Message
