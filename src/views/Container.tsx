@@ -127,6 +127,9 @@ export function Container() {
       { action, payload }: ClarificationActionResponse | ErrorActionResponse | ExecutorActionResponse,
       isSubscribed: boolean
     ) {
+      if (!isSubscribed) {
+        return
+      }
       switch (action) {
         case 'clarification': {
           const { message, _raw } = payload
@@ -138,10 +141,7 @@ export function Container() {
             },
             _raw,
           }
-          if (isSubscribed) {
-            addMessage(newBotMessage)
-          }
-          return
+          return addMessage(newBotMessage)
         }
         case 'error': {
           const { error, _raw } = payload
@@ -153,10 +153,7 @@ export function Container() {
             },
             _raw,
           }
-          if (isSubscribed) {
-            addMessage(newBotMessage)
-          }
-          return
+          return addMessage(newBotMessage)
         }
         default: {
           const { widget, input, _raw } = payload
@@ -166,10 +163,7 @@ export function Container() {
             input: input as BotMessageProps['input'],
             _raw,
           }
-          if (isSubscribed) {
-            addMessage(newBotMessage)
-          }
-          return
+          return addMessage(newBotMessage)
         }
       }
     }
