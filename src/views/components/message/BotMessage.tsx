@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Square2StackIcon,
+  DocumentTextIcon,
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline,
 } from '@heroicons/react/24/outline'
@@ -98,7 +99,7 @@ function CreateNoteAction({ label, action, input }: CreateNoteActionProps) {
         aria-label="Copy"
         onClick={async () => await action(input)}
       >
-        <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+        <DocumentTextIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
         <span className="ml-2 text-sm">{label}</span>
       </button>
     </div>
