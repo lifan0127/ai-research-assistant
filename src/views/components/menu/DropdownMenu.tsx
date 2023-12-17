@@ -1,9 +1,12 @@
-import React, { Fragment, useState } from 'react'
+import React, { useState } from 'react'
 import { useOutsideClick } from '../../hooks/useOutsideClick'
+import { Confirmation } from '../Confirmation'
 
 interface ButtonItem {
   type: 'BUTTON'
   label: string
+  requireConfirmation?: boolean
+  confirmationMessage?: React.ReactNode
   handleClick: () => void
 }
 
@@ -47,7 +50,7 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
         className={`${open ? 'visible' : 'invisible'} absolute right-0 list-none m-0 mt-1 p-0 shadow-md text-s`}
         style={{ background: '-moz-field' }}
       >
-        {items.map((item, index) => {
+        {items.map(item => {
           switch (item.type) {
             case 'BUTTON': {
               const { label, handleClick } = item

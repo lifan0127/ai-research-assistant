@@ -7,6 +7,11 @@ export function useMessages() {
   const loadedMessages = useMemo(() => messageStore.loadMessages(), [])
   const [messages, setMessages] = useState<Message[]>(loadedMessages)
 
+  function getMesssage(messageId: string, offset: number = 0) {
+    const messageIndex = messages.findIndex(message => message.id === messageId)
+    return messages[messageIndex + offset]
+  }
+
   function addMessage(message: Partial<Message>) {
     const newMessage = { ...message, id: generateMessageId(), timestamp: new Date().toISOString() } as Message
     setMessages(messages => [...messages, newMessage])
@@ -35,7 +40,5 @@ export function useMessages() {
     messageStore.clearMessages()
   }
 
-  return { messages, addMessage, editMessage, updateMessage, clearMessages }
+  return { messages, getMesssage, addMessage, editMessage, updateMessage, clearMessages }
 }
-
-Zotero.File

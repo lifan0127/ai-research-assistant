@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Bars3Icon } from '@heroicons/react/24/outline'
 import { PlusCircleIcon, MinusCircleIcon } from '@heroicons/react/20/solid'
 import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { DropdownMenu } from './DropdownMenu'
+import { Confirmation } from '../Confirmation'
 
 interface ScaleButtonGroupProps {
   scale: number
@@ -35,6 +36,9 @@ interface MenuProps {
 
 export function MainMenu({ containerRef, assistant, clearMessages, scale, setScale }: MenuProps) {
   const dialog = useDialog()
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const [confirmationMessage, setConfirmationMessage] = useState<React.ReactNode | undefined>(undefined)
+  const [confirmationCallback, setConfirmationCallback] = useState<(() => void) | undefined>(undefined)
 
   const items = [
     {
@@ -68,8 +72,12 @@ export function MainMenu({ containerRef, assistant, clearMessages, scale, setSca
       type: 'BUTTON' as const,
       label: 'Clear chat history',
       handleClick: () => {
-        clearMessages()
-        assistant.resetMemory()
+        setConfirmationOpen(true)
+        setConfirmationMessage(<div className="py-4">This will delete your current chat history. Continue?</div>)
+        setConfirmationCallback(() => () => {
+          clearMessages()
+          assistant.resetMemory()
+        })
       },
     },
     {
@@ -87,5 +95,15 @@ export function MainMenu({ containerRef, assistant, clearMessages, scale, setSca
       },
     },
   ]
-  return <DropdownMenu items={items} Icon={Bars3Icon} position="top-4 right-6" />
+  return (
+    <>
+      <DropdownMenu items={items} Icon={Bars3Icon} position="top-4 right-6" />
+      <Confirmation
+        message={confirmationMessage}
+        open={confirmationOpen}
+        setOpen={setConfirmationOpen}
+        callback={confirmationCallback}
+      />
+    </>
+  )
 }
