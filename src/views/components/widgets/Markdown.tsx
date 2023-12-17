@@ -11,9 +11,9 @@ export interface Props {
 export function Component({ content }: Props) {
   const renderer = {
     link(href: string, title: string, text: string[]) {
-      ztoolkit.log({ href, title, text })
       return (
         <button
+          key={text + href}
           className="text-tomato p-0 border-none bg-transparent hover:underline hover:cursor-pointer"
           title={title}
           onClick={() => Zotero.launchURL(href)}
