@@ -5,6 +5,7 @@ import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
 import { FilePickerHelper } from 'zotero-plugin-toolkit/dist/helpers/filePicker'
+
 interface ContainerProps {
   error: any
   children: React.ReactNode
@@ -106,7 +107,10 @@ export function Component({ error }: Props) {
             <div>
               <h4 className="pb-2">Unable to parse your message history</h4>
               <ul className="list-none p-0">
-                <li>Unfortunately, your message history may have been corrupted and cannot be loaded into Aria.</li>
+                <li>
+                  Unfortunately, your message history may have been corrupted and cannot be loaded into{' '}
+                  {config.addonName}.
+                </li>
                 <li>
                   <button
                     className="inline p-0 whitespace-nowrap border-none text-tomato bg-transparent hover:underline"
@@ -125,16 +129,21 @@ export function Component({ error }: Props) {
   return (
     <Container error={error}>
       <Markdown.Component
-        content="Apologies for the inconvenience. Something has gone wrong within Aria. Please check the error stack for detailed
-        information about the issue."
+        content={`Apologies for the inconvenience. Something has gone wrong within ${config.addonName}. Please check the error stack for detailed
+        information about the issue.`}
       />
     </Container>
   )
 }
 
-function copy({ error }: Props) {
+export function compileContent({ error }: Props) {
   const textContent = '<pre>' + JSON.stringify(serializeError(error), null, 2) + '</pre>'
   const htmlContent = marked(textContent)
+  return { textContent, htmlContent }
+}
+
+function copy(props: Props) {
+  const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 

@@ -14,6 +14,7 @@ import { getItemAndBestAttachment } from '../../../apis/zotero/item'
 import { ItemButton } from '../item/ItemButton'
 import { createCollection } from '../../../apis/zotero/collection'
 import { ARIA_LIBRARY } from '../../../constants'
+import { config } from '../../../../package.json'
 
 interface SearchResult {
   title: string
@@ -208,7 +209,7 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   )
 }
 
-function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
+export function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
   const data = results.map(({ item, attachment }) => {
     return {
       title: item.title as string,
@@ -250,8 +251,8 @@ async function createNote(pros: Props) {
   const item = new Zotero.Item('note')
   item.setNote(
     '<div data-schema-version="8">' +
-      `<h1>New Search Results from Aria - ${new Date().toLocaleString()}</h1>` +
-      marked(htmlContent) +
+      `<h1>New Search Results from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
+      htmlContent +
       '</div>'
   )
   const ariaCollection = await createCollection(ARIA_LIBRARY)

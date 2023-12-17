@@ -5,6 +5,7 @@ import { createCitations } from '../../../apis/zotero/citation'
 import { ItemButton } from '../item/ItemButton'
 import { createCollection } from '../../../apis/zotero/collection'
 import { ARIA_LIBRARY } from '../../../constants'
+import { config } from '../../../../package.json'
 
 export interface Props {
   answer: string
@@ -35,7 +36,7 @@ export function Component({ answer, sources }: Props) {
   )
 }
 
-function compileContent({ answer, sources = [] }: Props) {
+export function compileContent({ answer, sources = [] }: Props) {
   const textContent =
     sources.length === 0
       ? answer
@@ -60,7 +61,7 @@ async function createNote(props: Props) {
   const item = new Zotero.Item('note')
   item.setNote(
     '<div data-schema-version="8">' +
-      `<h1>New Q&A Response from Aria - ${new Date().toLocaleString()}</h1>` +
+      `<h1>New Q&A Response from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
       marked(htmlContent) +
       '</div>'
   )

@@ -5,6 +5,7 @@ import { Confirmation } from '../Confirmation'
 interface ButtonItem {
   type: 'BUTTON'
   label: string
+  disabled?: boolean
   requireConfirmation?: boolean
   confirmationMessage?: React.ReactNode
   handleClick: () => void
@@ -53,10 +54,11 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
         {items.map(item => {
           switch (item.type) {
             case 'BUTTON': {
-              const { label, handleClick } = item
+              const { label, handleClick, disabled = false } = item
               return (
                 <li key={label}>
                   <button
+                    disabled={disabled}
                     className="text-left w-full block px-4 py-2 whitespace-nowrap border-none"
                     onClick={handleClick}
                   >

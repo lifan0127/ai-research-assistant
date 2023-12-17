@@ -281,6 +281,7 @@ export function Container() {
           <MainMenu
             containerRef={containerRef}
             assistant={assistant}
+            messages={messages}
             clearMessages={clearMessages}
             scale={scale}
             setScale={setScaleAndSave}

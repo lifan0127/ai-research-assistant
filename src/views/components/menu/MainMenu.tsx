@@ -5,6 +5,8 @@ import { ResearchAssistant } from '../../../models/assistant'
 import { useDialog } from '../../hooks/useDialog'
 import { DropdownMenu } from './DropdownMenu'
 import { Confirmation } from '../Confirmation'
+import { chatHistoryToNote } from '../output/chatHistory'
+import { Message } from '../message/types'
 
 interface ScaleButtonGroupProps {
   scale: number
@@ -30,11 +32,12 @@ interface MenuProps {
   containerRef: React.RefObject<HTMLDivElement>
   assistant: ResearchAssistant
   clearMessages: () => void
+  messages: Message[]
   scale: number
   setScale: (scale: number) => void
 }
 
-export function MainMenu({ containerRef, assistant, clearMessages, scale, setScale }: MenuProps) {
+export function MainMenu({ containerRef, assistant, clearMessages, messages, scale, setScale }: MenuProps) {
   const dialog = useDialog()
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [confirmationMessage, setConfirmationMessage] = useState<React.ReactNode | undefined>(undefined)
@@ -70,7 +73,14 @@ export function MainMenu({ containerRef, assistant, clearMessages, scale, setSca
     },
     {
       type: 'BUTTON' as const,
+      label: 'Save chat history',
+      disabled: messages.length === 0,
+      handleClick: async () => await chatHistoryToNote(messages),
+    },
+    {
+      type: 'BUTTON' as const,
       label: 'Clear chat history',
+      disabled: messages.length === 0,
       handleClick: () => {
         setConfirmationOpen(true)
         setConfirmationMessage(<div className="py-4">This will delete your current chat history. Continue?</div>)

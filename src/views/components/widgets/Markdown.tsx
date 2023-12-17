@@ -3,6 +3,7 @@ import MarkdownReact from 'marked-react'
 import { marked } from 'marked'
 import { createCollection } from '../../../apis/zotero/collection'
 import { ARIA_LIBRARY } from '../../../constants'
+import { config } from '../../../../package.json'
 
 export interface Props {
   content: string
@@ -26,17 +27,23 @@ export function Component({ content }: Props) {
   return <MarkdownReact renderer={renderer as any}>{content}</MarkdownReact>
 }
 
-function copy({ content }: Props) {
-  const htmlContent = marked(content)
-  return new ztoolkit.Clipboard().addText(content, 'text/unicode').addText(htmlContent, 'text/html').copy()
+export function compileContent({ content: textContent }: Props) {
+  const htmlContent = marked(textContent)
+  return { textContent, htmlContent }
 }
 
-async function createNote({ content }: Props) {
+function copy(props: Props) {
+  const { textContent, htmlContent } = compileContent(props)
+  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
+}
+
+async function createNote(props: Props) {
+  const { htmlContent } = compileContent(props)
   const item = new Zotero.Item('note')
   item.setNote(
     '<div data-schema-version="8">' +
-      `<h1>New Note from Aria - ${new Date().toLocaleString()}</h1>` +
-      marked(content) +
+      `<h1>New Note from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
+      htmlContent +
       '</div>'
   )
   const ariaCollection = await createCollection(ARIA_LIBRARY)
