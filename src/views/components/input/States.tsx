@@ -49,7 +49,11 @@ function SelectionContainer({ states, name }: { states: ReturnType<typeof useSta
               </div>
             </div>
             <div className="h-40">
-              <img className="h-full aspect-auto" src={(selection as SelectedImage).image} title={title} />
+              <img
+                className="max-h-full max-w-full aspect-auto"
+                src={(selection as SelectedImage).image}
+                title={title}
+              />
             </div>
           </div>
         ) : (
