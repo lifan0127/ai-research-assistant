@@ -15,6 +15,7 @@ import { ItemButton } from '../item/ItemButton'
 import { createCollection } from '../../../apis/zotero/collection'
 import { ARIA_LIBRARY } from '../../../constants'
 import { config } from '../../../../package.json'
+import { copyButtonDef, noteButtonDef } from '../buttons/types'
 
 interface SearchResult {
   title: string
@@ -246,27 +247,23 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote(pros: Props) {
+function createNote(pros: Props) {
   const { htmlContent } = compileContent(pros)
-  const item = new Zotero.Item('note')
-  item.setNote(
+  const note =
     '<div data-schema-version="8">' +
-      `<h1>New Search Results from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-      htmlContent +
-      '</div>'
-  )
-  const ariaCollection = await createCollection(ARIA_LIBRARY)
-  item.addToCollection(ariaCollection.id)
-  await item.saveTx()
+    `<h1>New Search Results from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
+    htmlContent +
+    '</div>'
+  return note
 }
 
-export const actions = [
+export const buttonDefs = [
   {
-    label: 'Copy',
-    action: copy,
-  },
+    name: 'COPY',
+    utils: { copy },
+  } as copyButtonDef,
   {
-    label: 'Create Note',
-    action: createNote,
-  },
+    name: 'NOTE',
+    utils: { createNote },
+  } as noteButtonDef,
 ]

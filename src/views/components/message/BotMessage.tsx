@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Square2StackIcon,
-  DocumentTextIcon,
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline,
 } from '@heroicons/react/24/outline'
@@ -9,6 +7,7 @@ import {
   HandThumbUpIcon as HandThumbUpIconSolid,
   HandThumbDownIcon as HandThumbDownIconSolid,
 } from '@heroicons/react/24/solid'
+import { findLast } from 'lodash'
 import { marked } from 'marked'
 import * as Markdown from '../widgets/Markdown'
 import * as SearchResults from '../widgets/SearchResults'
@@ -16,6 +15,9 @@ import * as QAResponse from '../widgets/QAResponse'
 import * as Error from '../widgets/Error'
 import { BotIntermediateStepProps, BotMessageProps, UserMessageProps } from './types'
 import { anonymizeError } from '../../../models/utils/error'
+import { CopyButton } from '../buttons/CopyButton'
+import { NoteButton } from '../buttons/NoteButton'
+import { AnnotateButton } from '../buttons/AnnotateButton'
 
 const widgetMap = {
   MARKDOWN: Markdown,
@@ -55,86 +57,36 @@ function defaultCopy(input: any) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-interface CopyActionProps {
-  copyId: BotMessageProps['copyId']
-  setCopyId: BotMessageProps['setCopyId']
-  id: BotMessageProps['id']
-  label: string
-  action: (input: any) => void
-  input: BotMessageProps['input']
+interface MessageActionsProps extends Pick<BotMessageProps, 'id' | 'widget' | 'input' | 'copyId' | 'setCopyId'> {
+  states?: UserMessageProps['states']
 }
 
-function CopyAction({ copyId, setCopyId, id, label, action, input }: CopyActionProps) {
-  function handleCopy() {
-    action(input)
-    setCopyId(id)
-  }
-  return (
-    <div className="rounded border border-solid border-neutral-300">
-      <button
-        type="button"
-        className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
-        aria-label="Copy"
-        onClick={handleCopy}
-      >
-        <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
-        <span className="ml-2 text-sm">{copyId === id ? 'Copied' : 'Copy'}</span>
-      </button>
-    </div>
-  )
-}
-
-interface CreateNoteActionProps {
-  label: string
-  action: (input: any) => void
-  input: BotMessageProps['input']
-}
-
-function CreateNoteAction({ label, action, input }: CreateNoteActionProps) {
-  return (
-    <div className="rounded border border-solid border-neutral-300">
-      <button
-        type="button"
-        className="relative inline-flex items-center bg-white text-neutral-500 hover:bg-gray-200 focus:z-10 rounded border-none px-2 py-1"
-        aria-label="Copy"
-        onClick={async () => await action(input)}
-      >
-        <DocumentTextIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
-        <span className="ml-2 text-sm">{label}</span>
-      </button>
-    </div>
-  )
-}
-
-function MessageActions({
-  id,
-  widget,
-  input,
-  copyId,
-  setCopyId,
-}: Pick<BotMessageProps, 'id' | 'widget' | 'input' | 'copyId' | 'setCopyId'>) {
+function MessageActions({ id, widget, input, copyId, setCopyId, states }: MessageActionsProps) {
   const Widget = widgetMap[widget]
 
   if (Widget !== undefined) {
     return (
       <>
-        {Widget.actions.map(({ label, action }, index) => {
-          switch (label) {
-            case 'Copy': {
+        {Widget.buttonDefs.map(({ name, utils }, index) => {
+          switch (name) {
+            case 'COPY': {
               return (
-                <CopyAction
+                <CopyButton
                   key={index}
                   copyId={copyId}
                   setCopyId={setCopyId}
                   id={id}
-                  label={label}
-                  action={action}
+                  name={name}
+                  utils={utils}
                   input={input}
                 />
               )
             }
-            case 'Create Note': {
-              return <CreateNoteAction key={index} label={label} action={action} input={input} />
+            case 'NOTE': {
+              return <NoteButton key={index} name={name} utils={utils} input={input} states={states} />
+            }
+            case 'ANNOTATION': {
+              return <AnnotateButton key={index} name={name} utils={utils} input={input} states={states} />
             }
             default: {
               return null
@@ -144,32 +96,19 @@ function MessageActions({
       </>
     )
   }
-  return <CopyAction copyId={copyId} setCopyId={setCopyId} id={id} label="Copy" action={defaultCopy} input={input} />
+  return (
+    <CopyButton
+      copyId={copyId}
+      setCopyId={setCopyId}
+      id={id}
+      name="COPY"
+      utils={{
+        copy: defaultCopy,
+      }}
+      input={input}
+    />
+  )
 }
-
-// function copyBotMessage({ widget, input }: Pick<BotMessageProps, 'widget' | 'input'>) {
-//   const Widget = widgetMap[widget] || Markdown
-//   return Widget.actions.copy(input as Widget.Props)
-//   switch (widget) {
-//     case 'MARKDOWN': {
-//       return copyMarkdown(input as MarkdownProps)
-//     }
-//     case 'SEARCH_RESULTS': {
-//       return copySearchResults(input as SearchResultsProps)
-//     }
-//     case 'QA_RESPONSE': {
-//       return copyQAResponse(input as QAResponseProps)
-//     }
-//     case 'ERROR': {
-//       return copyError(input as ErrorProps)
-//     }
-//     default: {
-//       const textContent = '<pre>' + JSON.stringify(input, null, 2) + '</pre>'
-//       const htmlContent = marked(textContent)
-//       return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
-//     }
-//   }
-// }
 
 export function BotMessage({
   submitFeedback,
@@ -183,6 +122,9 @@ export function BotMessage({
   const [error, setError] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const width = message.widget === 'SEARCH_RESULTS' ? 'w-full sm:w-[85%]' : 'w-auto max-w-full sm:max-w-[70%]'
+
+  const lastUserMessage = findLast(messageSlice, message => message.type === 'USER_MESSAGE')
+  const states = (lastUserMessage as UserMessageProps)?.states
 
   useEffect(() => {
     setVote(message.vote)
@@ -245,7 +187,7 @@ export function BotMessage({
         <MessageContent {...message} />
         <div className="flex pt-3">
           <div className="flex-none flex space-x-2">
-            <MessageActions {...message} copyId={copyId} setCopyId={setCopyId} />
+            <MessageActions {...message} copyId={copyId} setCopyId={setCopyId} states={states} />
           </div>
           <div className="flex-auto"></div>
           <div className="flex-none flex flex-col">

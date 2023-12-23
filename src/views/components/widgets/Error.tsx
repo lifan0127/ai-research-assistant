@@ -5,6 +5,7 @@ import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
 import { FilePickerHelper } from 'zotero-plugin-toolkit/dist/helpers/filePicker'
+import { copyButtonDef } from '../buttons/types'
 
 interface ContainerProps {
   error: any
@@ -147,9 +148,9 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-export const actions = [
+export const buttonDefs = [
   {
-    label: 'Copy',
-    action: copy,
-  },
+    name: 'COPY',
+    utils: { copy },
+  } as copyButtonDef,
 ]

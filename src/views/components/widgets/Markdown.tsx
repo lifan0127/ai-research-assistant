@@ -1,10 +1,8 @@
 import React from 'react'
 import MarkdownReact from 'marked-react'
 import { marked } from 'marked'
-import { createCollection } from '../../../apis/zotero/collection'
-import { ARIA_LIBRARY } from '../../../constants'
 import { config } from '../../../../package.json'
-
+import { annotationButtonDef, copyButtonDef, noteButtonDef } from '../buttons/types'
 export interface Props {
   content: string
 }
@@ -37,27 +35,32 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote(props: Props) {
+function createNote(props: Props) {
   const { htmlContent } = compileContent(props)
-  const item = new Zotero.Item('note')
-  item.setNote(
+  const note =
     '<div data-schema-version="8">' +
-      `<h1>New Note from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-      htmlContent +
-      '</div>'
-  )
-  const ariaCollection = await createCollection(ARIA_LIBRARY)
-  item.addToCollection(ariaCollection.id)
-  await item.saveTx()
+    `<h1>New Note from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
+    htmlContent +
+    '</div>'
+  return note
 }
 
-export const actions = [
+function createAnnotation(props: Props) {
+  const { textContent } = compileContent(props)
+  return textContent
+}
+
+export const buttonDefs = [
   {
-    label: 'Copy',
-    action: copy,
-  },
+    name: 'COPY',
+    utils: { copy },
+  } as copyButtonDef,
   {
-    label: 'Create Note',
-    action: createNote,
-  },
+    name: 'NOTE',
+    utils: { createNote },
+  } as noteButtonDef,
+  {
+    name: 'ANNOTATION',
+    utils: { createAnnotation },
+  } as annotationButtonDef,
 ]
