@@ -27,11 +27,13 @@ interface ComponentItem {
 
 interface DropdownMenuProps {
   items: (ButtonItem | ComponentItem | Separator)[]
-  Icon: any
+  label?: string
+  Icon: React.FC
+  IconOpen?: React.FC
   position: string
 }
 
-export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
+export function DropdownMenu({ label, Icon, IconOpen, position, items }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useOutsideClick(() => setOpen(false))
 
@@ -43,12 +45,13 @@ export function DropdownMenu({ Icon, position, items }: DropdownMenuProps) {
           onClick={() => setOpen(!open)}
           className="border-transparent border-solid p-0 rounded-md opacity-50 hover:opacity-90 hover:bg-white"
         >
-          <Icon />
+          {label || null}
+          {IconOpen ? open ? <IconOpen /> : <Icon /> : <Icon />}
         </button>
       </div>
 
       <ul
-        className={`${open ? 'visible' : 'invisible'} absolute right-0 list-none m-0 mt-1 p-0 shadow-md text-s`}
+        className={`${open ? 'visible' : 'invisible'} absolute right-0 list-none m-0 mt-1 p-0 shadow-md`}
         style={{ background: '-moz-field' }}
       >
         {items.map(item => {
