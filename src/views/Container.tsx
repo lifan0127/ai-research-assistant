@@ -13,7 +13,6 @@ import { UserMessageProps, BotIntermediateStepProps, BotMessageProps } from './c
 import { Header } from './components/Header'
 import { MainMenu } from './components/menu/MainMenu'
 import { Input } from './components/input/Input'
-import { ReleaseNote } from './components/ReleaseNote'
 import { Version } from './components/Version'
 import './style.css'
 import { States, areStatesEmpty, MentionValue } from '../models/utils/states'
@@ -289,7 +288,7 @@ export function Container() {
           {__env__ === 'development' ? (
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
           ) : null}
-          {messages.length === 0 ? <ReleaseNote /> : null}
+          {/* {messages.length === 0 ? <ReleaseNote /> : null} */}
           {messages.map((message, index) => {
             switch (message.type) {
               case 'USER_MESSAGE': {
