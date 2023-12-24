@@ -25,6 +25,10 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ![Visual Analysis](assets/videos/gpt-4-vision.gif)
 
+### Save Chat as Notes and Annotations
+
+![Save Chat as Notes and Annotations](assets/videos/note-annotation.gif)
+
 
 ## Zotero and GPT Requirements
 
