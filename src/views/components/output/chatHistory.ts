@@ -10,7 +10,7 @@ import { ARIA_LIBRARY } from '../../../constants'
 
 export async function chatHistoryToNote(messages: Message[]) {
   const chatHistoryHtml = messages
-    .map(message => {
+    .map(async message => {
       switch (message.type) {
         case 'USER_MESSAGE': {
           const { content, states } = message
@@ -68,7 +68,7 @@ export async function chatHistoryToNote(messages: Message[]) {
               return '<div><h3>' + config.addonName + ':</h3> ' + htmlContent + '</div>'
             }
             case 'SEARCH_RESULTS': {
-              const { htmlContent } = SearchResults.compileContent(input as SearchResults.Props)
+              const { htmlContent } = await SearchResults.compileContent(input as SearchResults.Props, {})
               return '<div><h3>' + config.addonName + ':</h3> ' + htmlContent + '</div>'
             }
             case 'QA_RESPONSE': {

@@ -57,7 +57,7 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-function createNote(props: Props) {
+async function createNote(props: Props) {
   const { htmlContent } = compileContent(props)
   const note =
     '<div data-schema-version="8">' +

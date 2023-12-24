@@ -8,7 +8,7 @@ export interface copyButtonDef {
 export interface noteButtonDef {
   name: 'NOTE'
   utils: {
-    createNote: (props: any) => string
+    createNote: (props: any) => Promise<string>
   }
 }
 

@@ -74,6 +74,7 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
           links: {
             item: {
               id: item.id,
+              uri: item.uri,
               type: item.type,
             },
             attachment: attachment
@@ -210,14 +211,39 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   )
 }
 
-export function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
+interface Opt {
+  citationLinks?: boolean
+}
+
+export function compileContent(
+  { query: { keywords, authors, tags, years }, count, results }: Props,
+  { citationLinks }: Opt
+) {
+  const requiredColumns = citationLinks
+    ? ['Title', 'Authors', 'Item Type', 'Year', 'Citation']
+    : ['Title', 'Authors', 'Item Type', 'Year']
   const data = results.map(({ item, attachment }) => {
-    return {
+    const columns = {
       title: item.title as string,
       authors: item.authors,
       itemType: item.type,
       year: item.year,
     }
+    if (citationLinks) {
+      return {
+        ...columns,
+        citation:
+          '<span class="citation" data-citation="' +
+          encodeURIComponent(
+            JSON.stringify({
+              citationItems: [{ uris: [item.uri] }],
+              properties: {},
+            })
+          ) +
+          '">(<span class="citation-item"></span>)</span></span>',
+      }
+    }
+    return columns
   })
   const keywordsStr = keywords.length > 0 ? `__Keywords:__ ${keywords.join(', ')}\n\n` : ''
   const authorsStr = authors && authors.length > 0 ? `__Authors:__ ${authors.join(', ')}\n\n` : ''
@@ -236,21 +262,25 @@ ${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
 
 #### Results (${count > 25 ? `${count}, limited to the first 25` : count})
 
-${tablemark(data, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
+${tablemark(data, { columns: requiredColumns })}
   `.trim()
   const htmlContent = marked(textContent)
   return { textContent, htmlContent }
 }
 
 function copy(props: Props) {
-  const { textContent, htmlContent } = compileContent(props)
+  const { textContent, htmlContent } = compileContent(props, {})
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-function createNote(pros: Props) {
-  const { htmlContent } = compileContent(pros)
+async function createNote(props: Props) {
+  const { htmlContent } = compileContent(props, { citationLinks: true })
+  const results = await Zotero.Items.getAsync(props.results.map(({ item }) => item.id))
+  const citations = results.map((Zotero.Utilities as any).Item.itemToCSLJSON)
+  const citationItems = encodeURIComponent(JSON.stringify(citations))
+
   const note =
-    '<div data-schema-version="8">' +
+    `<div data-schema-version="8" data-citation-items="${citationItems}">` +
     `<h1>New Search Results from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
     htmlContent +
     '</div>'

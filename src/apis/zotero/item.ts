@@ -1,5 +1,6 @@
 export interface ItemInfo {
   id: number
+  uri: string
   type: Zotero.Item.ItemType
   title?: string
   authors?: string
@@ -21,7 +22,7 @@ export interface AttachmentInfo {
 type ItemMode = 'search' | 'qa' | 'citation'
 
 export function compileItemInfo(item: Zotero.Item, mode: ItemMode): ItemInfo {
-  let itemInfo: ItemInfo = { id: item.id, type: item.itemType }
+  let itemInfo: ItemInfo = { id: item.id, uri: Zotero.URI.getItemURI(item), type: item.itemType }
   if (mode !== 'citation') {
     const title = item.getDisplayTitle()
     const creators = item.getCreators()

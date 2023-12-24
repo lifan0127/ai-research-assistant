@@ -285,9 +285,9 @@ export function Container() {
             scale={scale}
             setScale={setScaleAndSave}
           />
-          {/* {__env__ === 'development' ? (
+          {__env__ === 'development' ? (
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
-          ) : null} */}
+          ) : null}
           {/* {messages.length === 0 ? <ReleaseNote /> : null} */}
           {messages.map((message, index) => {
             switch (message.type) {
