@@ -116,7 +116,7 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   return (
     <div className="text-sm">
       <div className="mb-2">
-        <h2 className="p-0 m-0 mb-1 text-tomato">Search Strategy</h2>
+        <h4 className="p-0 m-0 mb-1 text-tomato">Search Strategy</h4>
         <div>
           {keywords.length > 0 ? (
             <div>
@@ -144,9 +144,9 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
         </div>
       </div>
       <div>
-        <h2 className="p-0 m-0 mb-1 text-tomato">
+        <h4 className="p-0 m-0 pt-4 mb-1 text-tomato">
           Results <small>({count > 25 ? `${count}, limited to the first 25` : count})</small>
-        </h2>
+        </h4>
         {data.length > 0 ? (
           <div>
             <table className="w-full">
