@@ -22,7 +22,6 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
   async function createNote() {
     const content = await utils.createNote(input)
     const note = await createStandaloneNote(content)
-    console.log(note)
     ZoteroPane.selectItem(note.id, true)
   }
 

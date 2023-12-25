@@ -1,10 +1,8 @@
 import { getItemAndBestAttachment } from './item'
 import retry, { Options } from 'async-retry'
+import { DEFAULT_BIB_STYLE } from '../../constants'
 
-export async function createCitations(
-  itemIds: number[],
-  style = 'http://www.zotero.org/styles/american-chemical-society'
-) {
+export async function createCitations(itemIds: number[], style = DEFAULT_BIB_STYLE) {
   const csl = Zotero.Styles.get(style).getCiteProc()
   csl.updateItems(itemIds)
   const bibs = csl.makeBibliography()[1]

@@ -16,6 +16,7 @@ import { createCollection } from '../../../apis/zotero/collection'
 import { ARIA_LIBRARY } from '../../../constants'
 import { config } from '../../../../package.json'
 import { copyButtonDef, noteButtonDef } from '../buttons/types'
+import { DEFAULT_BIB_STYLE } from '../../../constants'
 
 interface SearchResult {
   title: string
@@ -115,7 +116,7 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   return (
     <div className="text-sm">
       <div className="mb-2">
-        <h4 className="p-0 m-0 mb-1 text-tomato">Search Strategy</h4>
+        <h2 className="p-0 m-0 mb-1 text-tomato">Search Strategy</h2>
         <div>
           {keywords.length > 0 ? (
             <div>
@@ -143,9 +144,9 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
         </div>
       </div>
       <div>
-        <h4 className="p-0 m-0 mb-1 text-tomato">
+        <h2 className="p-0 m-0 mb-1 text-tomato">
           Results <small>({count > 25 ? `${count}, limited to the first 25` : count})</small>
-        </h4>
+        </h2>
         {data.length > 0 ? (
           <div>
             <table className="w-full">
@@ -211,37 +212,13 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   )
 }
 
-interface Opt {
-  citationLinks?: boolean
-}
-
-export function compileContent(
-  { query: { keywords, authors, tags, years }, count, results }: Props,
-  { citationLinks }: Opt
-) {
-  const requiredColumns = citationLinks
-    ? ['Title', 'Authors', 'Item Type', 'Year', 'Citation']
-    : ['Title', 'Authors', 'Item Type', 'Year']
-  const data = results.map(({ item, attachment }) => {
+export function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
+  const data = results.map(({ item, attachment }, i) => {
     const columns = {
       title: item.title as string,
       authors: item.authors,
       itemType: item.type,
       year: item.year,
-    }
-    if (citationLinks) {
-      return {
-        ...columns,
-        citation:
-          '<span class="citation" data-citation="' +
-          encodeURIComponent(
-            JSON.stringify({
-              citationItems: [{ uris: [item.uri] }],
-              properties: {},
-            })
-          ) +
-          '">(<span class="citation-item"></span>)</span></span>',
-      }
     }
     return columns
   })
@@ -262,27 +239,69 @@ ${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
 
 #### Results (${count > 25 ? `${count}, limited to the first 25` : count})
 
-${tablemark(data, { columns: requiredColumns })}
+${tablemark(data, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
   `.trim()
   const htmlContent = marked(textContent)
   return { textContent, htmlContent }
 }
 
 function copy(props: Props) {
-  const { textContent, htmlContent } = compileContent(props, {})
+  const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote(props: Props) {
-  const { htmlContent } = compileContent(props, { citationLinks: true })
-  const results = await Zotero.Items.getAsync(props.results.map(({ item }) => item.id))
-  const citations = results.map((Zotero.Utilities as any).Item.itemToCSLJSON)
-  const citationItems = encodeURIComponent(JSON.stringify(citations))
+async function createNote({ query: { keywords, authors, tags, years }, count, results }: Props) {
+  const resultIds = results.map(({ item }) => item.id)
+  const csl = Zotero.Styles.get(DEFAULT_BIB_STYLE).getCiteProc()
+  csl.updateItems(resultIds)
+  const bibs = csl.makeBibliography()[1]
+  const resultItems = await Zotero.Items.getAsync(resultIds)
+  const citations = resultItems.map(item => ({
+    uris: [Zotero.URI.getItemURI(item)],
+    itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
+  }))
+  const keywordsStr = keywords.length > 0 ? `<div><strong>Keywords:</strong> ${keywords.join(', ')}</div>` : ''
+  const authorsStr = authors && authors.length > 0 ? `<div><strong>Authors:</strong> ${authors.join(', ')}</div>` : ''
+  const tagsStr = tags && tags.length > 0 ? `<div><strong>Tags:</strong> ${tags.join(', ')}</div>` : ''
+  const yearsStr = years
+    ? years.from
+      ? years.to
+        ? `<div><strong>Date Range:</strong> ${years.from} - ${years.to}</div>`
+        : `<div><strong>Date Range:</strong> From ${years.from}</div>`
+      : `<div><strong>Date Range:</strong> To ${years.to}</div>`
+    : ''
+  const content = `
+<h2>Search Strategy</h2>
+
+${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
+
+<h2>Results (${count > 25 ? `${count}, limited to the first 25` : count})</h2>
+
+<ol>
+${resultItems
+  .map((item, i) => {
+    const citation = {
+      uris: [Zotero.URI.getItemURI(item)],
+      itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
+    }
+    const citationPreview = Zotero.EditorInstanceUtilities.formatCitation({ citationItems: [citation] })
+    const citationData = {
+      citationItems: [{ uris: citation.uris }],
+      properties: {},
+    }
+    const citationKey = `<span class="citation" data-citation="${encodeURIComponent(
+      JSON.stringify(citationData)
+    )}">(<span class="citation-item">${citationPreview}</span>)</span>`
+    return `<li>${citationKey} ${bibs[i].replace(/\(\d+\)\s+/, '')}</li>`
+  })
+  .join('\n')}
+</ol>
+  `.trim()
 
   const note =
-    `<div data-schema-version="8" data-citation-items="${citationItems}">` +
+    `<div data-schema-version="8" data-citation-items="${encodeURIComponent(JSON.stringify(citations))}">` +
     `<h1>New Search Results from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-    htmlContent +
+    content +
     '</div>'
   return note
 }

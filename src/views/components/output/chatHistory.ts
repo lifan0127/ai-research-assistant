@@ -68,7 +68,7 @@ export async function chatHistoryToNote(messages: Message[]) {
               return '<div><h3>' + config.addonName + ':</h3> ' + htmlContent + '</div>'
             }
             case 'SEARCH_RESULTS': {
-              const { htmlContent } = await SearchResults.compileContent(input as SearchResults.Props, {})
+              const { htmlContent } = await SearchResults.compileContent(input as SearchResults.Props)
               return '<div><h3>' + config.addonName + ':</h3> ' + htmlContent + '</div>'
             }
             case 'QA_RESPONSE': {
