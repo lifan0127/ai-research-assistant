@@ -57,12 +57,47 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote(props: Props) {
-  const { htmlContent } = compileContent(props)
+async function createNote({ answer, sources }: Props) {
+  const sourceIds = sources.map(({ item }) => item.id)
+  const sourceItems = await Zotero.Items.getAsync(sourceIds)
+  const citations = sourceItems.map(item => ({
+    uris: [Zotero.URI.getItemURI(item)],
+    itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
+  }))
+  const sourcesContent = `
+  <ol>
+${sourceItems
+  .map((item, i) => {
+    const citation = {
+      uris: [Zotero.URI.getItemURI(item)],
+      itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
+    }
+    const citationPreview = Zotero.EditorInstanceUtilities.formatCitation({ citationItems: [citation] })
+    const citationData = {
+      citationItems: [{ uris: citation.uris }],
+      properties: {},
+    }
+    const citationKey = `<span class="citation" data-citation="${encodeURIComponent(
+      JSON.stringify(citationData)
+    )}">(<span class="citation-item">${citationPreview}</span>)</span>`
+    return `<li>${citationKey} ${sources[i].bib.replace(/\(\d+\)\s+/, '')}</li>`
+  })
+  .join('\n')}
+</ol>
+  `.trim()
+  const content =
+    sources.length === 0
+      ? marked(answer)
+      : `
+${marked(answer)}
+
+<h2>References</h2>
+
+${sourcesContent}`.trim()
   const note =
     '<div data-schema-version="8">' +
     `<h1>New Q&A Response from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-    marked(htmlContent) +
+    content +
     '</div>'
   return note
 }
