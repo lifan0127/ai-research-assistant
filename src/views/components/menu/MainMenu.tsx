@@ -7,6 +7,7 @@ import { DropdownMenu } from './DropdownMenu'
 import { Confirmation } from '../Confirmation'
 import { chatHistoryToNote } from '../output/chatHistory'
 import { Message } from '../message/types'
+import { useDragging } from '../../hooks/useDragging'
 
 interface ScaleButtonGroupProps {
   scale: number
@@ -42,6 +43,7 @@ export function MainMenu({ containerRef, assistant, clearMessages, messages, sca
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [confirmationMessage, setConfirmationMessage] = useState<React.ReactNode | undefined>(undefined)
   const [confirmationCallback, setConfirmationCallback] = useState<(() => void) | undefined>(undefined)
+  const { setDropArea } = useDragging()
 
   const items = [
     {
@@ -88,6 +90,7 @@ export function MainMenu({ containerRef, assistant, clearMessages, messages, sca
           clearMessages()
           assistant.resetMemory()
         })
+        setDropArea(undefined)
       },
     },
     {
