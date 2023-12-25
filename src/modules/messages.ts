@@ -143,7 +143,7 @@ export class Messages {
     converterInputStream.init(
       inputStream,
       'UTF-8',
-      0,
+      1024,
       Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER
     )
 
@@ -168,20 +168,25 @@ export class Messages {
         let line = lineBuffer.substring(0, eolIndex)
         lineBuffer = lineBuffer.substring(eolIndex + 1)
 
-        // Replace the line if it's the edited one
-        let lineToWrite = currentLineIndex === messageIndex ? JSON.stringify(updatedMessage) + '\n' : line + '\n'
-
-        converterOutputStream.writeString(lineToWrite)
-
-        if (trim && currentLineIndex === messageIndex) {
-          break // Stop writing after updating the required line if trim is true
+        if (currentLineIndex === messageIndex) {
+          // Replace the line with the updated message
+          converterOutputStream.writeString(JSON.stringify(updatedMessage) + '\n')
+          if (trim) {
+            // If trimming, we stop writing any further lines
+            lineBuffer = ''
+            hasMore = false
+            break
+          }
+        } else {
+          // Write the line as is
+          converterOutputStream.writeString(line + '\n')
         }
         currentLineIndex++
       }
     }
 
-    // Handle any remaining data in the buffer
-    if (lineBuffer) {
+    // Write any remaining data in the buffer if not trimming
+    if (lineBuffer && !trim) {
       converterOutputStream.writeString(lineBuffer)
     }
 
