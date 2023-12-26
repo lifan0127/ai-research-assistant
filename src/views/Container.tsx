@@ -18,6 +18,7 @@ import './style.css'
 import { States, areStatesEmpty, MentionValue } from '../models/utils/states'
 import { Feedback } from './components/Feedback'
 import { useFeedback } from './hooks/useFeedback'
+import { PromptLibrary } from './components/PromptLibrary'
 import { config } from '../../package.json'
 
 interface UserInput {
@@ -288,7 +289,7 @@ export function Container() {
           {__env__ === 'development' ? (
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
           ) : null}
-          {/* {messages.length === 0 ? <ReleaseNote /> : null} */}
+          {messages.length === 0 ? <PromptLibrary /> : null}
           {messages.map((message, index) => {
             switch (message.type) {
               case 'USER_MESSAGE': {

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect } from 'react'
+import React, { forwardRef, useRef } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions'
 import Highlighter from 'react-highlight-words'
@@ -211,6 +211,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
     },
     ref
   ) => {
+    const mentionRef = useRef(null)
     function handleChange(event: any, newValue: string, newPlainTextValue: string, mentions: MentionValue['mentions']) {
       // console.log({ newValue, newPlainTextValue, mentions })
       setValue &&
@@ -245,16 +246,77 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       )
     }
 
+    function setText() {
+      setValue &&
+        setValue({
+          newValue: 'Hello /',
+          newPlainTextValue: 'Hello /',
+          mentions: [],
+        })
+    }
+
+    function moveCursor(e: any) {
+      // e.target.blur()
+      const myRef: any = ref
+      myRef?.current?.focus()
+      // myRef?.current?.setSelectionRange(7, 7)
+      // const menRef: any = mentionRef
+      // console.log({ menRef })
+      // // menRef.current.state.caretPosition = 7
+      // menRef.current.setState({ caretPosition: 7, selectionStart: 7, selectionEnd: 7 })
+      // console.log({ ref: menRef.current.updateSuggestionsPosition })
+      // menRef.current.renderSuggestionsOverlay()
+      // menRef.current.updateSuggestionsPosition()
+      // menRef.current.handleChange({ target: { value: 'Hello /' }, nativeEvent: {  } })
+      const mentionsInput = mentionRef.current as any
+      mentionsInput.queryData('', 2, 7, 7, 'Hello /')
+      mentionsInput.render()
+    }
+
+    function simulatePaste(e: any) {
+      const mentionsInput = mentionRef.current as any
+
+      if (!mentionsInput) {
+        return
+      }
+
+      // If the MentionsInput component uses an `onChange` handler, call it
+      // Replace `newValue` and other arguments with appropriate values based on your implementation
+      const simulatedEvent = {
+        target: { value: 'Hello /', selectionStart: 7, selectionEnd: 7 },
+        nativeEvent: {},
+      }
+      if (mentionsInput.handleChange) {
+        mentionsInput.handleChange(simulatedEvent)
+        // mentionsInput.updateMentionsQueries('Hello /', mentionsInput.state.caretPosition)
+        // mentionsInput.updateSuggestionsPosition()
+        mentionsInput.queryData('', 2, 7, 7, 'Hello /')
+        // mentionsInput.render()
+        // mentionsInput.setState({
+        //   setSelectionAfterMentionChange: false,
+        //   setSelectionAfterHandlePaste: false,
+        //   selectionStart: 7,
+        //   selectionEnd: 7,
+        // })
+        // const myRef: any = ref
+        // myRef.current.focus()
+      }
+    }
+
     return (
       <div>
+        <button onClick={setText}>Set text</button>
+        <button onClick={moveCursor}>click me</button>
+        <button onClick={simulatePaste}>paste</button>
         <MentionsInput
           value={value.newValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          ref={mentionRef}
           inputRef={ref}
           placeholder="Ask a question or reference @author, #tag, /document and more."
           style={isEdit ? editStyles : displayStyle}
-          a11ySuggestionsListLabel={'Suggested Github users for mention'}
+          a11ySuggestionsListLabel={'Suggested Zotero entities for mention'}
           allowSuggestionsAboveCursor={true}
           forceSuggestionsAboveCursor={forceSuggestionsAboveCursor}
           allowSpaceInQuery={true}
