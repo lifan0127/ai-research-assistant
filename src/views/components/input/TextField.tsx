@@ -246,67 +246,41 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       )
     }
 
-    function setText() {
-      setValue &&
-        setValue({
-          newValue: 'Hello /',
-          newPlainTextValue: 'Hello /',
-          mentions: [],
-        })
-    }
-
-    function moveCursor(e: any) {
-      // e.target.blur()
-      const myRef: any = ref
-      myRef?.current?.focus()
-      // myRef?.current?.setSelectionRange(7, 7)
-      // const menRef: any = mentionRef
-      // console.log({ menRef })
-      // // menRef.current.state.caretPosition = 7
-      // menRef.current.setState({ caretPosition: 7, selectionStart: 7, selectionEnd: 7 })
-      // console.log({ ref: menRef.current.updateSuggestionsPosition })
-      // menRef.current.renderSuggestionsOverlay()
-      // menRef.current.updateSuggestionsPosition()
-      // menRef.current.handleChange({ target: { value: 'Hello /' }, nativeEvent: {  } })
-      const mentionsInput = mentionRef.current as any
-      mentionsInput.queryData('', 2, 7, 7, 'Hello /')
-      mentionsInput.render()
-    }
-
     function simulatePaste(e: any) {
-      const mentionsInput = mentionRef.current as any
-
+      const entityOrder = ['#', '@', '/', '^']
+      const entityType = '#'
+      const prompt = 'Summarize # in 2-3 sentences.'
+      const cursorPosition = prompt.indexOf(entityType) + 1
+      const mentionsInput = (mentionRef as any).current
       if (!mentionsInput) {
         return
       }
 
-      // If the MentionsInput component uses an `onChange` handler, call it
-      // Replace `newValue` and other arguments with appropriate values based on your implementation
+      const htmlRef = (ref as any).current as HTMLTextAreaElement
+      htmlRef.focus()
       const simulatedEvent = {
-        target: { value: 'Hello /', selectionStart: 7, selectionEnd: 7 },
+        target: { value: prompt, selectionStart: cursorPosition, selectionEnd: cursorPosition },
         nativeEvent: {},
       }
-      if (mentionsInput.handleChange) {
-        mentionsInput.handleChange(simulatedEvent)
-        // mentionsInput.updateMentionsQueries('Hello /', mentionsInput.state.caretPosition)
-        // mentionsInput.updateSuggestionsPosition()
-        mentionsInput.queryData('', 2, 7, 7, 'Hello /')
-        // mentionsInput.render()
-        // mentionsInput.setState({
-        //   setSelectionAfterMentionChange: false,
-        //   setSelectionAfterHandlePaste: false,
-        //   selectionStart: 7,
-        //   selectionEnd: 7,
-        // })
-        // const myRef: any = ref
-        // myRef.current.focus()
-      }
+      mentionsInput.handleChange({
+        target: { value: prompt },
+        nativeEvent: {},
+      })
+
+      setTimeout(() => {
+        mentionsInput.handleChange({
+          target: { value: prompt, selectionStart: cursorPosition, selectionEnd: cursorPosition },
+          nativeEvent: {},
+        })
+        htmlRef.setSelectionRange(cursorPosition, cursorPosition)
+
+        mentionsInput.queryData('', entityOrder.indexOf(entityType), cursorPosition, cursorPosition, prompt)
+        // htmlRef.value = prompt
+      }, 100)
     }
 
     return (
       <div>
-        <button onClick={setText}>Set text</button>
-        <button onClick={moveCursor}>click me</button>
         <button onClick={simulatePaste}>paste</button>
         <MentionsInput
           value={value.newValue}
