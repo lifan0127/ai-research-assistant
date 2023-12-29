@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef } from 'react'
+import React, { forwardRef, useState, useRef, useEffect } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions'
 import Highlighter from 'react-highlight-words'
@@ -7,6 +7,7 @@ import * as zot from '../../../apis/zotero'
 import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
+import { parsePromptTemplate } from '../PromptLibrary'
 
 const editStyles = {
   control: {
@@ -192,6 +193,7 @@ interface TextFieldProps {
   value: MentionValue
   setValue?: (value: MentionValue) => void
   forceSuggestionsAboveCursor: boolean
+  promptTemplate?: string
 }
 
 type Ref = HTMLTextAreaElement | null
@@ -208,31 +210,99 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       value,
       setValue,
       forceSuggestionsAboveCursor,
+      promptTemplate,
     },
     ref
   ) => {
+    const [hasPromptTemplate, setHasPromptTemplate] = useState(false)
     const mentionRef = useRef(null)
-    function handleChange(event: any, newValue: string, newPlainTextValue: string, mentions: MentionValue['mentions']) {
-      // console.log({ newValue, newPlainTextValue, mentions })
-      setValue &&
-        setValue({
-          newValue,
-          newPlainTextValue,
-          mentions: isEqual(value.mentions, mentions) ? value.mentions : mentions,
+
+    useEffect(() => {
+      if (promptTemplate !== undefined && promptTemplate !== '') {
+        applyPromptTemplate(promptTemplate)
+      }
+    }, [promptTemplate])
+
+    function applyPromptTemplate(activePromptTemplate: string, updateValue = true) {
+      if (activePromptTemplate === undefined || activePromptTemplate === '') {
+        return
+      }
+      const htmlRef = (ref as any).current as HTMLTextAreaElement
+      const mentionsInput = (mentionRef as any).current
+      if (!htmlRef || !mentionsInput) {
+        return
+      }
+      if (!hasPromptTemplate) {
+        setHasPromptTemplate(true)
+      }
+      const prefixes = '#@/^~'
+      const parseResult = parsePromptTemplate(activePromptTemplate, prefixes)
+      htmlRef.focus()
+      if (!parseResult) {
+        updateValue &&
+          setValue &&
+          setValue({
+            newValue: activePromptTemplate,
+            newPlainTextValue: activePromptTemplate,
+            mentions: [],
+          })
+        const position = activePromptTemplate.length
+        // htmlRef.setSelectionRange(position, position)
+        setTimeout(() => {
+          // mentionsInput.handleChange({
+          //   target: { value: activePromptTemplate, selectionStart: position, selectionEnd: position },
+          //   nativeEvent: {},
+          // })
+          htmlRef.setSelectionRange(position, position)
+        }, 0)
+      } else {
+        const { prefix, position } = parseResult
+        mentionsInput.handleChange({
+          target: { value: activePromptTemplate },
+          nativeEvent: {},
         })
+        mentionsInput.queryData('', prefixes.indexOf(prefix), position - 1, position, activePromptTemplate)
+
+        setTimeout(() => {
+          mentionsInput.handleChange({
+            target: { value: activePromptTemplate, selectionStart: position, selectionEnd: position },
+            nativeEvent: {},
+          })
+          htmlRef.setSelectionRange(position, position)
+        }, 0)
+      }
+    }
+
+    function handleChange(event: any, newValue: string, newPlainTextValue: string, mentions: MentionValue['mentions']) {
+      // console.log({ current: value, new: { newValue, newPlainTextValue, mentions } })
+      if (!isEqual(value, { newValue, newPlainTextValue, mentions })) {
+        setValue &&
+          setValue({
+            newValue,
+            newPlainTextValue,
+            mentions: isEqual(value.mentions, mentions) ? value.mentions : mentions,
+          })
+      }
+      if (hasPromptTemplate && value.newPlainTextValue !== '' && value.newPlainTextValue !== newPlainTextValue) {
+        console.log('reapply template', 'cur', value.newPlainTextValue, 'new', newPlainTextValue)
+        applyPromptTemplate(newPlainTextValue, false)
+      }
     }
     function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>) {
       if (event.key === 'Enter' && !event.shiftKey && event.currentTarget.value !== '') {
         event.preventDefault()
         onSubmit && onSubmit()
+        setHasPromptTemplate(false)
       }
     }
     function handleConfirm() {
       onSubmit && onSubmit()
+      setHasPromptTemplate(false)
     }
 
     function handleCancel() {
       onCancel && onCancel()
+      setHasPromptTemplate(false)
     }
 
     function tokenizedHighlighter(suggestion: SuggestionDataItem, search: string) {
@@ -246,42 +316,12 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       )
     }
 
-    function simulatePaste(e: any) {
-      const entityOrder = ['#', '@', '/', '^']
-      const entityType = '#'
-      const prompt = 'Summarize # in 2-3 sentences.'
-      const cursorPosition = prompt.indexOf(entityType) + 1
-      const mentionsInput = (mentionRef as any).current
-      if (!mentionsInput) {
-        return
-      }
-
-      const htmlRef = (ref as any).current as HTMLTextAreaElement
-      htmlRef.focus()
-      const simulatedEvent = {
-        target: { value: prompt, selectionStart: cursorPosition, selectionEnd: cursorPosition },
-        nativeEvent: {},
-      }
-      mentionsInput.handleChange({
-        target: { value: prompt },
-        nativeEvent: {},
-      })
-
-      setTimeout(() => {
-        mentionsInput.handleChange({
-          target: { value: prompt, selectionStart: cursorPosition, selectionEnd: cursorPosition },
-          nativeEvent: {},
-        })
-        htmlRef.setSelectionRange(cursorPosition, cursorPosition)
-
-        mentionsInput.queryData('', entityOrder.indexOf(entityType), cursorPosition, cursorPosition, prompt)
-        // htmlRef.value = prompt
-      }, 100)
-    }
-
+    // console.log(mentionRef?.current?.state)
     return (
       <div>
-        <button onClick={simulatePaste}>paste</button>
+        {/* <button onClick={() => applyPromptTemplate('Summarize / in 2-3 sentences.')}>summarize</button> */}
+        {/* <button onClick={() => applyPromptTemplate('Compare / and / in 2-3 sentences.')}>compare</button> */}
+        {/* <button onClick={() => applyPromptTemplate('Hello!')}>hello</button> */}
         <MentionsInput
           value={value.newValue}
           onChange={handleChange}

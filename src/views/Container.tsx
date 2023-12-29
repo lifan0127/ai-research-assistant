@@ -32,6 +32,7 @@ export function Container() {
   const { messages, addMessage, editMessage, updateMessage, clearMessages } = useMessages()
   const { isDragging, setIsDragging } = useDragging()
   const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } = useFeedback()
+  const [promptTemplate, setPromptTemplate] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
   const [copyId, setCopyId] = useState<string>()
   const [editId, setEditId] = useState<string | undefined>()
@@ -289,7 +290,7 @@ export function Container() {
           {__env__ === 'development' ? (
             <TestMenu setUserInput={setUserInput} addMessage={addMessage} assistant={assistant} />
           ) : null}
-          {messages.length === 0 ? <PromptLibrary /> : null}
+          {messages.length === 0 ? <PromptLibrary setPromptTemplate={setPromptTemplate} /> : null}
           {messages.map((message, index) => {
             switch (message.type) {
               case 'USER_MESSAGE': {
@@ -341,7 +342,12 @@ export function Container() {
             </div>
           ) : null} */}
           <div className="bottom-6 w-full z-40 m-0">
-            <Input disabled={editId !== undefined} onSubmit={handleSubmit} isLoading={isLoading} />
+            <Input
+              disabled={editId !== undefined}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+              promptTemplate={promptTemplate}
+            />
           </div>
           <Version />
         </div>

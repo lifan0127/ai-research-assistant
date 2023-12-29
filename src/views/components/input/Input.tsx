@@ -17,9 +17,10 @@ export interface InputProps {
   inputStates?: StatesSchema
   disabled?: boolean
   isLoading: boolean
+  promptTemplate?: string
 }
 
-export function Input({ onSubmit, onCancel, id, content, inputStates, disabled = false, isLoading }: InputProps) {
+export function Input({ onSubmit, onCancel, id, content, inputStates, disabled = false, isLoading, promptTemplate }: InputProps) {
   const [dropText, setDropText] = useState<string>('')
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
@@ -78,6 +79,7 @@ export function Input({ onSubmit, onCancel, id, content, inputStates, disabled =
             value={states.value}
             setValue={states.setValue}
             forceSuggestionsAboveCursor={!id}
+            promptTemplate={promptTemplate}
           />
         )}
         {id ? null : isLoading ? (
