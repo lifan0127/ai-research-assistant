@@ -335,13 +335,13 @@ export function Container() {
           })}
         </div>
         <div className="flex-initial">
-          {isLoading ? (
+          {/* {isLoading ? (
             <div className="absolute right-10 pt-4 z-10">
               <div className="dot-flashing "></div>
             </div>
-          ) : null}
+          ) : null} */}
           <div className="bottom-6 w-full z-40 m-0">
-            <Input disabled={editId !== undefined} onSubmit={handleSubmit} />
+            <Input disabled={editId !== undefined} onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
           <Version />
         </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { PaperAirplaneIcon as PaperAirplaneIconDisabled } from '@heroicons/react/24/outline'
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 import { useStates } from '../../hooks/useStates'
 import { useDragging } from '../../hooks/useDragging'
 import { States } from './States'
@@ -14,9 +16,10 @@ export interface InputProps {
   content?: MentionValue
   inputStates?: StatesSchema
   disabled?: boolean
+  isLoading: boolean
 }
 
-export const Input = function InputBox({ onSubmit, onCancel, id, content, inputStates, disabled = false }: InputProps) {
+export function Input({ onSubmit, onCancel, id, content, inputStates, disabled = false, isLoading }: InputProps) {
   const [dropText, setDropText] = useState<string>('')
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
@@ -59,7 +62,7 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
   return (
     <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
       <States states={states} />
-      <div>
+      <div className="relative">
         {disabled ? (
           <div className="leading-6 w-full text-neutral-500">
             Please finish editing and close the message edit window to resume the conversation here.
@@ -76,6 +79,24 @@ export const Input = function InputBox({ onSubmit, onCancel, id, content, inputS
             setValue={states.setValue}
             forceSuggestionsAboveCursor={!id}
           />
+        )}
+        {id ? null : isLoading ? (
+          <div className="absolute -top-2 right-4 pt-4 z-10">
+            <div className="dot-flashing "></div>
+          </div>
+        ) : (
+          <div className="absolute -top-4 right-0 pt-4 z-10">
+            {states.value.newPlainTextValue !== '' ? (
+              <button
+                className="border-none bg-transparent hover:text-tomato focus:text-tomato"
+                onClick={() => handleSubmit()}
+              >
+                <PaperAirplaneIcon className="w-6 h-6" />
+              </button>
+            ) : (
+              <PaperAirplaneIconDisabled className="w-6 h-6 text-gray-300" />
+            )}
+          </div>
         )}
         {/* <textarea
           id="aria-chat-input"
