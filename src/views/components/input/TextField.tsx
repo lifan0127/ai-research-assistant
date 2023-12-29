@@ -194,6 +194,7 @@ interface TextFieldProps {
   setValue?: (value: MentionValue) => void
   forceSuggestionsAboveCursor: boolean
   promptTemplate?: string
+  setPromptTemplate: (template: string | undefined) => void
 }
 
 type Ref = HTMLTextAreaElement | null
@@ -211,6 +212,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       setValue,
       forceSuggestionsAboveCursor,
       promptTemplate,
+      setPromptTemplate,
     },
     ref
   ) => {
@@ -293,16 +295,19 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
         event.preventDefault()
         onSubmit && onSubmit()
         setHasPromptTemplate(false)
+        setPromptTemplate(undefined)
       }
     }
     function handleConfirm() {
       onSubmit && onSubmit()
       setHasPromptTemplate(false)
+      setPromptTemplate(undefined)
     }
 
     function handleCancel() {
       onCancel && onCancel()
       setHasPromptTemplate(false)
+      setPromptTemplate(undefined)
     }
 
     function tokenizedHighlighter(suggestion: SuggestionDataItem, search: string) {
