@@ -2,7 +2,7 @@ import React from 'react'
 import { MagnifyingGlassIcon, QuestionMarkCircleIcon, PhotoIcon } from '@heroicons/react/24/outline'
 
 interface PromptLibraryProps {
-  setPromptTemplate: (template: string) => void
+  setPromptTemplate: (template: { template: string }) => void
 }
 
 const prompts = [
@@ -33,7 +33,7 @@ export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
             <button
               type="button"
               className="w-full h-full p-4 bg-white hover:bg-gray-200 focus:z-10 rounded border-none"
-              onClick={() => setPromptTemplate(template)}
+              onClick={() => setPromptTemplate({ template })}
             >
               <div className="flex mb-3">
                 <Icon className="w-5 h-5 text-tomato" />

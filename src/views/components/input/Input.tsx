@@ -17,8 +17,8 @@ export interface InputProps {
   inputStates?: StatesSchema
   disabled?: boolean
   isLoading: boolean
-  promptTemplate?: string
-  setPromptTemplate: (template: string | undefined) => void
+  promptTemplate?: { template: string }
+  setPromptTemplate: (template: { template: string } | undefined) => void
 }
 
 export function Input({

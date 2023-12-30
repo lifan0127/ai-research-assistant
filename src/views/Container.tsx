@@ -32,7 +32,7 @@ export function Container() {
   const { messages, addMessage, editMessage, updateMessage, clearMessages } = useMessages()
   const { isDragging, setIsDragging } = useDragging()
   const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } = useFeedback()
-  const [promptTemplate, setPromptTemplate] = useState<string | undefined>()
+  const [promptTemplate, setPromptTemplate] = useState<{ template: string } | undefined>()
   const [isLoading, setIsLoading] = useState(false)
   const [copyId, setCopyId] = useState<string>()
   const [editId, setEditId] = useState<string | undefined>()

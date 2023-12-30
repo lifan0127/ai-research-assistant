@@ -193,8 +193,8 @@ interface TextFieldProps {
   value: MentionValue
   setValue?: (value: MentionValue) => void
   forceSuggestionsAboveCursor: boolean
-  promptTemplate?: string
-  setPromptTemplate: (template: string | undefined) => void
+  promptTemplate?: { template: string }
+  setPromptTemplate: (template: { template: string } | undefined) => void
 }
 
 type Ref = HTMLTextAreaElement | null
@@ -220,8 +220,8 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
     const mentionRef = useRef(null)
 
     useEffect(() => {
-      if (promptTemplate !== undefined && promptTemplate !== '') {
-        applyPromptTemplate(promptTemplate)
+      if (promptTemplate !== undefined && promptTemplate.template !== '') {
+        applyPromptTemplate(promptTemplate.template)
       }
     }, [promptTemplate])
 
@@ -276,7 +276,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
     }
 
     function handleChange(event: any, newValue: string, newPlainTextValue: string, mentions: MentionValue['mentions']) {
-      // console.log({ current: value, new: { newValue, newPlainTextValue, mentions } })
+      console.log({ current: value, new: { newValue, newPlainTextValue, mentions } })
       if (!isEqual(value, { newValue, newPlainTextValue, mentions })) {
         setValue &&
           setValue({
