@@ -38,6 +38,8 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ## Installation
 
+For a detailed walkthrough of the installation process, please check out: https://twitter.com/MushtaqBilalPhD/status/1735221900584865904 (credit: __Mushtaq Bilal, PhD__ - Syddansk Universitet)
+
 - Download the latest release (.xpi file) from GitHub: https://github.com/lifan0127/ai-research-assistant/releases/latest
 - In Zotero select <em>Tools</em> from the top menu bar, and then click on <em>Addons</em>.
 - On the Add-ons Manager panel, click the gear icon at the top right corner and select <em>Install Add-on From File</em>
