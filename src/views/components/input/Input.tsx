@@ -102,7 +102,7 @@ export function Input({
           <div className="absolute -top-4 right-0 pt-4 z-10">
             {states.value.newPlainTextValue !== '' ? (
               <button
-                className="border-none bg-transparent hover:text-tomato focus:text-tomato"
+                className="border-none bg-transparent m-0 p-0 hover:text-tomato focus:text-tomato"
                 onClick={() => handleSubmit()}
               >
                 <PaperAirplaneIcon className="w-6 h-6" />
