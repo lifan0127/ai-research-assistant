@@ -1,5 +1,10 @@
 import React from 'react'
-import { MagnifyingGlassIcon, QuestionMarkCircleIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import {
+  MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
+  PhotoIcon,
+  ArrowsRightLeftIcon,
+} from '@heroicons/react/24/outline'
 
 interface PromptLibraryProps {
   setPromptTemplate: (template: { template: string }) => void
@@ -15,6 +20,11 @@ const prompts = [
     icon: QuestionMarkCircleIcon,
     title: 'Ask a question',
     template: 'Summarize / in 2-3 sentences.',
+  },
+  {
+    icon: ArrowsRightLeftIcon,
+    title: 'Compare two papers',
+    template: 'Compare / and / in 2-3 sentences.',
   },
   {
     icon: PhotoIcon,
@@ -49,13 +59,13 @@ export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
 }
 
 export function parsePromptTemplate(template: string, prefixes: string) {
-  const regex = new RegExp(`[${prefixes.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]\\s`)
+  const regex = new RegExp(`[${prefixes.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]\\w*\\s`)
   const match = template.match(regex)
   if (match) {
-    return {
-      prefix: match[0][0],
-      position: (match.index as number) + 1,
-    }
+    const prefix = match[0][0]
+    const query = match[0].slice(1).trim()
+    const position = (match.index as number) + query.length + 1
+    return { prefix, query, position }
   } else {
     return null // or however you wish to handle no match found
   }

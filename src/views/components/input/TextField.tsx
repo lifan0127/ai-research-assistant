@@ -8,6 +8,7 @@ import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
 import { parsePromptTemplate } from '../PromptLibrary'
+import { parse } from 'path'
 
 const editStyles = {
   control: {
@@ -221,11 +222,11 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
 
     useEffect(() => {
       if (promptTemplate !== undefined && promptTemplate.template !== '') {
-        applyPromptTemplate(promptTemplate.template)
+        applyPromptTemplate(promptTemplate.template, true)
       }
     }, [promptTemplate])
 
-    function applyPromptTemplate(activePromptTemplate: string, updateValue = true) {
+    function applyPromptTemplate(activePromptTemplate: string, initValue = false) {
       if (activePromptTemplate === undefined || activePromptTemplate === '') {
         return
       }
@@ -234,14 +235,16 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       if (!htmlRef || !mentionsInput) {
         return
       }
+      mentionsInput.setState({ initValue })
       if (!hasPromptTemplate) {
         setHasPromptTemplate(true)
       }
       const prefixes = '#@/^~'
       const parseResult = parsePromptTemplate(activePromptTemplate, prefixes)
+
       htmlRef.focus()
       if (!parseResult) {
-        updateValue &&
+        initValue &&
           setValue &&
           setValue({
             newValue: activePromptTemplate,
@@ -258,12 +261,22 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
           htmlRef.setSelectionRange(position, position)
         }, 0)
       } else {
-        const { prefix, position } = parseResult
-        mentionsInput.handleChange({
-          target: { value: activePromptTemplate },
-          nativeEvent: {},
-        })
-        mentionsInput.queryData('', prefixes.indexOf(prefix), position - 1, position, activePromptTemplate)
+        const { prefix, query, position } = parseResult
+        console.log({ prefix, query, position })
+        if (initValue) {
+          mentionsInput.handleChange({
+            target: { value: activePromptTemplate },
+            nativeEvent: {},
+          })
+          // mentionsInput.updateMentionsQueries(activePromptTemplate, position)
+          mentionsInput.queryData(
+            query,
+            prefixes.indexOf(prefix),
+            position - 1,
+            position + query.length,
+            activePromptTemplate
+          )
+        }
 
         setTimeout(() => {
           mentionsInput.handleChange({
@@ -284,10 +297,13 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             newPlainTextValue,
             mentions: isEqual(value.mentions, mentions) ? value.mentions : mentions,
           })
+        if (newPlainTextValue === '') {
+          setPromptTemplate(undefined)
+        }
       }
       if (hasPromptTemplate && value.newPlainTextValue !== '' && value.newPlainTextValue !== newPlainTextValue) {
         console.log('reapply template', 'cur', value.newPlainTextValue, 'new', newPlainTextValue)
-        applyPromptTemplate(newPlainTextValue, false)
+        applyPromptTemplate(newPlainTextValue)
       }
     }
     function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>) {
@@ -320,14 +336,15 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
         />
       )
     }
-
-    // console.log(mentionRef?.current?.state)
+    console.log({ value })
+    // console.log({ render: mentionRef?.current?.state })
     return (
       <div>
-        {/* <button onClick={() => applyPromptTemplate('Summarize / in 2-3 sentences.')}>summarize</button> */}
-        {/* <button onClick={() => applyPromptTemplate('Compare / and / in 2-3 sentences.')}>compare</button> */}
-        {/* <button onClick={() => applyPromptTemplate('Hello!')}>hello</button> */}
+        {/* <button onClick={() => applyPromptTemplate('Summarize / in 2-3 sentences.', true)}>summarize</button> */}
+        {/* <button onClick={() => applyPromptTemplate('Compare / and / in 2-3 sentences.', true)}>compare</button> */}
+        {/* <button onClick={() => applyPromptTemplate('Hello!', true)}>hello</button> */}
         <MentionsInput
+          // readOnly={true}
           value={value.newValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
@@ -345,14 +362,14 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             trigger="#"
             markup="#[__display__](__id__)"
             data={fetchTags}
-            appendSpaceOnAdd={true}
+            appendSpaceOnAdd={!promptTemplate}
             style={isEdit ? tagEditStyle : tagDisplayStyle}
           />
           <Mention
             trigger="@"
             data={fetchCreators}
             markup="@[__display__](__id__)"
-            appendSpaceOnAdd={true}
+            appendSpaceOnAdd={!promptTemplate}
             style={isEdit ? creatorEditStyle : creatorDisplayStyle}
             renderSuggestion={tokenizedHighlighter}
           />
@@ -361,7 +378,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             data={fetchItems}
             markup="/[__display__](__id__)"
             displayTransform={(_, display) => `${display.length > 32 ? display.slice(0, 32) + '...' : display}`}
-            appendSpaceOnAdd={true}
+            appendSpaceOnAdd={!promptTemplate}
             style={isEdit ? itemEditStyle : itemDisplayStyle}
             renderSuggestion={tokenizedHighlighter}
           />
@@ -369,7 +386,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             trigger="^"
             data={fetchCollections}
             markup="^[__display__](__id__)"
-            appendSpaceOnAdd={true}
+            appendSpaceOnAdd={!promptTemplate}
             style={isEdit ? collectionEditStyle : collectionDisplayStyle}
             renderSuggestion={tokenizedHighlighter}
           />
@@ -377,7 +394,7 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             trigger="~"
             data={[]}
             markup="~[__display__](__id__)"
-            appendSpaceOnAdd={true}
+            appendSpaceOnAdd={!promptTemplate}
             style={isEdit ? imageEditStyle : imageDisplayStyle}
           />
         </MentionsInput>
