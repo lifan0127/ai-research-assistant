@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useRef, useEffect } from 'react'
+import React, { forwardRef, useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions'
 import Highlighter from 'react-highlight-words'
@@ -7,8 +7,7 @@ import * as zot from '../../../apis/zotero'
 import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
-import { parsePromptTemplate } from '../PromptLibrary'
-import { parse } from 'path'
+import { prefixes, parsePromptTemplate } from '../PromptLibrary'
 
 const editStyles = {
   control: {
@@ -218,78 +217,88 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
     ref
   ) => {
     const [hasPromptTemplate, setHasPromptTemplate] = useState(false)
+    const [isNewTemplate, setIsNewTemplate] = useState(false)
     const mentionRef = useRef(null)
 
-    useEffect(() => {
-      if (promptTemplate !== undefined && promptTemplate.template !== '') {
-        applyPromptTemplate(promptTemplate.template, true)
+    useLayoutEffect(() => {
+      if (promptTemplate === undefined) {
+        setHasPromptTemplate(false)
+      } else {
+        setHasPromptTemplate(true)
+        setIsNewTemplate(true)
+        const htmlRef = (ref as any).current as HTMLTextAreaElement
+        htmlRef.focus()
+        // If the input didn't change, for example, the user clicked on the same prompt template button, we need to manually apply the prompt template to populate and position the suggestions overlay.
+        if (value.newPlainTextValue === promptTemplate.template) {
+          applyPromptTemplate(value.newPlainTextValue, true)
+          return
+        }
+        const mentionsInput = (mentionRef as any).current
+        // The position has to be set to the end of the input, for both current input value and the new value, otherwise the display may be incorrect when switching prompt templates.
+        const position = Math.max(value.newPlainTextValue.length, promptTemplate.template.length)
+        mentionsInput.handleChange({
+          target: {
+            value: promptTemplate.template,
+            selectionStart: position,
+            selectionEnd: position,
+          },
+          nativeEvent: {},
+        })
       }
     }, [promptTemplate])
 
-    function applyPromptTemplate(activePromptTemplate: string, initValue = false) {
+    useLayoutEffect(() => {
+      if (hasPromptTemplate) {
+        applyPromptTemplate(value.newPlainTextValue, isNewTemplate)
+      }
+    }, [value])
+
+    function applyPromptTemplate(activePromptTemplate: string | undefined, isNewTemplate = false) {
       if (activePromptTemplate === undefined || activePromptTemplate === '') {
         return
       }
+
       const htmlRef = (ref as any).current as HTMLTextAreaElement
       const mentionsInput = (mentionRef as any).current
-      if (!htmlRef || !mentionsInput) {
-        return
-      }
-      mentionsInput.setState({ initValue })
-      if (!hasPromptTemplate) {
-        setHasPromptTemplate(true)
-      }
-      const prefixes = '#@/^~'
-      const parseResult = parsePromptTemplate(activePromptTemplate, prefixes)
 
-      htmlRef.focus()
+      mentionsInput.clearSuggestions()
+
+      const parseResult = parsePromptTemplate(
+        activePromptTemplate,
+        prefixes,
+        isNewTemplate ? undefined : htmlRef.selectionStart,
+        isNewTemplate ? undefined : htmlRef.selectionEnd
+      )
+
       if (!parseResult) {
-        initValue &&
-          setValue &&
-          setValue({
-            newValue: activePromptTemplate,
-            newPlainTextValue: activePromptTemplate,
-            mentions: [],
-          })
+        mentionsInput.setState({ disallowSelect: false })
         const position = activePromptTemplate.length
-        // htmlRef.setSelectionRange(position, position)
-        setTimeout(() => {
-          // mentionsInput.handleChange({
-          //   target: { value: activePromptTemplate, selectionStart: position, selectionEnd: position },
-          //   nativeEvent: {},
-          // })
-          htmlRef.setSelectionRange(position, position)
-        }, 0)
+        setPromptTemplate(undefined)
+        setHasPromptTemplate(false)
+        htmlRef.setSelectionRange(position, position)
       } else {
         const { prefix, query, position } = parseResult
-        console.log({ prefix, query, position })
-        if (initValue) {
-          mentionsInput.handleChange({
-            target: { value: activePromptTemplate },
-            nativeEvent: {},
-          })
-          // mentionsInput.updateMentionsQueries(activePromptTemplate, position)
-          mentionsInput.queryData(
-            query,
-            prefixes.indexOf(prefix),
-            position - 1,
-            position + query.length,
-            activePromptTemplate
-          )
-        }
+        mentionsInput.setState({ disallowSelect: query === '' })
+        mentionsInput.updateMentionsQueries(activePromptTemplate, position)
 
-        setTimeout(() => {
-          mentionsInput.handleChange({
-            target: { value: activePromptTemplate, selectionStart: position, selectionEnd: position },
-            nativeEvent: {},
-          })
+        // When a new templat is loaded, move the cursor and the suggestion overlay to the prefix position
+        if (query === '') {
           htmlRef.setSelectionRange(position, position)
-        }, 0)
+          isNewTemplate &&
+            mentionsInput.handleChange({
+              target: {
+                value: activePromptTemplate,
+                selectionStart: position,
+                selectionEnd: position,
+              },
+              nativeEvent: {},
+            })
+        }
       }
+      setIsNewTemplate(false)
     }
 
     function handleChange(event: any, newValue: string, newPlainTextValue: string, mentions: MentionValue['mentions']) {
-      console.log({ current: value, new: { newValue, newPlainTextValue, mentions } })
       if (!isEqual(value, { newValue, newPlainTextValue, mentions })) {
         setValue &&
           setValue({
@@ -297,21 +306,14 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             newPlainTextValue,
             mentions: isEqual(value.mentions, mentions) ? value.mentions : mentions,
           })
-        if (newPlainTextValue === '') {
-          setPromptTemplate(undefined)
-        }
-      }
-      if (hasPromptTemplate && value.newPlainTextValue !== '' && value.newPlainTextValue !== newPlainTextValue) {
-        console.log('reapply template', 'cur', value.newPlainTextValue, 'new', newPlainTextValue)
-        applyPromptTemplate(newPlainTextValue)
       }
     }
     function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement> | React.KeyboardEvent<HTMLInputElement>) {
       if (event.key === 'Enter' && !event.shiftKey && event.currentTarget.value !== '') {
         event.preventDefault()
         onSubmit && onSubmit()
-        setHasPromptTemplate(false)
         setPromptTemplate(undefined)
+        setHasPromptTemplate(false)
       }
     }
     function handleConfirm() {
@@ -336,15 +338,10 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
         />
       )
     }
-    console.log({ value })
-    // console.log({ render: mentionRef?.current?.state })
+
     return (
       <div>
-        {/* <button onClick={() => applyPromptTemplate('Summarize / in 2-3 sentences.', true)}>summarize</button> */}
-        {/* <button onClick={() => applyPromptTemplate('Compare / and / in 2-3 sentences.', true)}>compare</button> */}
-        {/* <button onClick={() => applyPromptTemplate('Hello!', true)}>hello</button> */}
         <MentionsInput
-          // readOnly={true}
           value={value.newValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}

@@ -2544,7 +2544,7 @@ index 1687776..35dce0f 100644
 -}
 +module.exports = require("./react-mentions.cjs.prod.js")
 diff --git a/node_modules/react-mentions/dist/react-mentions.cjs.prod.js b/node_modules/react-mentions/dist/react-mentions.cjs.prod.js
-index ad10143..61a6a68 100644
+index ad10143..1eaa42c 100644
 --- a/node_modules/react-mentions/dist/react-mentions.cjs.prod.js
 +++ b/node_modules/react-mentions/dist/react-mentions.cjs.prod.js
 @@ -1,132 +1,132 @@
@@ -3556,7 +3556,7 @@ index ad10143..61a6a68 100644
 +        if (_this.setState({
 +          selectionStart: ev.target.selectionStart,
 +          selectionEnd: ev.target.selectionEnd
-+        }), !isComposing && !_this.state.initValue) {
++        }), !isComposing && (!_this.state.disallowSelect || ev.target.selectionStart === 0)) {
 +          var el = _this.inputElement
 +          ev.target.selectionStart === ev.target.selectionEnd ? _this.updateMentionsQueries(el.value, ev.target.selectionStart) : _this.clearSuggestions(),
 +            _this.updateHighlighterScroll(), _this.props.onSelect(ev)

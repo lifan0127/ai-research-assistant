@@ -43,6 +43,8 @@ export function Input({
       current.selectionStart = current.value.length
     }
   }, [content])
+
+  // useEffect(() => {})
   // useEffect(() => {
   //   if (inputRef?.current !== null) {
   //     const current = inputRef.current as HTMLTextAreaElement
