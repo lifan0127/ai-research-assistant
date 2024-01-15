@@ -312,20 +312,20 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
       if (event.key === 'Enter' && !event.shiftKey && event.currentTarget.value !== '') {
         event.preventDefault()
         onSubmit && onSubmit()
-        setPromptTemplate(undefined)
+        setPromptTemplate && setPromptTemplate(undefined)
         setHasPromptTemplate(false)
       }
     }
     function handleConfirm() {
       onSubmit && onSubmit()
       setHasPromptTemplate(false)
-      setPromptTemplate(undefined)
+      setPromptTemplate && setPromptTemplate(undefined)
     }
 
     function handleCancel() {
       onCancel && onCancel()
       setHasPromptTemplate(false)
-      setPromptTemplate(undefined)
+      setPromptTemplate && setPromptTemplate(undefined)
     }
 
     function tokenizedHighlighter(suggestion: SuggestionDataItem, search: string) {
