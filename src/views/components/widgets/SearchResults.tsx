@@ -20,7 +20,7 @@ import { DEFAULT_BIB_STYLE } from '../../../constants'
 
 interface SearchResult {
   title: string
-  authors?: string
+  creators?: string
   itemType: string
   year?: number
   links: Awaited<ReturnType<typeof getItemAndBestAttachment>>
@@ -30,13 +30,18 @@ const columnHelper = createColumnHelper<SearchResult>()
 
 export interface Props extends Awaited<ReturnType<typeof searchZotero>> {}
 
-export function Component({ query: { keywords, authors = [], tags = [], years }, count, results, collections }: Props) {
+export function Component({
+  query: { keywords, creators = [], tags = [], years },
+  count,
+  results,
+  collections,
+}: Props) {
   const columns = [
     columnHelper.accessor('title', {
       header: 'Title',
     }),
-    columnHelper.accessor('authors', {
-      header: 'Authors',
+    columnHelper.accessor('creators', {
+      header: 'Creators',
     }),
     columnHelper.accessor('itemType', {
       header: 'Item Type',
@@ -69,7 +74,7 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
       results.map(({ item, attachment }) => {
         return {
           title: item.title as string,
-          authors: item.authors,
+          creators: item.creators,
           itemType: item.type,
           year: item.year,
           links: {
@@ -123,9 +128,9 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
               <span className="font-bold">Keywords:</span> {keywords.join(', ')}
             </div>
           ) : null}
-          {authors.length > 0 ? (
+          {creators.length > 0 ? (
             <div>
-              <span className="font-bold">Authors:</span> {authors.join(', ')}
+              <span className="font-bold">Creators:</span> {creators.join(', ')}
             </div>
           ) : null}
           {tags.length > 0 ? (
@@ -212,18 +217,18 @@ export function Component({ query: { keywords, authors = [], tags = [], years },
   )
 }
 
-export function compileContent({ query: { keywords, authors, tags, years }, count, results }: Props) {
+export function compileContent({ query: { keywords, creators, tags, years }, count, results }: Props) {
   const data = results.map(({ item, attachment }, i) => {
     const columns = {
       title: item.title as string,
-      authors: item.authors,
+      creators: item.creators,
       itemType: item.type,
       year: item.year,
     }
     return columns
   })
   const keywordsStr = keywords.length > 0 ? `__Keywords:__ ${keywords.join(', ')}\n\n` : ''
-  const authorsStr = authors && authors.length > 0 ? `__Authors:__ ${authors.join(', ')}\n\n` : ''
+  const creatorsStr = creators && creators.length > 0 ? `__Creators:__ ${creators.join(', ')}\n\n` : ''
   const tagsStr = tags && tags.length > 0 ? `__Tags:__ ${tags.join(', ')}\n\n` : ''
   const yearsStr = years
     ? years.from
@@ -235,11 +240,11 @@ export function compileContent({ query: { keywords, authors, tags, years }, coun
   const textContent = `
 #### Search Strategy
 
-${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
+${keywordsStr}${creatorsStr}${tagsStr}${yearsStr}
 
 #### Results (${count > 25 ? `${count}, limited to the first 25` : count})
 
-${tablemark(data, { columns: ['Title', 'Authors', 'Item Type', 'Year'] })}
+${tablemark(data, { columns: ['Title', 'Creators', 'Item Type', 'Year'] })}
   `.trim()
   const htmlContent = marked(textContent)
   return { textContent, htmlContent }
@@ -250,7 +255,7 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote({ query: { keywords, authors, tags, years }, count, results }: Props) {
+async function createNote({ query: { keywords, creators, tags, years }, count, results }: Props) {
   const resultIds = results.map(({ item }) => item.id)
   const csl = Zotero.Styles.get(DEFAULT_BIB_STYLE).getCiteProc()
   csl.updateItems(resultIds)
@@ -261,7 +266,8 @@ async function createNote({ query: { keywords, authors, tags, years }, count, re
     itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
   }))
   const keywordsStr = keywords.length > 0 ? `<div><strong>Keywords:</strong> ${keywords.join(', ')}</div>` : ''
-  const authorsStr = authors && authors.length > 0 ? `<div><strong>Authors:</strong> ${authors.join(', ')}</div>` : ''
+  const creatorsStr =
+    creators && creators.length > 0 ? `<div><strong>Creators:</strong> ${creators.join(', ')}</div>` : ''
   const tagsStr = tags && tags.length > 0 ? `<div><strong>Tags:</strong> ${tags.join(', ')}</div>` : ''
   const yearsStr = years
     ? years.from
@@ -273,7 +279,7 @@ async function createNote({ query: { keywords, authors, tags, years }, count, re
   const content = `
 <h2>Search Strategy</h2>
 
-${keywordsStr}${authorsStr}${tagsStr}${yearsStr}
+${keywordsStr}${creatorsStr}${tagsStr}${yearsStr}
 
 <h2>Results (${count > 25 ? `${count}, limited to the first 25` : count})</h2>
 

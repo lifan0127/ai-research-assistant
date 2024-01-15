@@ -32,7 +32,7 @@ export interface SearchActionResponse extends BaseActionResponse {
   action: 'search'
   payload: {
     keywords: string[]
-    authors?: string[]
+    creators?: string[]
     tags?: string[]
     years?: {
       from: number

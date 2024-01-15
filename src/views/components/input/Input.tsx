@@ -75,7 +75,7 @@ export function Input({
 
   return (
     <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
-      <States states={states} />
+      {disabled ? null : <States states={states} />}
       <div className="relative">
         {disabled ? (
           <div className="leading-6 w-full text-neutral-500">

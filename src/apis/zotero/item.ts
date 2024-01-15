@@ -3,7 +3,7 @@ export interface ItemInfo {
   uri: string
   type: Zotero.Item.ItemType
   title?: string
-  authors?: string
+  creators?: string
   year?: number
   abstract?: string
 }
@@ -26,14 +26,14 @@ export function compileItemInfo(item: Zotero.Item, mode: ItemMode): ItemInfo {
   if (mode !== 'citation') {
     const title = item.getDisplayTitle()
     const creators = item.getCreators()
-    const authors =
+    const creatorsStr =
       creators.length === 0
         ? undefined
         : creators.length > 1
         ? `${creators[0].lastName} et al.`
         : `${creators[0].firstName} ${creators[0].lastName}`
     const year = new Date(item.getField('date') as string).getFullYear()
-    itemInfo = { ...itemInfo, title, authors, year }
+    itemInfo = { ...itemInfo, title, creators: creatorsStr, year }
   }
   if (mode === 'qa') {
     const abstract = (item.getField('abstractNote', false, true) as string) || ''

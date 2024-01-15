@@ -32,9 +32,9 @@ export type SimplifiedStates = {
 export function simplifyStates(states: States): SimplifiedStates {
   const simplifiedStates = {
     items: states.items.length > 0 ? states.items.map(item => item.id) : undefined,
-    collections: states.items.length > 0 ? states.collections.map(collection => collection.id) : undefined,
-    creators: states.items.length > 0 ? states.creators.map(creator => creator.id) : undefined,
-    tags: states.items.length > 0 ? states.tags.map(tag => tag.id) : undefined,
+    collections: states.collections.length > 0 ? states.collections.map(collection => collection.id) : undefined,
+    creators: states.creators.length > 0 ? states.creators.map(creator => creator.id) : undefined,
+    tags: states.tags.length > 0 ? states.tags.map(tag => tag.id) : undefined,
     images: states.images.length > 0 ? states.images.map(image => image.id) : undefined,
   }
   return simplifiedStates
@@ -68,6 +68,7 @@ function serializeState(states: SimplifiedStates, name: StateName) {
 }
 
 export function serializeStates(states: SimplifiedStates) {
+  console.log({ states })
   if (areStatesEmpty(states)) {
     return undefined
   }
