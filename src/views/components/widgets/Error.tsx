@@ -6,6 +6,7 @@ import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
 import { FilePickerHelper } from 'zotero-plugin-toolkit/dist/helpers/filePicker'
 import { copyButtonDef } from '../buttons/types'
+import { Link } from '../buttons/Link'
 
 interface ContainerProps {
   error: any
@@ -53,6 +54,31 @@ export function Component({ error }: Props) {
     }
   }
 
+  // For errors that don't have the 'insufficient_quota' code from OpenAI
+  if (error && error.name) {
+    switch (error.name) {
+      case 'InsufficientQuotaError': {
+        return (
+          <Container error={error}>
+            <div>
+              <h4 className="pb-2">You exceeded your current quota with OpenAI APIs.</h4>
+              <p>Your request has been rejected by OpenAI due to insufficient quota.</p>
+              <p>
+                Please check out this{' '}
+                <Link
+                  url={
+                    'https://help.openai.com/en/articles/6891831-error-code-429-you-exceeded-your-current-quota-please-check-your-plan-and-billing-details'
+                  }
+                  text="OpenAI support article"
+                />{' '}
+                for more details.
+              </p>
+            </div>
+          </Container>
+        )
+      }
+    }
+  }
   if (error && error.code) {
     switch (error.code) {
       case 'invalid_api_key': {
