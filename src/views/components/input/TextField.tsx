@@ -7,7 +7,7 @@ import * as zot from '../../../apis/zotero'
 import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
-import { prefixes, parsePromptTemplate } from '../PromptLibrary'
+import { prefixes, parsePromptTemplate } from '../../features/infoPanel/PromptLibrary'
 
 const editStyles = {
   control: {

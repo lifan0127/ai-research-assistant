@@ -5,7 +5,7 @@ import {
   PhotoIcon,
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
-import { selectionConfig } from '../../models/utils/states'
+import { selectionConfig } from '../../../models/utils/states'
 
 const prompts = [
   {
@@ -78,8 +78,7 @@ interface PromptLibraryProps {
 
 export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
   return (
-    <div className="p-4">
-      <p className="mb-6">For some ideas, try one of the suggestions below...</p>
+    <div>
       <ul role="list" className="list-none p-0 grid grid-cols-1 -m-2 sm:grid-cols-2 lg:grid-cols-3">
         {prompts.map(({ icon: Icon, title, template }) => (
           <li key={title} className="m-2 col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
