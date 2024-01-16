@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { Fragment, useMemo } from 'react'
 import {
   MagnifyingGlassIcon,
   QuestionMarkCircleIcon,
   PhotoIcon,
+  AcademicCapIcon,
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline'
 import { selectionConfig } from '../../../models/utils/states'
@@ -11,12 +12,17 @@ const prompts = [
   {
     icon: MagnifyingGlassIcon,
     title: 'Search your library',
-    template: 'Search for papers related to # in Zotero.',
+    template: `Show me the papers related to # since ${new Date().getFullYear() - 1}.`,
   },
   {
     icon: QuestionMarkCircleIcon,
     title: 'Ask a question',
     template: 'Summarize / in a few sentences.',
+  },
+  {
+    icon: AcademicCapIcon,
+    title: 'Analyse a researcher',
+    template: 'What are the research areas of @?',
   },
   {
     icon: ArrowsRightLeftIcon,
@@ -51,21 +57,25 @@ function Template({ template }: TemplateProps) {
     let output: (string | JSX.Element)[] = []
     while ((match = regex.exec(template))) {
       let currentIndex = match.index
-      output.push(template.substring(lastIndex, currentIndex))
+      output.push(
+        <Fragment key={`text-${lastIndex}-${currentIndex}`}>{template.substring(lastIndex, currentIndex)}</Fragment>
+      )
       const { label, prefix, backgroundColor } = selectionMap[template[currentIndex]] || {
         label: 'unknown',
         prefix: template[currentIndex],
         backgroundColor: '#ffc',
       }
       output.push(
-        <span className="px-1 rounded" style={{ backgroundColor }}>
+        <span key={`prefix-${currentIndex}`} className="px-1 rounded" style={{ backgroundColor }}>
           {prefix}
           {label}
         </span>
       )
       lastIndex = currentIndex + 1
     }
-    output.push(template.substring(lastIndex))
+    output.push(
+      <Fragment key={`text-${lastIndex}-${template.length}`}>{template.substring(lastIndex, template.length)}</Fragment>
+    )
     return <div>{output}</div>
   }, [template])
 
