@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import { ButtonGroup } from '../../components/buttons/ButtonGroup'
 
 interface InfoPanelProps {
@@ -27,7 +27,7 @@ export function InfoPanel({ promptLibrary, faq }: InfoPanelProps) {
       <ButtonGroup groups={groups} selected={selected} />
       <div className="mt-6">
         {groups.map(({ key, component }) => {
-          return selected === key ? component : null
+          return selected === key ? <Fragment key={key}>{component}</Fragment> : null
         })}
       </div>
     </div>
