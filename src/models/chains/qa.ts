@@ -59,6 +59,7 @@ const functions = [
           oneOf: [
             {
               type: 'object',
+              description: 'Use this when the action is "qa"',
               properties: {
                 answer: {
                   type: 'string',
@@ -77,11 +78,12 @@ const functions = [
             },
             {
               type: 'object',
+              description: 'Use this when the action is "clarification"',
               properties: {
                 message: {
                   type: 'string',
                   description:
-                    'The message to ask for user clarification if the question cannot be answered based on the chat history.',
+                    'The message to ask for user clarification if the question cannot be answered based on the provided context or the chat history.',
                 },
               },
               required: ['message'],
@@ -153,6 +155,7 @@ export class QAChain extends BaseChain {
       outputKey: this.outputKey,
     })
     const output = await llmChain.call(values)
+
     const { action, payload } = JSON.parse(output[this.outputKey]) as
       | QAActionResponse
       | ClarificationActionResponse
@@ -160,7 +163,7 @@ export class QAChain extends BaseChain {
     if (action === 'clarification' || action === 'error') {
       return output
     }
-
+    console.log({ output })
     const { answer, sources = [] } = payload as QAActionResponse['payload']
     const itemIds = sources.reduce((all: number[], source) => {
       try {
@@ -205,7 +208,8 @@ interface loadQAChainInput {
 export const loadQAChain = (params: loadQAChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
-  const OPENAI_BASE_URL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
+  const OPENAI_BASE_URL =
+    (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,
@@ -285,7 +289,8 @@ class RetrievalQAChain extends BaseChain {
 export const loadRetrievalQAChain = (params: loadQAChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
   const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
-  const OPENAI_BASE_URL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
+  const OPENAI_BASE_URL =
+    (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({
     temperature: 0,
     openAIApiKey: OPENAI_API_KEY,

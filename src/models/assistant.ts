@@ -38,7 +38,7 @@ export class ResearchAssistant {
       },
       qa: {
         description:
-          "For Q&A and other related requests based on user's Zotero library. Use this route when a user expects to see a single answer or summary.",
+          "For Q&A and other related requests based on user's Zotero library. Use this route when a user expects to get an answer or a summary of search results.",
         executor: loadRetrievalQAChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory }),
       },
       vision: {

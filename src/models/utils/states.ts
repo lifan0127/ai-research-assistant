@@ -68,7 +68,6 @@ function serializeState(states: SimplifiedStates, name: StateName) {
 }
 
 export function serializeStates(states: SimplifiedStates) {
-  console.log({ states })
   if (areStatesEmpty(states)) {
     return undefined
   }

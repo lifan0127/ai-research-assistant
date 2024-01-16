@@ -15,7 +15,7 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ![Drag and Drop](assets/videos/drag-and-drop.gif)
 
-### Autocompletion for Authors, Tags, Items and More
+### Autocompletion for Creators (Authors), Tags, Items and More
 
 ![Autocompletion](assets/videos/autocompletion.gif)
 

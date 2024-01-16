@@ -84,7 +84,8 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
                   },
                   input: {
                     type: 'string',
-                    description: 'A potentially modified version of the original user message for the route.',
+                    description:
+                      'The original user message, or a potentially modified version tailored for the route. It should not duplicate the existing information in the application states.',
                   },
                   states: {
                     type: 'object',
@@ -158,7 +159,7 @@ You are an AI assistant for Zotero, a reference management software.
 Your job is to analyze a user's request, in the context of the application states, and choose the appropriate follow-up actions.
 
 Requirements:
-- You should interpret the user request in the context of the application states, which include a set of authors, tags, items and collections selected by the user.
+- You should interpret the user request in the context of the application states, which include a set of creators, tags, items and collections selected by the user.
 - When you cannot confidently determine the user's intention, the action should be "clarification" and the payload should contain a message to politely express your doubt. The goal is have the user provide more information through conversation.
 - After you have gathered enough information to understood the user's intention, the action should be "routing" and the payload should contain the name of the route to handle the request, the input for the route, and optionally, the relevant application states. The name of the route must be one of the values provided to you. The input could be a potentially modified version of the original user message.
   `.trim()

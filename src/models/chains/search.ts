@@ -55,12 +55,15 @@ const SEARCH_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
   SystemMessagePromptTemplate.fromTemplate(
     `
 Compose an exhaustive search query for Zotero that includes broader, narrower, and associated terms to ensure a more extensive search coverage.
+
 Gather the following information from the user in a conversational manner:
-- A specific topic or request (required)
-- Authors (optional)
-- Tags (optional)
-- Collections (optional)
-- Year range (optional)
+- A set of keywords to represent a specific topic or question. Keywords should be domain specific terminologies and should not include common phrases such as "papers", "articles", "summary", "research areas" etc.
+- Creators
+- Tags
+- Collections
+- Year range
+We need one, or a combination of multiple of the above to build a search query.
+
 If you don't have enough information, ask for clarification.
     `.trim()
   ),
@@ -96,7 +99,7 @@ const functions = [
                 keywords: {
                   type: 'array',
                   description:
-                    'Keywords to search for in the Zotero database. For each keyword, include broader, narrower and other relevant terms. Keywords should be domain specific terminologies. Do not include common phrases such as paper, article, summary etc. Do not include tags that have been specified by the user.',
+                    'Keywords to search for in the Zotero database, based on the question or topic provided by the user. Keywords should be domain specific terminologies and should not include common phrases such as "paper", "article", "summary" etc. For each keyword, include broader, narrower and other relevant terms.',
                   items: {
                     type: 'string',
                   },

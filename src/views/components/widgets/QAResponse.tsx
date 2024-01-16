@@ -14,6 +14,7 @@ export interface Props {
 }
 
 export function Component({ answer, sources }: Props) {
+  console.log({ answer, sources })
   return (
     <div>
       <Markdown.Component content={answer} />
