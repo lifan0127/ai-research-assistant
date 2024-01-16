@@ -31,7 +31,7 @@ const columnHelper = createColumnHelper<SearchResult>()
 export interface Props extends Awaited<ReturnType<typeof searchZotero>> {}
 
 export function Component({
-  query: { keywords, creators = [], tags = [], years },
+  query: { keywords = [], creators = [], tags = [], years },
   count,
   results,
   collections,
