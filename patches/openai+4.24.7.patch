@@ -1,5 +1,5 @@
 diff --git a/node_modules/openai/_shims/node-runtime.mjs b/node_modules/openai/_shims/node-runtime.mjs
-index e6635d2..0280f70 100644
+index e6635d2..3510d68 100644
 --- a/node_modules/openai/_shims/node-runtime.mjs
 +++ b/node_modules/openai/_shims/node-runtime.mjs
 @@ -1,12 +1,13 @@
@@ -16,7 +16,7 @@ index e6635d2..0280f70 100644
 +// import { Readable } from 'node:stream';
  import { MultipartBody } from "./MultipartBody.mjs";
 -import { ReadableStream } from 'web-streams-polyfill/dist/ponyfill.es2018.js';
-+// import { ReadableStream } from 'web-streams-polyfill/dist/ponyfill.es2018.js'
++// import { ReadableStream } from 'web-streams-polyfill/dist/ponyfill.es2018.js';
 +import { ReadableStream } from 'web-streams-polyfill/ponyfill/es6'
  let fileFromPathWarned = false;
  async function fileFromPath(path, ...args) {
@@ -27,6 +27,9 @@ index e6635d2..0280f70 100644
  }
 -const defaultHttpAgent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
 -const defaultHttpsAgent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
++// const defaultHttpAgent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
++// const defaultHttpsAgent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });const defaultHttpAgent = {}
++const defaultHttpsAgent = {}
 +function toReadableStream(encoder) {
 +  const iterator = encoder.encode()
 +
@@ -42,15 +45,12 @@ index e6635d2..0280f70 100644
 +    }
 +  })
 +}
-+// const defaultHttpAgent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
-+// const defaultHttpsAgent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
-+const defaultHttpAgent = {}
-+const defaultHttpsAgent = {}
  async function getMultipartRequestOptions(form, opts) {
      const encoder = new FormDataEncoder(form);
 -    const readable = Readable.from(encoder);
 -    const body = new MultipartBody(readable);
 +    // const readable = Readable.from(encoder);
++    // const body = new MultipartBody(readable);
 +    const body = toReadableStream(encoder)
      const headers = {
          ...opts.headers,
@@ -70,18 +70,19 @@ index e6635d2..0280f70 100644
      return {
          kind: 'node',
          fetch: nf.default,
-@@ -50,7 +68,7 @@ export function getRuntime() {
+@@ -50,7 +68,8 @@ export function getRuntime() {
          getMultipartRequestOptions,
          getDefaultAgent: (url) => (url.startsWith('https') ? defaultHttpsAgent : defaultHttpAgent),
          fileFromPath,
 -        isFsReadStream: (value) => value instanceof FsReadStream,
++        // isFsReadStream: (value) => value instanceof FsReadStream,
 +        isFsReadStream: (value) => false,
      };
  }
  //# sourceMappingURL=node-runtime.mjs.map
 \ No newline at end of file
 diff --git a/node_modules/openai/core.mjs b/node_modules/openai/core.mjs
-index f2a9260..0dac054 100644
+index 7d03d97..0b1d3f4 100644
 --- a/node_modules/openai/core.mjs
 +++ b/node_modules/openai/core.mjs
 @@ -189,7 +189,7 @@ export class APIClient {
@@ -93,7 +94,7 @@ index f2a9260..0dac054 100644
          const minAgentTimeout = timeout + 1000;
          if (typeof httpAgent?.options?.timeout === 'number' &&
              minAgentTimeout > (httpAgent.options.timeout ?? 0)) {
-@@ -219,10 +219,10 @@ export class APIClient {
+@@ -209,10 +209,10 @@ export class APIClient {
              method,
              ...(body && { body: body }),
              headers: reqHeaders,
@@ -104,13 +105,14 @@ index f2a9260..0dac054 100644
 -            signal: options.signal ?? null,
 +            // signal: options.signal ?? null,
          };
-         this.validateHeaders(reqHeaders, headers);
          return { req, url, timeout };
-@@ -257,7 +257,7 @@ export class APIClient {
+     }
+@@ -261,7 +261,8 @@ export class APIClient {
          if (options.signal?.aborted) {
              throw new APIUserAbortError();
          }
 -        const controller = new AbortController();
++        // const controller = new AbortController();
 +        const controller = {};
          const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
          if (response instanceof Error) {

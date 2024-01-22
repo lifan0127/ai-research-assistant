@@ -1,0 +1,13 @@
+diff --git a/node_modules/@langchain/openai/dist/chat_models.js b/node_modules/@langchain/openai/dist/chat_models.js
+index 0c8d2b3..bbb5453 100644
+--- a/node_modules/@langchain/openai/dist/chat_models.js
++++ b/node_modules/@langchain/openai/dist/chat_models.js
+@@ -667,6 +667,8 @@ export class ChatOpenAI extends BaseChatModel {
+                 baseURL: endpoint,
+                 timeout: this.timeout,
+                 maxRetries: 0,
++                stream: false,
++                fetch: fetch,
+             };
+             if (!params.baseURL) {
+                 delete params.baseURL;
