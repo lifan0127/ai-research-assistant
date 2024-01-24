@@ -304,7 +304,11 @@ export function Container() {
                     setCopyId={setCopyId}
                     editId={editId}
                     setEditId={setEditId}
-                    {...(props as Omit<UserMessageProps, 'copyId' | 'setCopyId' | 'editId' | 'setEditId'>)}
+                    setPromptTemplate={setPromptTemplate}
+                    {...(props as Omit<
+                      UserMessageProps,
+                      'copyId' | 'setCopyId' | 'editId' | 'setEditId' | 'setPromptTemplate'
+                    >)}
                     onSubmit={handleSubmit}
                   />
                 )
@@ -343,7 +347,7 @@ export function Container() {
               <div className="dot-flashing "></div>
             </div>
           ) : null} */}
-          <div className="bottom-6 w-full z-40 m-0">
+          <div className="bottom-6 w-full z-40 m-0 mb-4">
             <Input
               disabled={editId !== undefined}
               onSubmit={handleSubmit}
@@ -352,7 +356,7 @@ export function Container() {
               setPromptTemplate={setPromptTemplate}
             />
           </div>
-          <Version />
+          {/* <Version /> */}
         </div>
         <Feedback open={openFeedback} setOpen={setOpenFeedback} callback={submitCallback} />
       </div>

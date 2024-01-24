@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useRef, useEffect, useLayoutEffect } from 'react'
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { CheckIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions'
 import Highlighter from 'react-highlight-words'
 import { isEqual } from 'lodash'
@@ -8,6 +8,9 @@ import { States, selectionConfig } from '../../../models/utils/states'
 import { useStates } from '../../hooks/useStates'
 import { escapeTitle, StateName, MentionValue } from '../../../models/utils/states'
 import { prefixes, parsePromptTemplate } from '../../features/infoPanel/PromptLibrary'
+import { LinkButton } from '../buttons/LinkButton'
+import { PromptList } from '../../features/infoPanel/PromptLibrary'
+import { INPUT_CHARACTER_LIMIT } from '../../../constants'
 
 const editStyles = {
   control: {
@@ -269,22 +272,24 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
         isNewTemplate ? undefined : htmlRef.selectionStart,
         isNewTemplate ? undefined : htmlRef.selectionEnd
       )
-
       if (!parseResult) {
         mentionsInput.setState({ disallowSelect: false })
         const position = activePromptTemplate.length
-        setPromptTemplate(undefined)
+        setPromptTemplate && setPromptTemplate(undefined)
         setHasPromptTemplate(false)
         htmlRef.setSelectionRange(position, position)
       } else {
         const { prefix, query, position } = parseResult
-        mentionsInput.setState({ disallowSelect: query === '' })
+        mentionsInput.setState({ disallowSelect: query === '', selectionStart: position, selectionEnd: position })
         mentionsInput.updateMentionsQueries(activePromptTemplate, position)
+        console.log({ state: mentionsInput.state, position })
 
         // When a new templat is loaded, move the cursor and the suggestion overlay to the prefix position
         if (query === '') {
           htmlRef.setSelectionRange(position, position)
-          isNewTemplate &&
+          // Ensure that the suggestion overlay is positioned above the current placeholder
+          // If the condition is removed, keyboard selection won't work for multi-placeholder template.
+          if (isNewTemplate) {
             mentionsInput.handleChange({
               target: {
                 value: activePromptTemplate,
@@ -293,6 +298,9 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
               },
               nativeEvent: {},
             })
+          } else {
+            mentionsInput.render()
+          }
         }
       }
       setIsNewTemplate(false)
@@ -395,26 +403,56 @@ export const TextField = forwardRef<Ref, TextFieldProps>(
             style={isEdit ? imageEditStyle : imageDisplayStyle}
           />
         </MentionsInput>
-        {displayButtons ? (
-          <div className="text-right">
-            <span className="inline-flex rounded-md shadow-sm mt-1">
-              <button
-                type="button"
-                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full mr-2"
-                aria-label="Cancel"
-                onClick={handleCancel}
-              >
-                <XMarkIcon className="w-4 h-4 text-black" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full"
-                aria-label="Confirm"
-                onClick={handleConfirm}
-              >
-                <CheckIcon className="w-4 h-4 text-black" aria-hidden="true" />
-              </button>
-            </span>
+        {isEdit ? (
+          <div className="mt-2 flex flex-row">
+            {displayButtons ? (
+              <>
+                <div className="px-1 pt-2">
+                  <span
+                    className={
+                      value.newPlainTextValue.length <= INPUT_CHARACTER_LIMIT ? 'text-neutral-500' : 'text-tomato'
+                    }
+                  >
+                    {value.newPlainTextValue.length}/{INPUT_CHARACTER_LIMIT}
+                  </span>
+                </div>
+                <div className="grow"></div>
+                <div>
+                  <span className="inline-flex rounded-md shadow-sm mt-1">
+                    <button
+                      type="button"
+                      className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full mr-2"
+                      aria-label="Cancel"
+                      onClick={handleCancel}
+                    >
+                      <XMarkIcon className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full"
+                      aria-label="Confirm"
+                      onClick={handleConfirm}
+                    >
+                      <CheckIcon className="w-4 h-4 text-neutral-500" aria-hidden="true" />
+                    </button>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <PromptList displayButtons={displayButtons} setPromptTemplate={setPromptTemplate} />
+                <div className="grow"></div>
+                <div className="px-1 pt-1 mr-8">
+                  <span
+                    className={
+                      value.newPlainTextValue.length <= INPUT_CHARACTER_LIMIT ? 'text-neutral-500' : 'text-tomato'
+                    }
+                  >
+                    {value.newPlainTextValue.length}/{INPUT_CHARACTER_LIMIT}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         ) : null}
       </div>

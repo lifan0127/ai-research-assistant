@@ -16,7 +16,7 @@ export interface InputProps {
   content?: MentionValue
   inputStates?: StatesSchema
   disabled?: boolean
-  isLoading: boolean
+  isLoading?: boolean
   promptTemplate?: { template: string }
   setPromptTemplate: (template: { template: string } | undefined) => void
 }
@@ -74,79 +74,53 @@ export function Input({
   }
 
   return (
-    <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 py-2">
+    <div className="relative rounded border border-neutral-500 bg-white shadow-md px-3 pt-2 pb-1">
       {disabled ? null : <States states={states} />}
       <div className="relative">
-        {disabled ? (
-          <div className="leading-6 w-full text-neutral-500">
-            Please finish editing and close the message edit window to resume the conversation here.
-          </div>
-        ) : (
-          <TextField
-            ref={inputRef}
-            onSubmit={handleSubmit}
-            onCancel={onCancel}
-            displayButtons={id !== undefined}
-            states={states.states}
-            resetStates={states.reset}
-            value={states.value}
-            setValue={states.setValue}
-            forceSuggestionsAboveCursor={!id}
-            promptTemplate={promptTemplate}
-            setPromptTemplate={setPromptTemplate}
-          />
-        )}
-        {id ? null : isLoading ? (
-          <div className="absolute -top-2 right-4 pt-4 z-10">
-            <div className="dot-flashing "></div>
-          </div>
-        ) : (
-          <div className="absolute -top-4 right-0 pt-4 z-10">
-            {states.value.newPlainTextValue !== '' ? (
-              <button
-                className="border-none bg-transparent m-0 p-0 hover:text-tomato focus:text-tomato"
-                onClick={() => handleSubmit()}
-              >
-                <PaperAirplaneIcon className="w-6 h-6" />
-              </button>
-            ) : (
-              <PaperAirplaneIconDisabled className="w-6 h-6 text-gray-300" />
-            )}
-          </div>
-        )}
-        {/* <textarea
-          id="aria-chat-input"
+        <TextField
           ref={inputRef}
-          className="w-full h-16 max-h-64 resize-none border-none text-base overflow-y-auto text-black bg-white"
-          placeholder="How can I help you today?"
-          defaultValue={content}
-          autoFocus
-          onKeyDown={handleKeyDown}
-          // onKeyUp={handleKeyUp}
-        /> */}
+          onSubmit={handleSubmit}
+          onCancel={onCancel}
+          displayButtons={id !== undefined}
+          states={states.states}
+          resetStates={states.reset}
+          value={states.value}
+          setValue={states.setValue}
+          forceSuggestionsAboveCursor={!id}
+          promptTemplate={promptTemplate}
+          setPromptTemplate={setPromptTemplate}
+        />
+        {disabled ? (
+          <div className="absolute bg-white top-0 left-0 bottom-0 right-0 w-full height-full text-neutral-500 z-40 flex">
+            <div className="m-auto">
+              Please finish editing and close the message edit window to resume the conversation here.
+            </div>
+          </div>
+        ) : null}
+        {id ? null : (
+          <>
+            {isLoading ? (
+              <div className="absolute -top-2 right-4 pt-4 z-10">
+                <div className="dot-flashing "></div>
+              </div>
+            ) : null}
+            <div className="absolute bottom-0 right-0 pt-4 z-10">
+              {states.value.newPlainTextValue !== '' ? (
+                <button
+                  className="border-none bg-transparent m-0 p-1 rounded-full text-tomato hover:bg-gray-200"
+                  onClick={() => handleSubmit()}
+                >
+                  <PaperAirplaneIcon className="w-6 h-6" />
+                </button>
+              ) : (
+                <div className="p-1">
+                  <PaperAirplaneIconDisabled className="w-6 h-6 text-gray-300" />
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
-      {/* {id ? (
-        <div className="text-right">
-          <span className="inline-flex rounded-md shadow-sm mt-1">
-            <button
-              type="button"
-              className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full mr-2"
-              aria-label="Cancel"
-              onClick={handleCancel}
-            >
-              <XMarkIcon className="w-4 h-4 text-black" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none p-1 rounded-full"
-              aria-label="Confirm"
-              onClick={handleConfirm}
-            >
-              <CheckIcon className="w-4 h-4 text-black" aria-hidden="true" />
-            </button>
-          </span>
-        </div>
-      ) : null} */}
       {isDragging && id === dropArea ? (
         <DragArea
           id={id}

@@ -1,12 +1,16 @@
-import React, { Fragment, useMemo } from 'react'
+import React, { Fragment, useMemo, useState } from 'react'
 import {
   MagnifyingGlassIcon,
   QuestionMarkCircleIcon,
   PhotoIcon,
   AcademicCapIcon,
   ArrowsRightLeftIcon,
+  SparklesIcon,
+  ListBulletIcon,
 } from '@heroicons/react/24/outline'
 import { selectionConfig } from '../../../models/utils/states'
+import { useOutsideClick } from '../../hooks/useOutsideClick'
+import { LinkButton } from '../../components/buttons/LinkButton'
 
 const prompts = [
   {
@@ -17,6 +21,11 @@ const prompts = [
   {
     icon: QuestionMarkCircleIcon,
     title: 'Ask a question',
+    template: 'According to ^, what are the latest studies on #?',
+  },
+  {
+    icon: ListBulletIcon,
+    title: 'Summarize a paper',
     template: 'Summarize / in a few sentences.',
   },
   {
@@ -88,24 +97,73 @@ interface PromptLibraryProps {
 
 export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
   return (
-    <div>
-      <ul role="list" className="list-none p-0 grid grid-cols-1 -m-2 sm:grid-cols-2 lg:grid-cols-3">
-        {prompts.map(({ icon: Icon, title, template }) => (
-          <li key={title} className="m-2 col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
-            <button
-              type="button"
-              className="w-full h-full p-4 bg-white hover:bg-gray-200 focus:z-10 rounded border-none"
-              onClick={() => setPromptTemplate({ template })}
-            >
-              <div className="flex mb-3">
-                <Icon className="w-5 h-5 text-tomato" />
-                <span className="ml-2 text-md font-bold text-gray-900">{title}</span>
-              </div>
-              <Template template={template} />
-            </button>
-          </li>
-        ))}
-      </ul>
+    <ul role="list" className="list-none p-0 grid grid-cols-1 -m-2 sm:grid-cols-2 lg:grid-cols-3">
+      {prompts.map(({ icon: Icon, title, template }) => (
+        <li key={title} className="m-2 col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow">
+          <button
+            type="button"
+            className="w-full h-full p-4 bg-white hover:bg-gray-200 focus:z-10 rounded border-none"
+            onClick={() => setPromptTemplate({ template })}
+          >
+            <div className="flex mb-3">
+              <Icon className="w-5 h-5 text-tomato" />
+              <span className="ml-2 text-md font-bold text-gray-900">{title}</span>
+            </div>
+            <Template template={template} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+interface PromptListProps {
+  displayButtons: boolean
+  setPromptTemplate: (template: { template: string } | undefined) => void
+}
+
+export function PromptList({ displayButtons, setPromptTemplate }: PromptListProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useOutsideClick(() => setOpen(false))
+
+  function handleOpen() {
+    setOpen(!open)
+  }
+
+  function handleSelect(template: string) {
+    setPromptTemplate({ template })
+    setOpen(false)
+  }
+
+  return (
+    <div className="relative">
+      <LinkButton
+        ref={ref}
+        style="relative inline-flex items-center border-none bg-transparent m-0 p-1 rounded-full text-neutral-500 hover:bg-gray-200"
+        onClick={handleOpen}
+      >
+        <SparklesIcon className={displayButtons ? 'w-4 h-4' : 'w-6 h-6'} />
+      </LinkButton>
+      <div className={open ? 'visible absolute left-0 bottom-10' : 'invisible absolute left-0 bottom-10 '}>
+        <ul
+          className="list-none m-0 p-0 shadow-lg border border-solid border-gray-200"
+          style={{ background: '-moz-field', width: '350px' }}
+        >
+          {prompts.map(({ icon: Icon, title, template }) => (
+            <li key={title} className="relative rounded-lg bg-white">
+              <LinkButton
+                style="w-full h-full p-4 bg-white hover:bg-gray-200 focus:z-10 rounded border-none flex flex-row"
+                onClick={() => handleSelect(template)}
+              >
+                <Icon className="w-4 h-4 text-tomato mt-1 mr-2" />
+                <div className="grow">
+                  <Template template={template} />
+                </div>
+              </LinkButton>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

@@ -125,7 +125,17 @@ function Gallery({ images }: GalleryProps) {
   )
 }
 
-export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId, editId, setEditId }: UserMessageProps) {
+export function UserMessage({
+  id,
+  content,
+  states,
+  onSubmit,
+  copyId,
+  setCopyId,
+  editId,
+  setEditId,
+  setPromptTemplate,
+}: UserMessageProps) {
   // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
   const [isEdit, setIsEdit] = useState(false)
@@ -178,7 +188,14 @@ export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId, 
           ref={ref}
           className="bg-tomato p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-black break-words min-w-[320px]"
         >
-          <Input onSubmit={handleSubmit} onCancel={handleCancel} id={id} content={content} inputStates={states} />
+          <Input
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            id={id}
+            content={content}
+            inputStates={states}
+            setPromptTemplate={setPromptTemplate}
+          />
         </div>
       ) : (
         <div className="flex flex-col">
@@ -186,7 +203,13 @@ export function UserMessage({ id, content, states, onSubmit, copyId, setCopyId, 
             ref={ref}
             className="relative self-end bg-tomato p-2 [&>*]:mx-2 [&_*]:my-0 [&_*]:leading-6 border border-neutral-500 rounded shadow-md shadow-black/20 text-white break-words"
           >
-            <TextField states={states} isEdit={false} value={content} forceSuggestionsAboveCursor={false} />
+            <TextField
+              states={states}
+              isEdit={false}
+              value={content}
+              forceSuggestionsAboveCursor={false}
+              setPromptTemplate={setPromptTemplate}
+            />
             <div className="flex pt-3">
               <div className="flex-auto"></div>
               <div className="flex-none flex flex-row space-x-2">
