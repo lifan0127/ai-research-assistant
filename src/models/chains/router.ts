@@ -2,19 +2,18 @@ import { BaseLanguageModel } from 'langchain/base_language'
 import { AgentExecutor } from 'langchain/agents'
 import { BaseChain } from 'langchain/chains'
 import {
-  PromptTemplate,
   ChatPromptTemplate,
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
   MessagesPlaceholder,
-} from 'langchain/prompts'
+} from '@langchain/core/prompts'
 import { JsonOutputFunctionsParser, OutputFunctionsParser } from 'langchain/output_parsers'
 import { ConversationChain } from 'langchain/chains'
 import { BaseChatMemory } from 'langchain/memory'
 import { ChainValues } from 'langchain/schema'
 import { StructuredOutputParser, OutputFixingParser } from 'langchain/output_parsers'
 import { config } from '../../../package.json'
-import { ChatOpenAI } from 'langchain/chat_models/openai'
+import { ChatOpenAI } from '@langchain/openai'
 import { create } from 'domain'
 import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks'
 import { ClarificationActionResponse, RoutingActionResponse, ExecutorActionResponse } from '../utils/actions'
@@ -22,7 +21,7 @@ import { OutputActionParser } from '../utils/parsers'
 import { serializeStates } from '../utils/states'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
-const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-1106-preview'
 const OPENAI_BASE_URL =
   (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
 const llm = new ChatOpenAI({
