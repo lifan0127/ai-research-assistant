@@ -1,7 +1,7 @@
 import { BaseLanguageModel } from 'langchain/base_language'
 import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks'
 import { BaseChain, ChainInputs, ConversationChain } from 'langchain/chains'
-import { ChatOpenAI } from 'langchain/chat_models/openai'
+import { ChatOpenAI } from '@langchain/openai'
 import { BaseChatMemory } from 'langchain/memory'
 import {
   ChatPromptTemplate,
