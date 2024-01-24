@@ -9,6 +9,12 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ![Aria](assets/images/aria.png)
 
+## Quickstart
+
+The easist way to get started with Aria is to try one of the interactive prompts in the prompt library.
+
+![Prompt Library](assets/videos/prompt-library.gif)
+
 ## Features
 
 ### Use Drag-and-Drop to Reference Your Zotero Items and Collections
