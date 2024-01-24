@@ -7,7 +7,7 @@ import {
   HumanMessagePromptTemplate,
   MessagesPlaceholder,
 } from 'langchain/prompts'
-import { ChatOpenAI } from 'langchain/chat_models/openai'
+import { ChatOpenAI } from '@langchain/openai'
 import { ChainInputs, BaseChain, ConversationChain } from 'langchain/chains'
 import { Generation, ChatGeneration } from 'langchain/schema'
 import { ChainTool } from 'langchain/tools'
@@ -57,14 +57,14 @@ const SEARCH_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([
 Compose an exhaustive search query for Zotero that includes broader, narrower, and associated terms to ensure a more extensive search coverage.
 
 Gather the following information from the user in a conversational manner:
-- A set of keywords to represent a specific topic or question. Keywords should be domain specific terminologies and should not include common phrases such as "papers", "articles", "summary", "research areas" etc.
+- A set of keywords to represent a specific topic or question. Keywords should be domain specific terminologies and should not include common phrases such as "papers", "articles", "summary", "research areas" etc. It is possible that a search query does not include any keywords.
 - Creators
 - Tags
 - Collections
 - Year range
 We need one, or a combination of multiple of the above to build a search query.
 
-If you don't have enough information, ask for clarification.
+If you don't have enough information, or are unclear about user's intention, ask for clarification.
     `.trim()
   ),
   new MessagesPlaceholder('history'),
@@ -269,7 +269,7 @@ interface LoadSearchChainInput {
 
 export const loadSearchChain = (params: LoadSearchChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
-  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-0613'
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-1106-preview'
   const OPENAI_BASE_URL =
     (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({
