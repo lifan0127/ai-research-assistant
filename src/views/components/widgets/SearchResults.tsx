@@ -217,7 +217,7 @@ export function Component({
   )
 }
 
-export function compileContent({ query: { keywords, creators, tags, years }, count, results }: Props) {
+export function compileContent({ query: { keywords = [], creators, tags, years }, count, results }: Props) {
   const data = results.map(({ item, attachment }, i) => {
     const columns = {
       title: item.title as string,
@@ -255,7 +255,7 @@ function copy(props: Props) {
   return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
 }
 
-async function createNote({ query: { keywords, creators, tags, years }, count, results }: Props) {
+async function createNote({ query: { keywords = [], creators, tags, years }, count, results }: Props) {
   const resultIds = results.map(({ item }) => item.id)
   const csl = Zotero.Styles.get(DEFAULT_BIB_STYLE).getCiteProc()
   csl.updateItems(resultIds)
