@@ -1,3 +1,16 @@
+diff --git a/node_modules/@langchain/core/dist/output_parsers/json.js b/node_modules/@langchain/core/dist/output_parsers/json.js
+index 29dc413..3991aeb 100644
+--- a/node_modules/@langchain/core/dist/output_parsers/json.js
++++ b/node_modules/@langchain/core/dist/output_parsers/json.js
+@@ -46,7 +46,7 @@ export class JsonOutputParser extends BaseCumulativeTransformOutputParser {
+ export function parseJsonMarkdown(s, parser = parsePartialJson) {
+     // eslint-disable-next-line no-param-reassign
+     s = s.trim();
+-    const match = /```(json)?(.*)```/s.exec(s);
++    const match = /```(json)?([\s\S]*?)```/.exec(s);
+     if (!match) {
+         return parser(s);
+     }
 diff --git a/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js b/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js
 index 0c74749..76341ea 100644
 --- a/node_modules/@langchain/core/dist/utils/@cfworker/json-schema/src/dereference.js
