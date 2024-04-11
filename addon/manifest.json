@@ -3,6 +3,7 @@
   "name": "__addonName__",
   "version": "__buildVersion__",
   "description": "__description__",
+  "homepage_url": "__homepage__",
   "author": "__author__",
   "icons": {
     "48": "chrome/content/icons/favicon@0.5x.png",
@@ -12,8 +13,8 @@
     "zotero": {
       "id": "__addonID__",
       "update_url": "__updaterdf__",
-      "strict_min_version": "5.999",
-      "strict_max_version": "6.999"
+      "strict_min_version": "6.999",
+      "strict_max_version": "7.0.*"
     }
   }
 }
