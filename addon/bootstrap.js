@@ -16,6 +16,8 @@ if (typeof Zotero == "undefined") {
 
 var chromeHandle
 
+function install(data, reason) {}
+
 // APP_STARTUP: 1,
 // APP_SHUTDOWN: 2,
 // ADDON_ENABLE: 3,
@@ -24,75 +26,6 @@ var chromeHandle
 // ADDON_UNINSTALL: 6,
 // ADDON_UPGRADE: 7,
 // ADDON_DOWNGRADE: 8,
-
-// In Zotero 6, bootstrap methods are called before Zotero is initialized, and using include.js
-// to get the Zotero XPCOM service would risk breaking Zotero startup. Instead, wait for the main
-// Zotero window to open and get the Zotero object from there.
-//
-// In Zotero 7, bootstrap methods are not called until Zotero is initialized, and the 'Zotero' is
-// automatically made available.
-async function waitForZotero() {
-  if (typeof Zotero != "undefined") {
-    await Zotero.initializationPromise
-  }
-
-  var { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm")
-  var windows = Services.wm.getEnumerator("navigator:browser")
-  var found = false
-  while (windows.hasMoreElements()) {
-    let win = windows.getNext()
-    if (win.Zotero) {
-      Zotero = win.Zotero
-      found = true
-      break
-    }
-  }
-  if (!found) {
-    await new Promise((resolve) => {
-      var listener = {
-        onOpenWindow: function (aWindow) {
-          // Wait for the window to finish loading
-          let domWindow = aWindow
-            .QueryInterface(Ci.nsIInterfaceRequestor)
-            .getInterface(Ci.nsIDOMWindowInternal || Ci.nsIDOMWindow)
-          domWindow.addEventListener(
-            "load",
-            function () {
-              domWindow.removeEventListener("load", arguments.callee, false)
-              if (domWindow.Zotero) {
-                Services.wm.removeListener(listener)
-                Zotero = domWindow.Zotero
-                resolve()
-              }
-            },
-            false
-          )
-        },
-      }
-      Services.wm.addListener(listener)
-    })
-  }
-  await Zotero.initializationPromise
-}
-
-function getExtensionPath(extensionID) {
-  return new Zotero.Promise((resolve, reject) => {
-    try {
-      const { AddonManager } = Components.utils.import("resource://gre/modules/AddonManager.jsm")
-      AddonManager.getAddonByID(extensionID, (addon) => {
-        if (addon) {
-          resolve(addon.getResourceURI("").QueryInterface(Components.interfaces.nsIFileURL).file.path)
-        } else {
-          reject(new Error("Addon not found"))
-        }
-      })
-    } catch (error) {
-      reject(error)
-    }
-  })
-}
-
-
 
 async function initDatabase() {
   // Create the database file in the Zotero profile directory
@@ -125,38 +58,28 @@ async function initDatabase() {
     // Execute the SQL statement
 
     dbConnection.executeSimpleSQL(createTableSQL)
-    console.log({ dbSuccess: 'success' })
+    Zotero.log({ dbSuccess: 'success' })
   } catch (e) {
-    console.log({ dbError: e })
+    Zotero.log({ dbError: e })
   }
 
 }
 
-function install(data, reason) {
-  console.log('install', reason, ADDON_UPGRADE, ADDON_DOWNGRADE)
-}
-
 async function startup({ id, version, resourceURI, rootURI }, reason) {
-  await waitForZotero()
+  await Zotero.initializationPromise;
 
   // String 'rootURI' introduced in Zotero 7
   if (!rootURI) {
     rootURI = resourceURI.spec
   }
 
-  if (Zotero.platformMajorVersion >= 102) {
-    var aomStartup = Components.classes[
-      "@mozilla.org/addons/addon-manager-startup;1"
-    ].getService(Components.interfaces.amIAddonManagerStartup)
-    var manifestURI = Services.io.newURI(rootURI + "manifest.json")
-    chromeHandle = aomStartup.registerChrome(manifestURI, [
-      ["content", "__addonRef__", rootURI + "chrome/content/"],
-      ["locale", "__addonRef__", "en-US", rootURI + "chrome/locale/en-US/"],
-      ["locale", "__addonRef__", "zh-CN", rootURI + "chrome/locale/zh-CN/"],
-    ])
-  } else {
-    setDefaultPrefs(rootURI)
-  }
+  var aomStartup = Components.classes[
+    "@mozilla.org/addons/addon-manager-startup;1"
+  ].getService(Components.interfaces.amIAddonManagerStartup);
+  var manifestURI = Services.io.newURI(rootURI + "manifest.json");
+  chromeHandle = aomStartup.registerChrome(manifestURI, [
+    ["content", "__addonRef__", rootURI + "chrome/content/"],
+  ]);
 
   // Initialize the plugin SQLite database
   switch (reason) {
@@ -166,34 +89,28 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
       // console.log('test wasm loader')
       // const { index, search } = await loadWasmModule()
       // console.log({ index, search })
-
-      console.log('initialize plugin database')
+      Zotero.log('initialize plugin database')
       initDatabase()
       break
     }
     case ADDON_UPGRADE: {
       // TODO: database migration as needed
-      console.log('perform plugin database migration')
+      Zotero.log('perform plugin database migration')
       break
     }
 
   }
 
-  /**
-   * Global variables for plugin code.
-   * The `_globalThis` is the global root variable of the plugin sandbox environment
-   * and all child variables assigned to it is globally accessible.
-   * See `src/index.ts` for details.
-   */
   const ctx = {
     rootURI,
-  }
-  ctx._globalThis = ctx
+  };
+  ctx._globalThis = ctx;
 
   Services.scriptloader.loadSubScript(
-    `${rootURI}/chrome/content/scripts/index.js`,
-    ctx
-  )
+    `${rootURI}/chrome/content/scripts/__addonRef__.js`,
+    ctx,
+  );
+  Zotero.__addonInstance__.hooks.onStartup();
 }
 
 function shutdown({ id, version, resourceURI, rootURI }, reason) {
