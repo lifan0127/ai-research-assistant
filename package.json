@@ -94,5 +94,23 @@
     "tiny-glob": "^0.2.9",
     "typescript": "^5.4.4",
     "zotero-types": "^1.3.23"
+  },
+  "release-it": {
+    "git": {
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": false,
+      "assets": [
+        "build/*.xpi"
+      ]
+    },
+    "hooks": {
+      "before:init": "npm run lint",
+      "after:bump": "npm run build"
+    }
   }
 }
