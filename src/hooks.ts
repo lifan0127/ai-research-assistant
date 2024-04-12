@@ -2,81 +2,65 @@ import { config } from '../package.json'
 import { getString, initLocale } from './modules/locale'
 // import { registerPrompt, registerShortcuts } from './modules/registry'
 import { registerPrefsWindow, registerPrefsScripts } from './modules/preferences'
+import { createZToolkit } from "./utils/ztoolkit";
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
   initLocale()
   ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
 
-  // registerPrompt()
-  // registerShortcuts()
-  registerPrefsWindow()
-  await Zotero.Promise.delay(1000)
+  // TODO: Remove this after zotero#3387 is merged
+  if (__env__ === "development") {
+    // Keep in sync with the scripts/startup.mjs
+    const loadDevToolWhen = `Plugin ${config.addonID} startup`;
+    ztoolkit.log(loadDevToolWhen);
+  }
+
+  initLocale();
+
+  await onMainWindowLoad(window);
+}
+
+async function onMainWindowLoad(win: Window): Promise<void> {
+  // Create ztoolkit for every window
+  addon.data.ztoolkit = createZToolkit();
 
   const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
     closeOnClick: true,
     closeTime: -1,
   })
     .createLine({
-      text: getString('startup.begin'),
-      type: 'default',
+      text: getString("startup-begin"),
+      type: "default",
       progress: 0,
     })
-    .show()
+    .show();
 
-  // =====================================
+  await Zotero.Promise.delay(1000);
+  popupWin.changeLine({
+    progress: 30,
+    text: `[30%] ${getString("startup-begin")}`,
+  });
 
-  // BasicExampleFactory.registerPrefs()
-
-  // BasicExampleFactory.registerNotifier()
-
-  // KeyExampleFactory.registerShortcuts()
-
-  // await Zotero.Promise.delay(1000)
-  // // popupWin.changeLine({
-  // //   progress: 30,
-  // //   text: `[30%] ${getString('startup.begin')}`,
-  // // })
-
-  // UIExampleFactory.registerStyleSheet()
-
-  // UIExampleFactory.registerRightClickMenuItem()
-
-  // UIExampleFactory.registerRightClickMenuPopup()
-
-  // UIExampleFactory.registerWindowMenuWithSeparator()
-
-  // await UIExampleFactory.registerExtraColumn()
-
-  // await UIExampleFactory.registerExtraColumnWithCustomCell()
-
-  // await UIExampleFactory.registerCustomCellRenderer()
-
-  // await UIExampleFactory.registerCustomItemBoxRow()
-
-  // UIExampleFactory.registerLibraryTabPanel()
-
-  // await UIExampleFactory.registerReaderTabPanel()
-
-  // PromptExampleFactory.registerNormalCommandExample()
-
-  // PromptExampleFactory.registerAnonymousCommandExample()
-
-  // PromptExampleFactory.registerConditionalCommandExample()
-
-  // await Zotero.Promise.delay(1000)
+  await Zotero.Promise.delay(1000);
 
   popupWin.changeLine({
     progress: 100,
-    text: `[100%] ${getString('startup.finish')}`,
-  })
-  popupWin.startCloseTimer(5000)
+    text: `[100%] ${getString("startup-finish")}`,
+  });
+  popupWin.startCloseTimer(5000);
 
-  // addon.hooks.onDialogEvents('dialogExample')
+  addon.hooks.onDialogEvents("dialogExample");
+}
+
+async function onMainWindowUnload(win: Window): Promise<void> {
+  ztoolkit.unregisterAll();
+  addon.data.dialog?.window?.close();
 }
 
 function onShutdown(): void {
   ztoolkit.unregisterAll()
+  addon.data.dialog?.window?.close();
   // Remove addon object
   addon.data.alive = false
   delete Zotero[config.addonInstance]
@@ -86,14 +70,23 @@ function onShutdown(): void {
  * This function is just an example of dispatcher for Notify events.
  * Any operations should be placed in a function to keep this funcion clear.
  */
-async function onNotify(event: string, type: string, ids: Array<string | number>, extraData: { [key: string]: any }) {
+async function onNotify(
+  event: string,
+  type: string,
+  ids: Array<string | number>,
+  extraData: { [key: string]: any },
+) {
   // You can add your code to the corresponding notify type
-  ztoolkit.log('notify', event, type, ids, extraData)
-  // if (event == 'select' && type == 'tab' && extraData[ids[0]].type == 'reader') {
-  //   BasicExampleFactory.exampleNotifierCallback()
-  // } else {
-  //   return
-  // }
+  ztoolkit.log("notify", event, type, ids, extraData);
+  if (
+    event == "select" &&
+    type == "tab" &&
+    extraData[ids[0]].type == "reader"
+  ) {
+    // BasicExampleFactory.exampleNotifierCallback();
+  } else {
+    return;
+  }
 }
 
 /**
@@ -157,6 +150,8 @@ function onDialogEvents(type: string) {
 export default {
   onStartup,
   onShutdown,
+  onMainWindowLoad,
+  onMainWindowUnload,
   onNotify,
   onPrefsEvent,
   onShortcuts,
