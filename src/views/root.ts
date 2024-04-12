@@ -31,7 +31,7 @@ export class ReactRoot {
       properties: {
         type: 'text/css',
         rel: 'stylesheet',
-        href: `chrome://${config.addonRef}/content/scripts/index.css`,
+        href: `chrome://${config.addonRef}/content/scripts/${config.addonRef}.css`,
       },
     })
     this.document.documentElement.appendChild(styles)
@@ -50,14 +50,16 @@ export class ReactRoot {
         {
           type: 'click',
           listener: () => {
-            if (!this.dialog) {
+            if (this.dialog && !this.dialog.closed) {
+              this.dialog.focus()
+            } else {
               this.launchApp()
             }
           },
         },
       ],
     })
-    const toolbarNode = this.document.getElementById('zotero-tb-advanced-search')
+    const toolbarNode = this.document.getElementById('zotero-tb-note-add')
     if (toolbarNode) {
       toolbarNode.after(ariaBtn)
     }
@@ -89,7 +91,7 @@ export class ReactRoot {
     const top = window.screenY + window.outerHeight / 2 - dialogHeight / 2
     const dialog = (window as any).openDialog(
       'chrome://aria/content/popup.xul',
-      `${config.addonRef}-aria`,
+      `${config.addonRef}-window`,
       `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
       windowArgs
     )
@@ -123,7 +125,7 @@ export class ReactRoot {
       modifiers: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift',
       key: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r',
       callback: event => {
-        if (this.dialog) {
+        if (this.dialog && !this.dialog.closed) {
           this.dialog.focus()
         } else {
           this.launchApp()
