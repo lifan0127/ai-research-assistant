@@ -20,7 +20,7 @@ class Addon {
     ztoolkit: CustomToolkit
     // ztoolkit: ZoteroToolkit
     locale?: {
-      stringBundle: any
+      current: any;
     }
     prefs?: {
       window: Window
