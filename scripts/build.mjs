@@ -12,6 +12,9 @@ import { existsSync, readdirSync, renameSync } from "fs";
 import path from "path";
 import { env, exit } from "process";
 import replaceInFile from "replace-in-file";
+import postCssPlugin from "esbuild-style-plugin";
+import tailwind from "tailwindcss";
+import autoprefixer from "autoprefixer";
 
 const { replaceInFileSync } = replaceInFile;
 
