@@ -5,7 +5,7 @@ export class Messages {
   private file: nsIFile
 
   constructor() {
-    this.file = this.initFile(OS.Path.join(Zotero.DataDirectory._dir, config.addonRef, 'messages.jsonl'))
+    this.file = this.initFile(PathUtils.join(Zotero.DataDirectory._dir, config.addonRef, 'messages.jsonl'))
   }
 
   private initFile(path: string) {
@@ -64,7 +64,7 @@ export class Messages {
       } while (hasMore)
     } catch (e) {
       // Rename and clear the file
-      const corruptedFilePath = OS.Path.join(
+      const corruptedFilePath = PathUtils.join(
         Zotero.DataDirectory._dir,
         config.addonRef,
         `messages_corrupted_${new Date().valueOf()}.jsonl`
