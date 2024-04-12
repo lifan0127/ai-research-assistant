@@ -27,47 +27,46 @@ function install(data, reason) {}
 // ADDON_UPGRADE: 7,
 // ADDON_DOWNGRADE: 8,
 
-async function initDatabase() {
-  // Create the database file in the Zotero profile directory
-  const { FileUtils } = ChromeUtils.import("resource://gre/modules/FileUtils.jsm")
-  const dbFile = FileUtils.getFile('ProfD', ['aria', 'db.sqlite'])
-  // Open the SQLite database
-  const storageService = Cc['@mozilla.org/storage/service;1'].getService(Ci.mozIStorageService)
-  const dbConnection = storageService.openDatabase(dbFile)
+// async function initDatabase() {
+//   // Create the database file in the Zotero profile directory
+//   const { FileUtils } = ChromeUtils.import("resource://gre/modules/FileUtils.jsm")
+//   const dbFile = FileUtils.getFile('ProfD', ['aria', 'db.sqlite'])
+//   // Open the SQLite database
+//   const storageService = Cc['@mozilla.org/storage/service;1'].getService(Ci.mozIStorageService)
+//   const dbConnection = storageService.openDatabase(dbFile)
 
-  // Create the necessary tables (replace this SQL statement with your own)
-  const createTableSQL = `
-    CREATE TABLE IF NOT EXISTS DOCUMENTS(
-      ITEM_ID TEXT,
-      ITEM_TYPE TEXT,
-      CHUNK_ID TEXT,
-      TEXT TEXT,
-      EMBEDDING BLOB
-    );
-  `
-  // console.log({
-  //   vector0: `${pluginPath}/chrome/content/libs/vector0`,
-  //   vss0: `${pluginPath}/chrome/content/libs/vss0`
-  // })
+//   // Create the necessary tables (replace this SQL statement with your own)
+//   const createTableSQL = `
+//     CREATE TABLE IF NOT EXISTS DOCUMENTS(
+//       ITEM_ID TEXT,
+//       ITEM_TYPE TEXT,
+//       CHUNK_ID TEXT,
+//       TEXT TEXT,
+//       EMBEDDING BLOB
+//     );
+//   `
+//   // console.log({
+//   //   vector0: `${pluginPath}/chrome/content/libs/vector0`,
+//   //   vss0: `${pluginPath}/chrome/content/libs/vss0`
+//   // })
 
-  try {
-    // const vector0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vector0.so']).path
-    // const vss0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vss0.so']).path
-    // console.log({ vector0, vss0 })
+//   try {
+//     // const vector0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vector0.so']).path
+//     // const vss0 = FileUtils.getFile(pluginPath, ['chrome', 'content', 'libs', 'vss0.so']).path
+//     // console.log({ vector0, vss0 })
 
-    // Execute the SQL statement
+//     // Execute the SQL statement
 
-    dbConnection.executeSimpleSQL(createTableSQL)
-    Zotero.log({ dbSuccess: 'success' })
-  } catch (e) {
-    Zotero.log({ dbError: e })
-  }
+//     dbConnection.executeSimpleSQL(createTableSQL)
+//     Zotero.log({ dbSuccess: 'success' })
+//   } catch (e) {
+//     Zotero.log({ dbError: e })
+//   }
 
-}
+// }
 
 async function startup({ id, version, resourceURI, rootURI }, reason) {
   await Zotero.initializationPromise;
-
   // String 'rootURI' introduced in Zotero 7
   if (!rootURI) {
     rootURI = resourceURI.spec
@@ -81,25 +80,25 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
     ["content", "__addonRef__", rootURI + "chrome/content/"],
   ]);
 
-  // Initialize the plugin SQLite database
-  switch (reason) {
-    case ADDON_INSTALL:
-    case APP_STARTUP: {
-      // TODO: should only be done during plugin install
-      // console.log('test wasm loader')
-      // const { index, search } = await loadWasmModule()
-      // console.log({ index, search })
-      Zotero.log('initialize plugin database')
-      initDatabase()
-      break
-    }
-    case ADDON_UPGRADE: {
-      // TODO: database migration as needed
-      Zotero.log('perform plugin database migration')
-      break
-    }
+  // // Initialize the plugin SQLite database
+  // switch (reason) {
+  //   case ADDON_INSTALL:
+  //   case APP_STARTUP: {
+  //     // TODO: should only be done during plugin install
+  //     // console.log('test wasm loader')
+  //     // const { index, search } = await loadWasmModule()
+  //     // console.log({ index, search })
+  //     Zotero.log('initialize plugin database')
+  //     initDatabase()
+  //     break
+  //   }
+  //   case ADDON_UPGRADE: {
+  //     // TODO: database migration as needed
+  //     Zotero.log('perform plugin database migration')
+  //     break
+  //   }
 
-  }
+  // }
 
   const ctx = {
     rootURI,
