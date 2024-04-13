@@ -1,16 +1,15 @@
-import { config } from '../../package.json'
-import { getString } from './locale'
+import { config, homepage } from '../../package.json'
+import { getString } from "../utils/locale"
 
 export function registerPrefsWindow() {
   const prefOptions = {
     pluginID: config.addonID,
     src: rootURI + 'chrome/content/preferences.xhtml',
-    label: getString('prefs.title'),
+    label: getString('prefs-title'),
     image: `chrome://${config.addonRef}/content/icons/favicon@0.333x.png`,
-    extraDTD: [`chrome://${config.addonRef}/locale/overlay.dtd`],
-    defaultXUL: true,
+    helpURL: homepage,
   }
-  ztoolkit.PreferencePane.register(prefOptions)
+  Zotero.PreferencePanes.register(prefOptions)
 }
 
 export function registerPrefsScripts(_window: Window) {
@@ -19,32 +18,6 @@ export function registerPrefsScripts(_window: Window) {
   if (!addon.data.prefs) {
     addon.data.prefs = {
       window: _window,
-      columns: [
-        {
-          dataKey: 'title',
-          label: 'prefs.table.title',
-          fixedWidth: true,
-          width: 100,
-        },
-        {
-          dataKey: 'detail',
-          label: 'prefs.table.detail',
-        },
-      ],
-      rows: [
-        {
-          title: 'Orange',
-          detail: "It's juicy",
-        },
-        {
-          title: 'Banana',
-          detail: "It's sweet",
-        },
-        {
-          title: 'Apple',
-          detail: 'I mean the fruit APPLE',
-        },
-      ],
     }
   } else {
     addon.data.prefs.window = _window
