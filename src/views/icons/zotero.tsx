@@ -12,7 +12,9 @@ interface ZoteroIconProps extends IconProps {
 
 // All available icons: https://github.com/zotero/zotero/tree/f012a348af1143a7e033d697beae86df729080ab/chrome/skin/default/zotero
 function ZoteroIcon({ category, type, enlarged = false }: ZoteroIconProps) {
-  const url = type
+  // tag.png is no longer available: https://github.com/zotero/zotero/blob/main/chrome/skin/default/zotero/tag.svg
+  const url = category === 'tag' ? 'chrome://zotero/skin/tag.svg'
+  : type
     ? `chrome://zotero/skin/${category}-${type}${enlarged ? '@2x' : ''}.png`
     : `chrome://zotero/skin/${category}${enlarged ? '@2x' : ''}.png`
   return (
