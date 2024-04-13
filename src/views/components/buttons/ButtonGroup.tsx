@@ -35,6 +35,7 @@ export function ButtonGroup({ groups, selected }: ButtonGroupProps) {
               index === groups.length - 1 ? 'rounded-r-lg' : '',
               'group relative min-w-0 flex-1 overflow-hidden p-1 text-center text-sm font-medium hover:bg-gray-50 focus:bg-gray-50 focus:z-10'
             )}
+            style={{ textDecoration: 'none' }}
             onClick={event => handleClick(event, onClick)}
           >
             <span>{label}</span>
