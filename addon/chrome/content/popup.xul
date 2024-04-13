@@ -4,7 +4,7 @@
 <xul:dialog id="aria" title="Aria: AI Research Assistant" buttons="none"
   xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   xmlns="http://www.w3.org/1999/xhtml"
-  style="padding: 0"
+  style="padding: 0; font-size: 16px;"
   minwidth="420"
   minheight="560"
 >
