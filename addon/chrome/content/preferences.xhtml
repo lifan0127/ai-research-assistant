@@ -1,145 +1,111 @@
+<linkset>
+  <html:link
+    rel="localization"
+    href="__addonRef__-preferences.ftl"
+  />
+</linkset>
 <vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})">
-  <!-- <groupbox> -->
-  <!-- <checkbox
-      id="zotero-prefpane-__addonRef__-enable"
-      label="&zotero.__addonRef__.pref.enable.label;"
-      preference="extensions.zotero.__addonRef__.enable"
-    /> -->
-
-  <!-- <hbox>
-        <label><html:h2>&zotero.__addonRef__.pref.title;</html:h2></label>
-      </hbox> -->
   <groupbox>
-    <vbox class="groupbox-title" pack="start">
-      <caption label="&zotero.__addonRef__.pref.model_configuration_label;"></caption>
-    </vbox>
-    <box class="groupbox-body" flex="1">
-      <hbox>
-        <label>&zotero.__addonRef__.pref.OPENAI_MODEL.label;</label>
-        <radiogroup
-          id="zotero-prefpane-__addonRef__-OPENAI_MODEL"
-          label="&zotero.__addonRef__.pref.OPENAI_MODEL.label;"
-          preference="extensions.zotero.__addonRef__.OPENAI_MODEL"
-        >
-          <radio label="GPT-4" value="gpt-4-0613" id="zotero-prefpane-__addonRef__-OPENAI_MODEL-0" />
-          <radio
-            label="GPT-4 Turbo (Preview)"
-            value="gpt-4-1106-preview"
-            id="zotero-prefpane-__addonRef__-OPENAI_MODEL-1"
-          />
-        </radiogroup>
-      </hbox>
-      <hbox>
-        <label>&zotero.__addonRef__.pref.OPENAI_API_KEY.label;</label>
-        <html:input
-          type="password"
-          id="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
-          preference="extensions.zotero.__addonRef__.OPENAI_API_KEY"
-        ></html:input>
-      </hbox>
-      <hbox>
-        <label>&zotero.__addonRef__.pref.OPENAI_BASE_URL.label;</label>
-        <html:input
-          type="text"
-          id="zotero-prefpane-__addonRef__-OPENAI_BASE_URL"
-          preference="extensions.zotero.__addonRef__.OPENAI_BASE_URL"
-        ></html:input>
-      </hbox>
-    </box>
-  </groupbox>
-  <label><html:br></html:br></label>
-  <groupbox>
-    <hbox class="groupbox-title" pack="start">
-      <caption label="&zotero.__addonRef__.pref.ui_customization_label;"></caption>
-    </hbox>
-    <box class="groupbox-body" flex="1">
-      <hbox>
-        <label>&zotero.__addonRef__.pref.DEFAULT_ZOOM_LEVEL.label;</label>
-        <html:input
-          type="number"
-          step="25"
-          min="400"
-          max="25"
-          id="zotero-prefpane-__addonRef__-DEFAULT_ZOOM_LEVEL"
-          preference="extensions.zotero.__addonRef__.DEFAULT_ZOOM_LEVEL"
-        ></html:input>
-      </hbox>
-      <label></label>
-      <hbox>
-        <label>&zotero.__addonRef__.pref.keyboard_shortcut_label;</label>
-        <!-- <menulist
-          id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER"
-          label="&zotero.__addonRef__.pref.SHORTCUT_MODIFIER.label;"
-          native="true"
-          preference="extensions.zotero.__addonRef__.SHORTCUT_MODIFIER"
-          sizetopopup="always"
-        >
-          <menupopup>
-            <menuitem id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-shift" label="Shift" value="shift" />
-            <menuitem
-              id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-ctrl-shift"
-              label="Ctrl + Shift"
-              value="control shift"
-            />
-            <menuitem id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-alt-shift" label="Alt + Shift" value="alt shift" />
-          </menupopup>
-        </menulist> -->
-        <radiogroup
-          id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER"
-          label="&zotero.__addonRef__.pref.SHORTCUT_MODIFIER.label;"
-          preference="extensions.zotero.__addonRef__.SHORTCUT_MODIFIER"
-        >
-          <radio label="Shift" value="shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-shift" />
-          <radio
-            label="Ctrl + Shift"
-            value="control shift"
-            id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-ctrl-shift"
-          />
-          <radio label="Alt + Shift" value="alt shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-alt-shift" />
-        </radiogroup>
-        <vbox>
-          <label> + </label>
-        </vbox>
-        <vbox>
-          <html:input
-            id="zotero-prefpane-__addonRef__-SHORTCUT_KEY"
-            label="&zotero.__addonRef__.pref.SHORTCUT_KEY.label;"
-            preference="extensions.zotero.__addonRef__.SHORTCUT_KEY"
-            maxlength="1"
-            size="1"
-          />
-        </vbox>
-      </hbox>
-    </box>
-  </groupbox>
-  <label><html:br></html:br></label>
-  <groupbox>
-    <hbox class="groupbox-title" pack="start">
-      <caption label="&zotero.__addonRef__.pref.feedback_submission_label;"></caption>
-    </hbox>
-    <box class="groupbox-body" flex="1">
-      <hbox>
-        <label>&zotero.__addonRef__.pref.USER_EMAIL.label;</label>
-        <html:input
-          type="email"
-          id="zotero-prefpane-__addonRef__-USER_EMAIL"
-          preference="extensions.zotero.__addonRef__.USER_EMAIL"
-        ></html:input>
-      </hbox>
-      <hbox>
-        <checkbox
-          id="zotero-prefpane-__addonRef__-FEEDBACK_NO_CONFIRMATION"
-          label="&zotero.__addonRef__.pref.FEEDBACK_NO_CONFIRMATION.label;"
-          preference="extensions.zotero.__addonRef__.FEEDBACK_NO_CONFIRMATION"
+    <label><html:h2 data-l10n-id="aria-pref-model-configuration"></html:h2></label>
+    <hbox>
+      <label data-l10n-id="aria-pref-openai-model"></label>
+      <radiogroup
+        id="zotero-prefpane-__addonRef__-OPENAI_MODEL"
+        preference="extensions.zotero.__addonRef__.OPENAI_MODEL"
+        native="true"
+      >
+        <radio label="GPT-4" value="gpt-4-0613" id="zotero-prefpane-__addonRef__-OPENAI_MODEL-0" />
+        <radio
+          label="GPT-4 Turbo (Preview)"
+          value="gpt-4-1106-preview"
+          id="zotero-prefpane-__addonRef__-OPENAI_MODEL-1"
         />
-      </hbox>
-    </box>
+      </radiogroup>
+    </hbox>
+    <hbox>
+      <label data-l10n-id="aria-pref-openai-api-key" style="display: flex; align-items: center"></label>
+      <html:input
+        type="password"
+        id="zotero-prefpane-__addonRef__-OPENAI_API_KEY"
+        preference="extensions.zotero.__addonRef__.OPENAI_API_KEY"
+      ></html:input>
+    </hbox>
+    <hbox>
+      <label data-l10n-id="aria-pref-openai-base-url" style="display: flex; align-items: center"></label>
+      <html:input
+        style="flex: 1; width: 100%"
+        type="text"
+        id="zotero-prefpane-__addonRef__-OPENAI_BASE_URL"
+        preference="extensions.zotero.__addonRef__.OPENAI_BASE_URL"
+      ></html:input>
+    </hbox>
   </groupbox>
-  <label><html:br></html:br></label>
   <groupbox>
-    <box class="groupbox-body" flex="1">
-      <label value="&zotero.__addonRef__.help.version.label;  &zotero.__addonRef__.help.releasetime.label;"></label>
-    </box>
+    <label><html:h2 data-l10n-id="aria-pref-ui-customization"></html:h2></label>
+    <hbox>
+      <label data-l10n-id="aria-pref-default-zoom-level" style="display: flex; align-items: center"></label>
+      <html:input
+        type="number"
+        step="25"
+        max="400"
+        min="25"
+        id="zotero-prefpane-__addonRef__-DEFAULT_ZOOM_LEVEL"
+        preference="extensions.zotero.__addonRef__.DEFAULT_ZOOM_LEVEL"
+      ></html:input>
+    </hbox>
+    <hbox>
+      <label data-l10n-id="aria-pref-keyboard-shortcut"></label>
+      <radiogroup
+        id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER"
+        preference="extensions.zotero.__addonRef__.SHORTCUT_MODIFIER"
+      >
+        <radio label="Shift" value="shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-shift" />
+        <radio
+          label="Ctrl + Shift"
+          value="control shift"
+          id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-ctrl-shift"
+        />
+        <radio label="Alt + Shift" value="alt shift" id="zotero-prefpane-__addonRef__-SHORTCUT_MODIFIER-alt-shift" />
+      </radiogroup>
+      <vbox>
+        <label style="margin-top: 4px"> + </label>
+      </vbox>
+      <vbox>
+        <html:input
+          id="zotero-prefpane-__addonRef__-SHORTCUT_KEY"
+          preference="extensions.zotero.__addonRef__.SHORTCUT_KEY"
+          maxlength="1"
+          size="1"
+          style="margin: 0 4px"
+        />
+      </vbox>
+    </hbox>
+  </groupbox>
+  <groupbox>
+    <label><html:h2 data-l10n-id="aria-pref-feedback-submission"></html:h2></label>
+    <hbox>
+      <label data-l10n-id="aria-pref-user-email" style="display: flex; align-items: center"></label>
+      <html:input
+        type="email"
+        id="zotero-prefpane-__addonRef__-USER_EMAIL"
+        preference="extensions.zotero.__addonRef__.USER_EMAIL"
+      ></html:input>
+    </hbox>
+    <hbox>
+      <checkbox
+        id="zotero-prefpane-__addonRef__-FEEDBACK_NO_CONFIRMATION"
+        data-l10n-id="aria-pref-feedback-no-confirmation"
+        preference="extensions.zotero.__addonRef__.FEEDBACK_NO_CONFIRMATION"
+      />
+    </hbox>
+  </groupbox>
+  <html:br></html:br>
+  <groupbox>
+    <label
+      data-l10n-id="aria-pref-help"
+      data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+      style="margin-top: 24px"
+    ></label>
   </groupbox>
 </vbox>
 <!-- <vbox>
