@@ -39,6 +39,7 @@ const editStyles = {
       lineHeight: '1.5rem',
       backgroundColor: 'transparent',
       color: '#000',
+      outline: 'none'
     },
   },
   suggestions: {
