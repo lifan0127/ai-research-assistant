@@ -182,7 +182,7 @@ export function BotMessage({
     <div className={`relative self-start ${width} my-2 pb-2`}>
       <div
         ref={ref}
-        className="bg-white p-2 [&>*]:mx-2 [&_*]:my-0 [&_*]:leading-6 [&_ul]:pl-0 [&_ol]:pl-0 border border-neutral-500 rounded shadow-md text-black break-words"
+        className="bg-white p-2 [&>*]:mx-2 [&_*]:my-0 [&_*]:leading-6 [&_ul]:pl-0 [&_ol]:pl-0 border border-neutral-500 rounded shadow-md text-black text-sm break-words"
       >
         <MessageContent {...message} />
         <div className="flex pt-3">
