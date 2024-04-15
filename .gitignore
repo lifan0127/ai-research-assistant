@@ -7,3 +7,4 @@ tests/questions.txt
 debug*.*
 *.env
 *.log
+.DS_Store
