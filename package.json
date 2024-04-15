@@ -8,7 +8,7 @@
     "addonRef": "aria",
     "addonInstance": "Aria",
     "prefsPrefix": "extensions.zotero.aria",
-    "releasepage": "https://github.com/lifan0127/ai-research-assistant/releases/latest/download/aria.xpi",
+    "releasePage": "https://github.com/lifan0127/ai-research-assistant/releases",
     "updaterdf": "https://raw.githubusercontent.com/lifan0127/ai-research-assistant/bootstrap/update.json"
   },
   "main": "src/index.ts",
