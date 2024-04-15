@@ -9,9 +9,10 @@ declare const _globalThis: {
   addon: typeof addon;
 };
 
-declare type ZToolkit = ReturnType<
-  typeof import("../src/utils/ztoolkit").createZToolkit
->;
+// declare type ZToolkit = ReturnType<
+//   typeof import("../src/utils/ztoolkit").createZToolkit
+// >;
+declare type ZToolkit = import("../src/addon").CustomToolkit
 
 declare const ztoolkit: ZToolkit;
 

@@ -1,12 +1,15 @@
 import { config } from '../package.json'
-import { getString, initLocale } from './modules/locale'
+import { getString, initLocale } from './utils/locale'
 // import { registerPrompt, registerShortcuts } from './modules/registry'
 import { registerPrefsWindow, registerPrefsScripts } from './modules/preferences'
-import { createZToolkit } from "./utils/ztoolkit";
+// import { createZToolkit } from "./utils/ztoolkit";
+import { CustomToolkit } from './addon'
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
-  initLocale()
+  initLocale();
+  registerPrefsWindow();
+
   ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
 
   // TODO: Remove this after zotero#3387 is merged
@@ -16,14 +19,13 @@ async function onStartup() {
     ztoolkit.log(loadDevToolWhen);
   }
 
-  initLocale();
-
   await onMainWindowLoad(window);
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
-  addon.data.ztoolkit = createZToolkit();
+  // addon.data.ztoolkit = createZToolkit();
+  addon.data.ztoolkit = new CustomToolkit();
 
   const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
     closeOnClick: true,
@@ -55,12 +57,12 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 
 async function onMainWindowUnload(win: Window): Promise<void> {
   ztoolkit.unregisterAll();
-  addon.data.dialog?.window?.close();
+  addon.data.popup?.window?.close();
 }
 
 function onShutdown(): void {
   ztoolkit.unregisterAll()
-  addon.data.dialog?.window?.close();
+  addon.data.popup?.window?.close();
   // Remove addon object
   addon.data.alive = false
   delete Zotero[config.addonInstance]
