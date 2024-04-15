@@ -90,7 +90,7 @@ export class ReactRoot {
     const left = window.screenX + window.outerWidth / 2 - dialogWidth / 2
     const top = window.screenY + window.outerHeight / 2 - dialogHeight / 2
     const dialog = (window as any).openDialog(
-      'chrome://aria/content/popup.xul',
+      'chrome://aria/content/popup.xhtml',
       `${config.addonRef}-window`,
       `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
       windowArgs
