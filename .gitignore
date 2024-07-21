@@ -1,6 +1,5 @@
 **/builds
 node_modules
-package-lock.json
 zotero-cmd.json
 src/env.json
 tests/questions.txt
