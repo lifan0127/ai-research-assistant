@@ -34,7 +34,7 @@ export class ResearchAssistant {
       search: {
         description:
           "For searching user's Zotero library related to a specific topic. Use this route when a user expects to see a list of search results.",
-        executor: loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory, mode: 'search' }),
+        executor: loadSearchChain({ langChainCallbackManager, zoteroCallbacks, memory: this.memory, mode: 'search_' }),
       },
       qa: {
         description:
@@ -79,7 +79,7 @@ export class ResearchAssistant {
         states,
       })
       switch (route) {
-        case 'search':
+        case 'search_':
         case 'qa':
         case 'vision': {
           const { action, payload } = JSON.parse(executorOutput)
