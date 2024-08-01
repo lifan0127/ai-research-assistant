@@ -19,7 +19,7 @@ export interface AttachmentInfo {
     | 'attachment-web-link'
 }
 
-type ItemMode = 'search' | 'qa' | 'citation'
+type ItemMode = 'search_' | 'qa' | 'citation'
 
 export function compileItemInfo(item: Zotero.Item, mode: ItemMode): ItemInfo {
   let itemInfo: ItemInfo = { id: item.id, uri: Zotero.URI.getItemURI(item), type: item.itemType }
@@ -86,10 +86,10 @@ export async function findItemByTitle(title: string) {
     return
   }
   const item = await Zotero.Items.getAsync(ids[0])
-  return compileItemInfo(item, 'search')
+  return compileItemInfo(item, 'search_')
 }
 
 export async function getItemById(id: number) {
   const item = await Zotero.Items.getAsync(id)
-  return compileItemInfo(item, 'search')
+  return compileItemInfo(item, 'search_')
 }

@@ -23,7 +23,7 @@ import { ZoteroCallbacks } from '../utils/callbacks'
 import { SimplifiedStates, serializeStates } from '../utils/states'
 import * as zot from '../../apis/zotero'
 
-type SearchMode = 'search' | 'qa'
+type SearchMode = 'search_' | 'qa'
 
 export async function searchZotero(
   query: SearchActionResponse['payload'],
@@ -31,7 +31,7 @@ export async function searchZotero(
   mode: SearchMode,
   collectionIDs?: number[]
 ) {
-  const length = mode === 'search' ? 25 : 5
+  const length = mode === 'search_' ? 25 : 5
   if (!query.years || isEmpty(query.years)) {
     query.years = { from: currentYear - 4, to: currentYear }
   }
@@ -81,7 +81,7 @@ const currentYear = new Date().getFullYear()
 
 const functions = [
   {
-    name: 'search_', // 'search', change to 'search_' for being compatible with the qwen model. Ref: PR[#112]
+    name: 'search_',
     description: `Define an action to route a user's request. Output the action name in the "action" field and the payload for the action in the "payload" field.`,
     parameters: {
       type: 'object',
@@ -89,7 +89,7 @@ const functions = [
         action: {
           type: 'string',
           description: 'The action to take, either building a serach query or asking for clarification',
-          enum: ['search', 'clarification'],
+          enum: ['search_', 'clarification'],
         },
         payload: {
           oneOf: [
@@ -121,9 +121,8 @@ const functions = [
                 },
                 years: {
                   type: 'object',
-                  description: `Year range to search for in the Zotero database. For example, a reasonable year range is from ${
-                    currentYear - 3
-                  } to ${currentYear}. Do not populate this field if the user has not specifically mentioned year range in their message.`,
+                  description: `Year range to search for in the Zotero database. For example, a reasonable year range is from ${currentYear - 3
+                    } to ${currentYear}. Do not populate this field if the user has not specifically mentioned year range in their message.`,
                   properties: {
                     from: {
                       type: 'integer',
@@ -185,7 +184,7 @@ export class SearchChain extends BaseChain {
   prompt = SEARCH_DEFAULT_PROMPT
   inputKey = 'input'
   outputKey = 'output'
-  mode: SearchMode = 'search'
+  mode: SearchMode = 'search_'
   langChainCallbackManager: CallbackManager | undefined
   zoteroCallbacks: ZoteroCallbacks
   tags = ['zotero', 'zotero-search']
