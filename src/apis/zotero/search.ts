@@ -65,7 +65,7 @@ export async function search({
   const results = await Promise.all(
     uniqueIds
       .slice(0, length)
-      .map(async id => await retry(async () => getItemAndBestAttachment(id, 'search'), { retries: 3 } as Options))
+      .map(async id => await retry(async () => getItemAndBestAttachment(id, 'search_'), { retries: 3 } as Options))
   )
   return { count: ids.length, results, collections }
 }
