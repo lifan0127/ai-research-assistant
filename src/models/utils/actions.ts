@@ -29,7 +29,7 @@ export interface RoutingActionResponse extends BaseActionResponse {
 }
 
 export interface SearchActionResponse extends BaseActionResponse {
-  action: 'search'
+  action: 'search_'
   payload: {
     keywords?: string[]
     creators?: string[]
@@ -60,7 +60,7 @@ export interface VisionActionResponse extends BaseActionResponse {
 }
 
 export interface ExecutorActionResponse extends BaseActionResponse {
-  action: 'search' | 'qa'
+  action: 'search_' | 'qa'
   payload: {
     widget: 'MARKDOWN' | 'SEARCH_RESULTS' | 'QA_RESPONSE'
     input: object
