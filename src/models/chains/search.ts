@@ -81,7 +81,7 @@ const currentYear = new Date().getFullYear()
 
 const functions = [
   {
-    name: 'search_',
+    name: 'search_', // 'search', change to 'search_' for being compatible with the qwen model. Ref: PR[#112]
     description: `Define an action to route a user's request. Output the action name in the "action" field and the payload for the action in the "payload" field.`,
     parameters: {
       type: 'object',
@@ -212,7 +212,8 @@ export class SearchChain extends BaseChain {
       memory: new ReadOnlyBufferWindowMemory(this.memory),
       llmKwargs: {
         functions,
-        function_call: { name: 'search_' },
+        function_call: { name: 'search_' }, // 'search', change to 'search_' for being compatible with the qwen model.
+                                            // qwen reserve 'search' word for other usage. Ref: PR[#112]
         // TODO: Put chain metadata here until it is officially supported
         key: 'search-chain',
         title: '🛠️ Building search query',
