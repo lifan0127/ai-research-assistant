@@ -25,7 +25,7 @@ export async function parseDataTransfer(dataTransfer: DataTransfer) {
               isAttachment: true,
             }
           } else {
-            return compileItemInfo(item, 'search_')
+            return compileItemInfo(item, 'search')
           }
         })
       )
