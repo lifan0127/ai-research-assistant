@@ -1,5 +1,5 @@
 export const searchResultsAction: any = {
-  action: 'search_',
+  action: 'search',
   payload: {
     widget: 'SEARCH_RESULTS',
     input: {
