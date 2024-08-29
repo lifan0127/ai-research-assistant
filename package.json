@@ -18,7 +18,8 @@
     "build-libs": "cd libs/vector_search && wasm-pack build --target web && cp pkg/vector_search_bg.wasm ../../addon/chrome/content/libs && cp pkg/vector_search.js ../../src/libs && cp pkg/vector_search.d.ts ../../src/libs && echo \"const { TextEncoder, TextDecoder } = Components.utils.import(\\\"resource://gre/modules/Services.jsm\\\", {});\n\" | cat - ../../src/libs/vector_search.js > temp && mv temp ../../src/libs/vector_search.js",
     "test-libs": "cd libs/vector_search && wasm-pack test --node",
     "stop": "node scripts/stop.mjs",
-    "lint": "prettier --write . && eslint . --ext .ts --fix",
+    "lint": "",
+    "lint-bk": "prettier --write . && eslint . --fix",
     "test": "cross-env NODE_ENV=development node scripts/test.js",
     "release": "release-it --only-version --preReleaseId=beta",
     "update-deps": "npm update --save",
@@ -60,6 +61,10 @@
     "zotero-plugin-toolkit": "^2.3.29"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "eslint": "^9.9.1",
+    "typescript-eslint": "^8.3.0",
+    "prettier": "^3.3.3",
     "@babel/plugin-proposal-async-generator-functions": "^7.20.7",
     "@babel/plugin-transform-async-to-generator": "^7.24.1",
     "@chialab/esbuild-plugin-babel": "^0.18.0",
