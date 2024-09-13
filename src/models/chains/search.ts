@@ -213,7 +213,7 @@ export class SearchChain extends BaseChain {
       llmKwargs: {
         functions,
         function_call: { name: 'search_' }, // 'search', change to 'search_' for being compatible with the qwen model.
-                                            // qwen reserve 'search' word for other usage. Ref: PR[#112]
+        // qwen reserve 'search' word for other usage. Ref: PR[#112]
         // TODO: Put chain metadata here until it is officially supported
         key: 'search-chain',
         title: '🛠️ Building search query',
