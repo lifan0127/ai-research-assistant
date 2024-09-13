@@ -213,7 +213,7 @@ export class SearchChain extends BaseChain {
       llmKwargs: {
         functions,
         function_call: { name: 'search_' }, // 'search', change to 'search_' for being compatible with the qwen model.
-                                            // qwen reserve 'search' word for other usage. Ref: PR[#112]
+        // qwen reserve 'search' word for other usage. Ref: PR[#112]
         // TODO: Put chain metadata here until it is officially supported
         key: 'search-chain',
         title: '🛠️ Building search query',
@@ -270,7 +270,7 @@ interface LoadSearchChainInput {
 
 export const loadSearchChain = (params: LoadSearchChainInput) => {
   const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
-  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-1106-preview'
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4o'
   const OPENAI_BASE_URL =
     (Zotero.Prefs.get(`${config.addonRef}.OPENAI_BASE_URL`) as string) || 'https://api.openai.com/v1'
   const llm = new ChatOpenAI({

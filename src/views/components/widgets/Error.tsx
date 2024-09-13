@@ -39,7 +39,7 @@ export interface Props {
 }
 
 export function Component({ error }: Props) {
-  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-1106-preview'
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4o'
 
   async function saveMessageHistoryFile(file: string) {
     const filename = await new FilePickerHelper(

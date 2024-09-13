@@ -2,7 +2,7 @@ import React from 'react'
 import { version, config } from '../../../package.json'
 
 export function Version() {
-  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4-1106-preview'
+  const OPENAI_MODEL = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || 'gpt-4o'
 
   return (
     <div className="text-center w-full text-gray-400 text-sm py-0.5">
