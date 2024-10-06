@@ -1,8 +1,10 @@
 diff --git a/node_modules/camelcase/index.js b/node_modules/camelcase/index.js
-index 6d80316..51f0459 100644
+index 6ff4ee8..47430a7 100644
 --- a/node_modules/camelcase/index.js
 +++ b/node_modules/camelcase/index.js
-@@ -1,7 +1,7 @@
+@@ -1,9 +1,9 @@
+ 'use strict';
+ 
 -const UPPERCASE = /[\p{Lu}]/u;
 -const LOWERCASE = /[\p{Ll}]/u;
 -const LEADING_CAPITAL = /^[\p{Lu}](?![\p{Lu}])/gu;
