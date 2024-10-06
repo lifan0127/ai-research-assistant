@@ -1,14 +1,14 @@
 import { config } from '../package.json'
 import { getString, initLocale } from './utils/locale'
 // import { registerPrompt, registerShortcuts } from './modules/registry'
-import { registerPrefsWindow, registerPrefsScripts } from './modules/preferences'
+import { registerPrefs, registerPrefsScripts } from './modules/preferences'
 // import { createZToolkit } from "./utils/ztoolkit";
 import { CustomToolkit } from './addon'
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
   initLocale();
-  registerPrefsWindow();
+  registerPrefs();
 
   ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
 

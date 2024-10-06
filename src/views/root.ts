@@ -1,7 +1,4 @@
-import { BasicTool, BasicOptions } from 'zotero-plugin-toolkit/dist/basic'
-import { ManagerTool } from 'zotero-plugin-toolkit/dist/basic'
-import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
-import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
+import { BasicTool, BasicOptions, ManagerTool, UITool, KeyboardManager } from 'zotero-plugin-toolkit'
 import { Providers } from './Providers'
 import { config } from '../../package.json'
 import React from 'react'
@@ -15,13 +12,13 @@ export class ReactRoot {
   private activeElement?: HTMLElement
   private dialog?: Window
 
-  constructor() {
+  constructor(Keyboard: KeyboardManager) {
     this.base = new BasicTool()
     this.ui = new UITool()
     this.document = this.base.getGlobal('document')
     this.registerStyle()
     this.registerToolbar()
-    this.registerShortcut()
+    this.registerShortcut(Keyboard)
     // As message entries are no longer stored in preferences (due to the size limit), we need to remove the existing entries. This may be removed after several upgrade cycles.
     this.removeMessagesInPrefs()
   }
@@ -117,30 +114,45 @@ export class ReactRoot {
     )
   }
 
-  private registerShortcut() {
+  private registerShortcut(Keyboard: KeyboardManager) {
     // Keycodes: https://github.com/windingwind/zotero-plugin-toolkit/blob/da8a602b81a7586b51a29baff86d22d0422b6580/src/managers/shortcut.ts#L746
-    const shortCut = new ShortcutManager()
-    shortCut.register('event', {
-      id: 'aria-plugin-key',
-      modifiers: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift',
-      key: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r',
-      callback: event => {
-        if (this.dialog && !this.dialog.closed) {
-          this.dialog.focus()
-        } else {
-          this.launchApp()
+    const modifiers = (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift'
+    const key = (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r'
+    Keyboard.register((ev, data) => {
+      if (data.type === "keyup" && data.keyboard) {
+        if (data.keyboard.equals(`${modifiers},${key}`)) {
+          if (this.dialog && !this.dialog.closed) {
+            this.dialog.focus()
+          } else {
+            this.launchApp()
+          }
         }
-      },
+
+      }
     })
+    // ztoolkit.Keyboard.register('event', {
+    //   id: 'aria-plugin-key',
+    //   modifiers: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift',
+    //   key: (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r',
+    //   callback: event => {
+    //     if (this.dialog && !this.dialog.closed) {
+    //       this.dialog.focus()
+    //     } else {
+    //       this.launchApp()
+    //     }
+    //   },
+    // })
   }
 }
+
+type BasicToolWithKeyboardManager = BasicTool & { Keyboard: KeyboardManager }
 
 export class ReactRootManager extends ManagerTool {
   private reactRoot: ReactRoot
 
-  constructor(base?: BasicTool | BasicOptions) {
+  constructor(base: BasicToolWithKeyboardManager) {
     super(base)
-    this.reactRoot = new ReactRoot()
+    this.reactRoot = new ReactRoot(base.Keyboard)
   }
 
   public register(

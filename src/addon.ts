@@ -1,14 +1,8 @@
-import ZoteroToolkit from 'zotero-plugin-toolkit/dist/index'
-import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
+// import ZoteroToolkit from 'zotero-plugin-toolkit/dist/index'
+// import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
 import hooks from './hooks'
 import { config } from '../package.json'
-import { BasicTool, unregister } from 'zotero-plugin-toolkit/dist/basic'
-import { UITool } from 'zotero-plugin-toolkit/dist/tools/ui'
-import { PreferencePaneManager } from 'zotero-plugin-toolkit/dist/managers/preferencePane'
-import { PromptManager } from 'zotero-plugin-toolkit/dist/managers/prompt'
-import { ClipboardHelper } from 'zotero-plugin-toolkit/dist/helpers/clipboard'
-import { ShortcutManager } from 'zotero-plugin-toolkit/dist/managers/shortcut'
-import { ProgressWindowHelper } from 'zotero-plugin-toolkit/dist/helpers/progressWindow'
+import { BasicTool, unregister, UITool, PromptManager, ClipboardHelper, KeyboardManager, ProgressWindowHelper } from 'zotero-plugin-toolkit'
 import { ReactRootManager } from './views/root'
 import { Messages } from './modules/messages'
 
@@ -68,10 +62,9 @@ class Addon {
 
 export class CustomToolkit extends BasicTool {
   UI: UITool
-  PreferencePane: PreferencePaneManager
   ReactRoot: ReactRootManager
   Prompt: PromptManager
-  Shortcut: ShortcutManager
+  Keyboard: KeyboardManager
   Clipboard: typeof ClipboardHelper
   // LargePref: typeof LargePrefHelper
   ProgressWindow: typeof ProgressWindowHelper
@@ -79,8 +72,7 @@ export class CustomToolkit extends BasicTool {
   constructor() {
     super()
     this.UI = new UITool(this)
-    this.PreferencePane = new PreferencePaneManager(this)
-    this.Shortcut = new ShortcutManager(this)
+    this.Keyboard = new KeyboardManager(this)
     this.ReactRoot = new ReactRootManager(this)
     this.Prompt = new PromptManager(this)
     this.Clipboard = ClipboardHelper

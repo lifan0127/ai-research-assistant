@@ -58,7 +58,7 @@
     "serialize-error": "^11.0.3",
     "tablemark": "^3.1.0",
     "typeorm": "^0.3.20",
-    "zotero-plugin-toolkit": "^2.3.29"
+    "zotero-plugin-toolkit": "^4.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

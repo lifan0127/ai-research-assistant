@@ -4,7 +4,7 @@ import { serializeError } from 'serialize-error'
 import { marked } from 'marked'
 import { anonymizeError } from '../../../models/utils/error'
 import { config } from '../../../../package.json'
-import { FilePickerHelper } from 'zotero-plugin-toolkit/dist/helpers/filePicker'
+import { FilePickerHelper } from 'zotero-plugin-toolkit'
 import { copyButtonDef } from '../buttons/types'
 import { Link } from '../buttons/Link'
 

@@ -1,15 +1,14 @@
 import { config, homepage } from '../../package.json'
 import { getString } from "../utils/locale"
 
-export function registerPrefsWindow() {
-  const prefOptions = {
+export function registerPrefs() {
+  Zotero.PreferencePanes.register({
     pluginID: config.addonID,
     src: rootURI + 'chrome/content/preferences.xhtml',
     label: getString('prefs-title'),
     image: `chrome://${config.addonRef}/content/icons/favicon@0.333x.png`,
     helpURL: homepage,
-  }
-  Zotero.PreferencePanes.register(prefOptions)
+  })
 }
 
 export function registerPrefsScripts(_window: Window) {
