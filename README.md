@@ -7,6 +7,9 @@
 
 Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the acronym of "AI Research Assistant" in reverse order.
 
+- Zotero 6: https://github.com/lifan0127/ai-research-assistant/releases/tag/0.8.0
+- Zotero 7: https://github.com/lifan0127/ai-research-assistant/releases/tag/v0.7.4
+
 ![Aria](assets/images/aria.png)
 
 ## Quickstart
@@ -38,7 +41,9 @@ The easist way to get started with Aria is to try one of the interactive prompts
 
 ## Zotero and GPT Requirements
 
-- Currently, only Zotero 6 is supported. Compatibility with Zotero 7 has not been tested.
+- Please note separate releases are available for Zotero 6 and 7:
+  - Zotero 6: https://github.com/lifan0127/ai-research-assistant/releases/tag/0.8.0
+  - Zotero 7: https://github.com/lifan0127/ai-research-assistant/releases/tag/v0.7.4
 - Aria requires the OpenAI GPT-4 model family. ([how can I access GPT-4?](https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4))
 - The visual analysis feature requires the preview access to the GPT-4 Vision model.
 
