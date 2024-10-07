@@ -212,5 +212,5 @@ export function TestMenu({ setUserInput, addMessage, assistant }: TestMenuProps)
       handleClick: dialog.minimize,
     },
   ]
-  return <DropdownMenu Icon={WrenchIcon} position={'top-4 right-16'} items={items} />
+  return <DropdownMenu Icon={WrenchIcon} position={'top-10 right-16'} items={items} />
 }

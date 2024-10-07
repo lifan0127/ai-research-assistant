@@ -110,7 +110,7 @@ export function MainMenu({ containerRef, assistant, clearMessages, messages, sca
   ]
   return (
     <>
-      <DropdownMenu items={items} Icon={Bars3Icon} position="top-4 right-6" />
+      <DropdownMenu items={items} Icon={Bars3Icon} position="top-10 right-6" />
       <Confirmation
         message={confirmationMessage}
         open={confirmationOpen}
