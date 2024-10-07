@@ -14,7 +14,7 @@ Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the 
 
 ## Quickstart
 
-The easist way to get started with Aria is to try one of the interactive prompts in the prompt library.
+The easiest way to get started with Aria is to try one of the interactive prompts in the prompt library.
 
 ![Prompt Library](assets/videos/prompt-library.gif)
 
