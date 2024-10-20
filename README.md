@@ -7,8 +7,10 @@
 
 Aria is a Zotero plugin powered by Large Language Models (LLMs). A-R-I-A is the acronym of "AI Research Assistant" in reverse order.
 
+Please make sure to choose the correct version based on your Zotero version:
+
 - Zotero 6: https://github.com/lifan0127/ai-research-assistant/releases/tag/0.8.0
-- Zotero 7: https://github.com/lifan0127/ai-research-assistant/releases/tag/v0.7.4
+- Zotero 7: https://github.com/lifan0127/ai-research-assistant/releases/latest
 
 ![Aria](assets/images/aria.png)
 
