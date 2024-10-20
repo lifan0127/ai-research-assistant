@@ -1,17 +1,28 @@
 <?xml version="1.0"?>
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://aria/content/scripts/aria.css" type="text/css"?>
-<window id="aria" title="Aria: AI Research Assistant" buttons="none"
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?> <?xml-stylesheet
+href="chrome://zotero/skin/zotero.css" type="text/css"?> <?xml-stylesheet
+href="chrome://zotero/skin/overlay.css" type="text/css"?> <?xml-stylesheet
+href="chrome://zotero-platform/content/overlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://zotero-platform-version/content/style.css"?>
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css"?>
+<?xml-stylesheet href="chrome://__addonRef__/content/scripts/__addonRef__.css"
+type="text/css"?>
+<window
+  id="__addonRef__"
+  buttons="none"
+  data-l10n-id="__addonRef__-dialog"
+  data-l10n-attrs="title"
+  drawintitlebar-platforms="mac"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   xmlns:xhtml="http://www.w3.org/1999/xhtml"
 >
-  <dialog
-    style="padding: 0; font-size: 16px;"
-    minwidth="420"
-    minheight="560"
-  >
+  <linkset>
+    <xhtml:link rel="localization" href="__addonRef__-addon.ftl" />
+  </linkset>
+  <dialog style="padding: 0; font-size: 16px" minwidth="420" minheight="560">
     <script src="chrome://zotero/content/include.js" />
     <vbox>
-      <xhtml:div id="aria-entry-point"></xhtml:div>
+      <xhtml:div id="__addonRef__-entry-point"></xhtml:div>
     </vbox>
   </dialog>
 </window>

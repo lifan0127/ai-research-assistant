@@ -16,23 +16,23 @@ export class ReactRoot {
     this.base = new BasicTool()
     this.ui = new UITool()
     this.document = this.base.getGlobal('document')
-    this.registerStyle()
+    // this.registerStyle()
     this.registerToolbar()
     this.registerShortcut(Keyboard)
     // As message entries are no longer stored in preferences (due to the size limit), we need to remove the existing entries. This may be removed after several upgrade cycles.
     this.removeMessagesInPrefs()
   }
 
-  private registerStyle() {
-    const styles = this.ui.createElement(document, 'link', {
-      properties: {
-        type: 'text/css',
-        rel: 'stylesheet',
-        href: `chrome://${config.addonRef}/content/scripts/${config.addonRef}.css`,
-      },
-    })
-    this.document.documentElement.appendChild(styles)
-  }
+  // private registerStyle() {
+  //   const styles = this.ui.createElement(document, 'link', {
+  //     properties: {
+  //       type: 'text/css',
+  //       rel: 'stylesheet',
+  //       href: `chrome://${config.addonRef}/content/scripts/${config.addonRef}.css`,
+  //     },
+  //   })
+  //   this.document.documentElement.appendChild(styles)
+  // }
 
   private registerToolbar() {
     const ariaBtn = this.ui.createElement(this.document, 'toolbarbutton', {
@@ -89,9 +89,13 @@ export class ReactRoot {
     const dialog = (window as any).openDialog(
       'chrome://aria/content/popup.xhtml',
       `${config.addonRef}-window`,
-      `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
+      `chrome,titlebar,status,left=${left},top=${top},resizable=yes`,
       windowArgs
     )
+    setTimeout(() => {
+      // Setting width and height in openDialog doesn't work in Zotero 7
+      dialog.resizeTo(dialogWidth, dialogHeight)
+    }, 100)
     // Assign the dialog to the addon object so that it can be accessed from within the addon
     addon.data.popup.window = dialog
     // await windowArgs._initPromise.promise
@@ -162,9 +166,9 @@ export class ReactRootManager extends ManagerTool {
       when?: () => boolean
       callback: ((reactRoot: ReactRoot) => Promise<void>) | ((reactRoot: ReactRoot) => void) | any[]
     }[]
-  ) {}
+  ) { }
 
-  public unregister(name: string) {}
+  public unregister(name: string) { }
 
-  public unregisterAll() {}
+  public unregisterAll() { }
 }

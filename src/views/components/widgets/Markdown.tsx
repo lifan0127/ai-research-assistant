@@ -1,10 +1,14 @@
-import React from 'react'
-import MarkdownReact from 'marked-react'
-import { marked } from 'marked'
-import { config } from '../../../../package.json'
-import { annotationButtonDef, copyButtonDef, noteButtonDef } from '../buttons/types'
+import React from "react";
+import MarkdownReact from "marked-react";
+import { marked } from "marked";
+import { config } from "../../../../package.json";
+import {
+  annotationButtonDef,
+  copyButtonDef,
+  noteButtonDef,
+} from "../buttons/types";
 export interface Props {
-  content: string
+  content: string;
 }
 
 export function Component({ content }: Props) {
@@ -19,48 +23,51 @@ export function Component({ content }: Props) {
         >
           {text && text.length > 0 ? text[0] : href}
         </button>
-      )
+      );
     },
-  }
-  return <MarkdownReact renderer={renderer as any}>{content}</MarkdownReact>
+  };
+  return <MarkdownReact renderer={renderer as any}>{content}</MarkdownReact>;
 }
 
 export function compileContent({ content: textContent }: Props) {
-  const htmlContent = marked(textContent)
-  return { textContent, htmlContent }
+  const htmlContent = marked(textContent);
+  return { textContent, htmlContent };
 }
 
 function copy(props: Props) {
-  const { textContent, htmlContent } = compileContent(props)
-  return new ztoolkit.Clipboard().addText(textContent, 'text/unicode').addText(htmlContent, 'text/html').copy()
+  const { textContent, htmlContent } = compileContent(props);
+  return new ztoolkit.Clipboard()
+    .addText(textContent, "text/unicode")
+    .addText(htmlContent, "text/html")
+    .copy();
 }
 
 async function createNote(props: Props) {
-  const { htmlContent } = compileContent(props)
+  const { htmlContent } = compileContent(props);
   const note =
     '<div data-schema-version="8">' +
     `<h1>New Note from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
     htmlContent +
-    '</div>'
-  return note
+    "</div>";
+  return note;
 }
 
 function createAnnotation(props: Props) {
-  const { textContent } = compileContent(props)
-  return textContent
+  const { textContent } = compileContent(props);
+  return textContent;
 }
 
 export const buttonDefs = [
   {
-    name: 'COPY',
+    name: "COPY",
     utils: { copy },
   } as copyButtonDef,
   {
-    name: 'NOTE',
+    name: "NOTE",
     utils: { createNote },
   } as noteButtonDef,
   {
-    name: 'ANNOTATION',
+    name: "ANNOTATION",
     utils: { createAnnotation },
   } as annotationButtonDef,
-]
+];

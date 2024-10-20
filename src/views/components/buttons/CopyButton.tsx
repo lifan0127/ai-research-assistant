@@ -1,20 +1,26 @@
-import React from 'react'
-import { marked } from 'marked'
-import { BotMessageProps } from '../message/types'
-import { Square2StackIcon } from '@heroicons/react/24/outline'
-import { copyButtonDef } from './types'
+import React from "react";
+import { marked } from "marked";
+import { BotMessageProps } from "../message/types";
+import { Square2StackIcon } from "@heroicons/react/24/outline";
+import { copyButtonDef } from "./types";
 
 interface CopyButtonProps extends copyButtonDef {
-  copyId: BotMessageProps['copyId']
-  setCopyId: BotMessageProps['setCopyId']
-  id: BotMessageProps['id']
-  input: BotMessageProps['input']
+  copyId: BotMessageProps["copyId"];
+  setCopyId: BotMessageProps["setCopyId"];
+  id: BotMessageProps["id"];
+  input: BotMessageProps["input"];
 }
 
-export function CopyButton({ copyId, setCopyId, id, utils, input }: CopyButtonProps) {
+export function CopyButton({
+  copyId,
+  setCopyId,
+  id,
+  utils,
+  input,
+}: CopyButtonProps) {
   function handleCopy() {
-    utils.copy(input)
-    setCopyId(id)
+    utils.copy(input);
+    setCopyId(id);
   }
   return (
     <div className="rounded border border-solid border-neutral-300">
@@ -24,9 +30,14 @@ export function CopyButton({ copyId, setCopyId, id, utils, input }: CopyButtonPr
         aria-label="Copy"
         onClick={handleCopy}
       >
-        <Square2StackIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
-        <span className="ml-2 text-sm">{copyId === id ? 'Copied' : 'Copy'}</span>
+        <Square2StackIcon
+          className="w-5 h-5 text-neutral-500"
+          aria-hidden="true"
+        />
+        <span className="ml-2 text-sm">
+          {copyId === id ? "Copied" : "Copy"}
+        </span>
       </button>
     </div>
-  )
+  );
 }

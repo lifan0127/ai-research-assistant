@@ -1,34 +1,38 @@
-import React, { useState } from 'react'
-import { DocumentTextIcon, PlusSmallIcon, MinusSmallIcon } from '@heroicons/react/24/outline'
-import { BotMessageProps, UserMessageProps } from '../message/types'
-import { useOutsideClick } from '../../hooks/useOutsideClick'
-import { noteButtonDef } from './types'
-import { createStandaloneNote, createChildNote } from '../../../apis/zotero'
+import React, { useState } from "react";
+import {
+  DocumentTextIcon,
+  PlusSmallIcon,
+  MinusSmallIcon,
+} from "@heroicons/react/24/outline";
+import { BotMessageProps, UserMessageProps } from "../message/types";
+import { useOutsideClick } from "../../hooks/useOutsideClick";
+import { noteButtonDef } from "./types";
+import { createStandaloneNote, createChildNote } from "../../../apis/zotero";
 
 interface NoteButtonProps extends noteButtonDef {
-  input: BotMessageProps['input']
-  states?: UserMessageProps['states']
+  input: BotMessageProps["input"];
+  states?: UserMessageProps["states"];
 }
 
 export function NoteButton({ utils, input, states }: NoteButtonProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useOutsideClick(() => setOpen(false))
-  const items = states?.items ?? []
+  const [open, setOpen] = useState(false);
+  const ref = useOutsideClick(() => setOpen(false));
+  const items = states?.items ?? [];
 
   function handleOpen() {
-    setOpen(!open)
+    setOpen(!open);
   }
 
   async function createNote() {
-    const content = await utils.createNote(input)
-    const note = await createStandaloneNote(content)
-    ZoteroPane.selectItem(note.id, true)
+    const content = await utils.createNote(input);
+    const note = await createStandaloneNote(content);
+    ZoteroPane.selectItem(note.id, true);
   }
 
   async function addNoteToItem(itemId: number) {
-    const content = await utils.createNote(input)
-    const note = await createChildNote(content, itemId as number)
-    ZoteroPane.selectItem(note.id)
+    const content = await utils.createNote(input);
+    const note = await createChildNote(content, itemId as number);
+    ZoteroPane.selectItem(note.id);
   }
 
   return (
@@ -41,20 +45,29 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
           aria-label="Note"
           onClick={handleOpen}
         >
-          <DocumentTextIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+          <DocumentTextIcon
+            className="w-5 h-5 text-neutral-500"
+            aria-hidden="true"
+          />
           <span className="ml-2 text-sm">Note</span>
           {open ? (
-            <MinusSmallIcon className="ml-2 w-4 h-4 text-neutral-500" aria-hidden="true" />
+            <MinusSmallIcon
+              className="ml-2 w-4 h-4 text-neutral-500"
+              aria-hidden="true"
+            />
           ) : (
-            <PlusSmallIcon className="ml-2 w-4 h-4 text-neutral-500" aria-hidden="true" />
+            <PlusSmallIcon
+              className="ml-2 w-4 h-4 text-neutral-500"
+              aria-hidden="true"
+            />
           )}
         </button>
       </div>
       <ul
         className={`${
-          open ? 'visible' : 'invisible'
+          open ? "visible" : "invisible"
         } absolute left-0 list-none m-0 mt-4 p-0 shadow-lg border border-solid border-gray-200`}
-        style={{ background: '-moz-field' }}
+        style={{ background: "-moz-field" }}
       >
         <li>
           <button
@@ -64,8 +77,11 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
             Create standalone note
           </button>
         </li>
-        {items.map(item => {
-          const itemTitle = item.title && item.title.length > 64 ? item.title.slice(0, 64) + '...' : item.title
+        {items.map((item) => {
+          const itemTitle =
+            item.title && item.title.length > 64
+              ? item.title.slice(0, 64) + "..."
+              : item.title;
           return (
             <li key={item.id}>
               <button
@@ -75,9 +91,9 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
                 Add child note to "{itemTitle}"
               </button>
             </li>
-          )
+          );
         })}
       </ul>
     </div>
-  )
+  );
 }
