@@ -1,0 +1,463 @@
+diff --git a/node_modules/langsmith/dist/client.js b/node_modules/langsmith/dist/client.js
+index 555a109..d47c930 100644
+--- a/node_modules/langsmith/dist/client.js
++++ b/node_modules/langsmith/dist/client.js
+@@ -370,7 +370,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), url, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `Failed to fetch ${path}`);
+@@ -390,7 +390,7 @@ export class Client {
+             const response = await this.caller.call(_getFetchImplementation(), url, {
+                 method: "GET",
+                 headers: this.headers,
+-                signal: AbortSignal.timeout(this.timeout_ms),
++                // signal: AbortSignal.timeout(this.timeout_ms),
+                 ...this.fetchOptions,
+             });
+             await raiseForStatus(response, `Failed to fetch ${path}`);
+@@ -413,7 +413,7 @@ export class Client {
+             const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}${path}`, {
+                 method: requestMethod,
+                 headers: { ...this.headers, "Content-Type": "application/json" },
+-                signal: AbortSignal.timeout(this.timeout_ms),
++                // signal: AbortSignal.timeout(this.timeout_ms),
+                 ...this.fetchOptions,
+                 body: JSON.stringify(bodyParams),
+             });
+@@ -513,7 +513,7 @@ export class Client {
+         const response = await _getFetchImplementation()(`${this.apiUrl}/info`, {
+             method: "GET",
+             headers: { Accept: "application/json" },
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "get server info");
+@@ -562,7 +562,7 @@ export class Client {
+             method: "POST",
+             headers,
+             body: stringifyForTracing(mergedRunCreateParams[0]),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create run", true);
+@@ -662,7 +662,7 @@ export class Client {
+             method: "POST",
+             headers,
+             body: body,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "batch create run", true);
+@@ -701,7 +701,7 @@ export class Client {
+             method: "PATCH",
+             headers,
+             body: stringifyForTracing(run),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update run", true);
+@@ -964,7 +964,7 @@ export class Client {
+             method: "POST",
+             headers: this.headers,
+             body: JSON.stringify(filteredPayload),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const result = await response.json();
+@@ -980,7 +980,7 @@ export class Client {
+             method: "PUT",
+             headers: this.headers,
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const result = await response.json();
+@@ -994,7 +994,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/runs/${runId}/share`, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "unshare run", true);
+@@ -1004,7 +1004,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/runs/${runId}/share`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const result = await response.json();
+@@ -1026,7 +1026,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/public/${shareToken}/runs${queryParams}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const runs = await response.json();
+@@ -1044,7 +1044,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/datasets/${datasetId}/share`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const shareSchema = await response.json();
+@@ -1067,7 +1067,7 @@ export class Client {
+             method: "PUT",
+             headers: this.headers,
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const shareSchema = await response.json();
+@@ -1079,7 +1079,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/datasets/${datasetId}/share`, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "unshare dataset", true);
+@@ -1089,7 +1089,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/public/${shareToken}/datasets`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const dataset = await response.json();
+@@ -1120,7 +1120,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/public/${shareToken}/examples?${urlParams.toString()}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const result = await response.json();
+@@ -1154,7 +1154,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(body),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create project");
+@@ -1177,7 +1177,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(body),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update project");
+@@ -1204,7 +1204,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}${path}?${params}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         // consume the response body to release the connection
+@@ -1334,7 +1334,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/sessions/${projectId_}`, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `delete session ${projectId_} (${projectName})`, true);
+@@ -1362,7 +1362,7 @@ export class Client {
+             method: "POST",
+             headers: this.headers,
+             body: formData,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "upload CSV");
+@@ -1388,7 +1388,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(body),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create dataset");
+@@ -1520,7 +1520,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(update),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update dataset");
+@@ -1546,7 +1546,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), this.apiUrl + path, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `delete ${path}`);
+@@ -1572,7 +1572,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "index dataset");
+@@ -1621,7 +1621,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "fetch similar examples");
+@@ -1655,7 +1655,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create example");
+@@ -1690,7 +1690,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(formattedExamples),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create examples");
+@@ -1783,7 +1783,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), this.apiUrl + path, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `delete ${path}`);
+@@ -1795,7 +1795,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(update),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update example");
+@@ -1807,7 +1807,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(update),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update examples");
+@@ -1870,7 +1870,7 @@ export class Client {
+             method: "PUT",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update dataset splits", true);
+@@ -1936,7 +1936,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(feedback),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create feedback", true);
+@@ -1961,7 +1961,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(feedbackUpdate),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update feedback", true);
+@@ -1978,7 +1978,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), this.apiUrl + path, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `delete ${path}`);
+@@ -2041,7 +2041,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(body),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const result = await response.json();
+@@ -2074,7 +2074,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(body),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         return await response.json();
+@@ -2186,7 +2186,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(Object.fromEntries(Object.entries(body).filter(([_, v]) => v !== undefined))),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create annotation queue");
+@@ -2221,7 +2221,7 @@ export class Client {
+             method: "PATCH",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify({ name, description }),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update annotation queue");
+@@ -2234,7 +2234,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/annotation-queues/${assertUuid(queueId, "queueId")}`, {
+             method: "DELETE",
+             headers: { ...this.headers, Accept: "application/json" },
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "delete annotation queue");
+@@ -2249,7 +2249,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(runIds.map((id, i) => assertUuid(id, `runIds[${i}]`).toString())),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "add runs to annotation queue");
+@@ -2266,7 +2266,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}${baseUrl}/${index}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "get run from annotation queue");
+@@ -2286,7 +2286,7 @@ export class Client {
+         const res = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/commits/${promptOwnerAndName}/?limit=${1}&offset=${0}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         const json = await res.json();
+@@ -2310,7 +2310,7 @@ export class Client {
+             method: "POST",
+             body: JSON.stringify({ like: like }),
+             headers: { ...this.headers, "Content-Type": "application/json" },
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, `${like ? "like" : "unlike"} prompt`);
+@@ -2371,7 +2371,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/repos/${owner}/${promptName}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         if (response.status === 404) {
+@@ -2409,7 +2409,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(data),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create prompt");
+@@ -2432,7 +2432,7 @@ export class Client {
+             method: "POST",
+             headers: { ...this.headers, "Content-Type": "application/json" },
+             body: JSON.stringify(payload),
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "create commit");
+@@ -2469,7 +2469,7 @@ export class Client {
+                 ...this.headers,
+                 "Content-Type": "application/json",
+             },
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "update prompt");
+@@ -2486,7 +2486,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/repos/${owner}/${promptName}`, {
+             method: "DELETE",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         return await response.json();
+@@ -2508,7 +2508,7 @@ export class Client {
+         const response = await this.caller.call(_getFetchImplementation(), `${this.apiUrl}/commits/${owner}/${promptName}/${passedCommitHash}${options?.includeModel ? "?include_model=true" : ""}`, {
+             method: "GET",
+             headers: this.headers,
+-            signal: AbortSignal.timeout(this.timeout_ms),
++            // signal: AbortSignal.timeout(this.timeout_ms),
+             ...this.fetchOptions,
+         });
+         await raiseForStatus(response, "pull prompt commit");

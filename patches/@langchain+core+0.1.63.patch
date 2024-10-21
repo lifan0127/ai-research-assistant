@@ -1,0 +1,13 @@
+diff --git a/node_modules/@langchain/core/dist/utils/stream.js b/node_modules/@langchain/core/dist/utils/stream.js
+index 92bb73c..674db53 100644
+--- a/node_modules/@langchain/core/dist/utils/stream.js
++++ b/node_modules/@langchain/core/dist/utils/stream.js
+@@ -2,6 +2,8 @@
+  * Support async iterator syntax for ReadableStreams in all environments.
+  * Source: https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
+  */
++class ReadableStream { }
++
+ export class IterableReadableStream extends ReadableStream {
+     constructor() {
+         super(...arguments);
