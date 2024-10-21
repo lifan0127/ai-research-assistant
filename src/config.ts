@@ -1,14 +1,14 @@
 import { BasicTool } from 'zotero-plugin-toolkit'
 import { config } from '../package.json'
 // import { fsPromises } from './polyfills/fs'
-import './polyfills/object'
-import './polyfills/array'
-import './polyfills/string'
-import './polyfills/error'
-import './polyfills/promise'
-import { crypto } from './polyfills/crypto'
-import { setTimeout, clearTimeout } from './polyfills/timers'
-import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
+// import './polyfills/object'
+// import './polyfills/array'
+// import './polyfills/string'
+// import './polyfills/error'
+// import './polyfills/promise'
+// import { crypto } from './polyfills/crypto'
+// import { setTimeout, clearTimeout } from './polyfills/timers'
+// import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
 
 export default function globalConfig() {
 
@@ -28,14 +28,14 @@ export default function globalConfig() {
 
   const basicTool = new BasicTool()
 
-  function defineGlobal(name: Parameters<BasicTool["getGlobal"]>[0]): void;
-  function defineGlobal(name: string, getter: () => any): void;
+  function defineGlobal(name: Parameters<BasicTool["getGlobal"]>[0]): void
+  function defineGlobal(name: string, getter: () => any): void
   function defineGlobal(name: string, getter?: () => any) {
     Object.defineProperty(_globalThis, name, {
       get() {
-        return getter ? getter() : basicTool.getGlobal(name);
+        return getter ? getter() : basicTool.getGlobal(name)
       },
-    });
+    })
   }
 
   if (!basicTool.getGlobal('Zotero')[config.addonInstance]) {
@@ -67,17 +67,17 @@ export default function globalConfig() {
     defineGlobal("console", () => {
       const window = basicTool.getGlobal('Zotero').getMainWindow() as any
       return window.console
-    });
-    defineGlobal("window");
-    defineGlobal("document");
-    defineGlobal("ZoteroPane");
-    defineGlobal("Zotero_Tabs");
+    })
+    defineGlobal("window")
+    defineGlobal("document")
+    defineGlobal("ZoteroPane")
+    defineGlobal("Zotero_Tabs")
 
     const Addon = require('./addon').default
-    _globalThis.addon = new Addon();
+    _globalThis.addon = new Addon()
     defineGlobal("ztoolkit", () => {
-      return _globalThis.addon.data.ztoolkit;
-    });
-    Zotero[config.addonInstance] = addon;
+      return _globalThis.addon.data.ztoolkit
+    })
+    Zotero[config.addonInstance] = addon
   }
 }
