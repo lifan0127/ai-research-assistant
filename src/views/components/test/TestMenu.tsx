@@ -191,9 +191,10 @@ interface TestMenuProps {
   setUserInput: (input: { content: MentionValue; states: States }) => void
   addMessage: (message: Partial<Message>) => void
   assistant: ResearchAssistant
+  hasNotification?: boolean
 }
 
-export function TestMenu({ setUserInput, addMessage, assistant }: TestMenuProps) {
+export function TestMenu({ setUserInput, addMessage, assistant, hasNotification }: TestMenuProps) {
   const dialog = useDialog()
   const items = [
     ...testMessages.map(({ label, message }) => ({
@@ -212,5 +213,6 @@ export function TestMenu({ setUserInput, addMessage, assistant }: TestMenuProps)
       handleClick: dialog.minimize,
     },
   ]
-  return <DropdownMenu Icon={WrenchIcon} position={'top-10 right-16'} items={items} />
+  const position = hasNotification ? {top: '40px', right: '64px'} : {top: '16px', right: '64px'};
+  return <DropdownMenu Icon={WrenchIcon} position={position} items={items} />
 }

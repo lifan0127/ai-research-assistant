@@ -34,6 +34,7 @@ import "./style.css";
 import { States, areStatesEmpty, MentionValue } from "../models/utils/states";
 import { Feedback } from "./components/Feedback";
 import { useFeedback } from "./hooks/useFeedback";
+import { Notification } from "./components/Notification";
 import { InfoPanel } from "./features/infoPanel/InfoPanel";
 import { PromptLibrary } from "./features/infoPanel/PromptLibrary";
 import { FAQ } from "./features/infoPanel/FAQ";
@@ -322,26 +323,29 @@ export function Container() {
     }
   }, [scale]);
 
+  let notification
+  // notification = <>
+  //   This is the final version compatible with Zotero 6. Future releases will support only Zotero 7.{' '}
+  //   <a
+  //     href="#"
+  //     onClick={() => {
+  //       Zotero.launchURL(`https://github.com/lifan0127/ai-research-assistant/releases`)
+  //     }}
+  //     className="border-none bg-transparent m-0 p-0 text-black underline"
+  //   >
+  //     Please find the latest release here.
+  //   </a>
+  // </>
+
   return (
-    <div>
+    <div >
       <div
         className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
         style={containerStyle}
         onDragEnter={() => setIsDragging(isDragging + 1)}
         onDragLeave={() => setIsDragging(isDragging - 1)}
       >
-        <div className={'w-full bg-red-400 text-black fixed px-4 py-2 -mx-3 text-center'}>
-          This is the final version compatible with Zotero 6. Future releases will support only Zotero 7.{' '}
-          <a
-            href="#"
-            onClick={() => {
-              Zotero.launchURL(`https://github.com/lifan0127/ai-research-assistant/releases`)
-            }}
-            className="border-none bg-transparent m-0 p-0 text-black underline"
-          >
-            Please find the latest release here.
-          </a>
-        </div>
+        <Notification notification={notification}/>
         <div
           className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
           ref={containerRef}
@@ -354,12 +358,14 @@ export function Container() {
             clearMessages={clearMessages}
             scale={scale}
             setScale={setScaleAndSave}
+            hasNotification={!!notification}
           />
           {__env__ === "development" ? (
             <TestMenu
               setUserInput={setUserInput}
               addMessage={addMessage}
               assistant={assistant}
+              hasNotification={!!notification}
             />
           ) : null}
           <InfoPanel

@@ -47,6 +47,7 @@ interface MenuProps {
   messages: Message[];
   scale: number;
   setScale: (scale: number) => void;
+  hasNotification?: boolean;
 }
 
 export function MainMenu({
@@ -56,6 +57,7 @@ export function MainMenu({
   messages,
   scale,
   setScale,
+  hasNotification,
 }: MenuProps) {
   const dialog = useDialog();
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -136,9 +138,10 @@ export function MainMenu({
       },
     },
   ];
+  const position = hasNotification ? {top: '40px', right: '24px'} : {top: '16px', right: '24px'};
   return (
     <>
-      <DropdownMenu items={items} Icon={Bars3Icon} position="top-10 right-6" />
+      <DropdownMenu items={items} Icon={Bars3Icon} position={position} />
       <Confirmation
         message={confirmationMessage}
         open={confirmationOpen}

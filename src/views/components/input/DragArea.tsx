@@ -75,6 +75,7 @@ export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSel
         const { image, libraryID, key } = data
         const id = `${libraryID}/${key}`
         addSelection('images', [{ title: `Figure (${id})`, id, image }] as SelectedImage[])
+        break
       }
       case 'text/plain': {
         const { text } = data

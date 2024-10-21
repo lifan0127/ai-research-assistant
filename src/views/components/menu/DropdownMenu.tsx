@@ -30,7 +30,7 @@ interface DropdownMenuProps {
   label?: string;
   Icon: React.FC;
   IconOpen?: React.FC;
-  position: string;
+  position: { top?: string, bottom?: string, left?: string, right?: string};
 }
 
 export function DropdownMenu({
@@ -44,7 +44,7 @@ export function DropdownMenu({
   const ref = useOutsideClick(() => setOpen(false));
 
   return (
-    <div className={`fixed ${position} z-10`}>
+    <div className='fixed z-10' style={position}>
       <div className="relative w-9">
         <button
           ref={ref}
