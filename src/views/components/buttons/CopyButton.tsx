@@ -1,14 +1,14 @@
-import React from "react";
-import { marked } from "marked";
-import { BotMessageProps } from "../message/types";
-import { Square2StackIcon } from "@heroicons/react/24/outline";
-import { copyButtonDef } from "./types";
+import React from "react"
+import { marked } from "marked"
+import { BotMessageProps } from "../../features/message/types"
+import { Square2StackIcon } from "@heroicons/react/24/outline"
+import { copyButtonDef } from "./types"
 
 interface CopyButtonProps extends copyButtonDef {
-  copyId: BotMessageProps["copyId"];
-  setCopyId: BotMessageProps["setCopyId"];
-  id: BotMessageProps["id"];
-  input: BotMessageProps["input"];
+  copyId: BotMessageProps["copyId"]
+  setCopyId: BotMessageProps["setCopyId"]
+  id: BotMessageProps["id"]
+  input: BotMessageProps["content"]
 }
 
 export function CopyButton({
@@ -19,8 +19,8 @@ export function CopyButton({
   input,
 }: CopyButtonProps) {
   function handleCopy() {
-    utils.copy(input);
-    setCopyId(id);
+    utils.copy(input)
+    setCopyId(id)
   }
   return (
     <div className="rounded border border-solid border-neutral-300">
@@ -39,5 +39,5 @@ export function CopyButton({
         </span>
       </button>
     </div>
-  );
+  )
 }

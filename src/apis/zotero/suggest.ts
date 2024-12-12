@@ -1,14 +1,20 @@
 // Implementation: https://github.com/zotero/zotero/blob/fe752fd9375e0d12f9a5ad751abf7b738c870e53/components/zotero-autocomplete.js
 // Example: https://github.com/zotero/zotero/blob/fe752fd9375e0d12f9a5ad751abf7b738c870e53/chrome/content/zotero/containers/tagsBoxContainer.jsx#L66
 const { classes: Cc, interfaces: Ci } = Components
-const search = Cc['@mozilla.org/autocomplete/search;1?name=zotero'].createInstance(Ci.nsIAutoCompleteSearch)
 
 export type FieldName = 'tag' | 'creator' | 'title' | 'collection'
 
+// The field name must match FieldName. Otherwise, the function will fail silently.
 export async function suggest(qtext: string, fieldName: FieldName) {
   let i = 0
+  const search = Cc['@mozilla.org/autocomplete/search;1?name=zotero'].createInstance(Ci.nsIAutoCompleteSearch)
   return new Promise(function (resolve, reject) {
-    var results: any = []
+    if (!['tag', 'creator', 'title', 'collection'].includes(fieldName)) {
+      reject(new Error(`Invalid field name: ${fieldName}`))
+      return
+    }
+    console.log('Zotero Suggest', qtext, fieldName)
+    const results: any = []
     search.startSearch(
       qtext,
       JSON.stringify({
@@ -18,21 +24,25 @@ export async function suggest(qtext: string, fieldName: FieldName) {
       [],
       {
         onSearchResult: function (search: any, result: any) {
-          if (result.searchResult == result.RESULT_IGNORED || result.searchResult == result.RESULT_FAILURE) {
-            reject(result.errorDescription)
-            return
-          }
-          if (result.searchResult == result.RESULT_SUCCESS || result.searchResult == result.RESULT_SUCCESS_ONGOING) {
-            // Pick up where we left off
-            for (; i < result.matchCount; i++) {
-              results.push(result.getValueAt(i).trim())
+          try {
+            if (result.searchResult == result.RESULT_IGNORED || result.searchResult == result.RESULT_FAILURE) {
+              reject(result.errorDescription)
+              return
             }
-          }
-          if (
-            result.searchResult != result.RESULT_SUCCESS_ONGOING &&
-            result.searchResult != result.RESULT_NOMATCH_ONGOING
-          ) {
-            resolve(results)
+            if (result.searchResult == result.RESULT_SUCCESS || result.searchResult == result.RESULT_SUCCESS_ONGOING) {
+              for (; i < result.matchCount; i++) {
+                results.push(result.getValueAt(i).trim())
+              }
+            }
+            if (
+              result.searchResult != result.RESULT_SUCCESS_ONGOING &&
+              result.searchResult != result.RESULT_NOMATCH_ONGOING
+            ) {
+              resolve(results)
+            }
+          } catch (error) {
+            console.error('Zotero Suggest Error', error)
+            reject(error)
           }
         },
       }
@@ -59,6 +69,11 @@ export async function suggestItems({ qtext, limit = 10 }: SuggestItemsInput) {
   )
 }
 
+interface SuggestInput {
+  qtext: string
+  limit?: number
+}
+
 interface SuggestCollectionsInput {
   qtext: string
   limit?: number
@@ -75,7 +90,7 @@ export async function suggestCollections({ qtext, limit = 10 }: SuggestCollectio
       `.trim()
   const query = '%' + qtext.split(' ').join('%') + '%'
   const results = await Zotero.DB.queryAsync(sql, [query, limit])
-  let output = []
+  const output = []
   for (let row of results) {
     output.push({
       id: row.collectionID,
@@ -84,4 +99,40 @@ export async function suggestCollections({ qtext, limit = 10 }: SuggestCollectio
     })
   }
   return output
+}
+
+async function runSuggestQuery(sql: string, params: any[]) {
+  const results = (await Zotero.DB.queryAsync(sql, params)) as { name: string }[] || []
+  const output = []
+  for (const row of results) {
+    output.push(row.name)
+  }
+  return output
+}
+
+export async function suggestTags({ qtext, limit = 10 }: SuggestInput) {
+  const sql = `
+        SELECT DISTINCT name
+        FROM tags 
+        WHERE name LIKE ?1 ESCAPE '\\'
+        ORDER BY name COLLATE locale
+        LIMIT ?2
+      `.trim()
+  const query = '%' + qtext.split(' ').join('%') + '%'
+  return runSuggestQuery(sql, [query, limit])
+}
+
+export async function suggestCreators({ qtext, limit = 10 }: SuggestInput) {
+  const sql = `
+        SELECT DISTINCT CASE fieldMode WHEN 1 THEN lastName
+        WHEN 0 THEN firstName || ' ' || lastName END AS name
+        FROM creators
+        WHERE CASE fieldMode
+        WHEN 1 THEN lastName LIKE ?1
+        WHEN 0 THEN (firstName || ' ' || lastName LIKE ?1) OR (lastName LIKE ?1) END
+        ORDER BY name
+        LIMIT ?2
+      `.trim()
+  const query = '%' + qtext.split(' ').join('%') + '%'
+  return runSuggestQuery(sql, [query, limit])
 }

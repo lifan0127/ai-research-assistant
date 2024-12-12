@@ -7,25 +7,25 @@ import { CustomToolkit } from './addon'
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
-  initLocale();
-  registerPrefs();
+  initLocale()
+  registerPrefs()
 
   ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
 
   // TODO: Remove this after zotero#3387 is merged
   if (__env__ === "development") {
     // Keep in sync with the scripts/startup.mjs
-    const loadDevToolWhen = `Plugin ${config.addonID} startup`;
-    ztoolkit.log(loadDevToolWhen);
+    const loadDevToolWhen = `Plugin ${config.addonID} startup`
+    ztoolkit.log(loadDevToolWhen)
   }
 
-  await onMainWindowLoad(window);
+  await onMainWindowLoad(Zotero.getMainWindow())
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
   // addon.data.ztoolkit = createZToolkit();
-  addon.data.ztoolkit = new CustomToolkit();
+  addon.data.ztoolkit = new CustomToolkit()
 
   const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
     closeOnClick: true,
@@ -36,33 +36,33 @@ async function onMainWindowLoad(win: Window): Promise<void> {
       type: "default",
       progress: 0,
     })
-    .show();
+    .show()
 
-  await Zotero.Promise.delay(1000);
+  await Zotero.Promise.delay(1000)
   popupWin.changeLine({
     progress: 30,
     text: `[30%] ${getString("startup-begin")}`,
-  });
+  })
 
-  await Zotero.Promise.delay(1000);
+  await Zotero.Promise.delay(1000)
 
   popupWin.changeLine({
     progress: 100,
     text: `[100%] ${getString("startup-finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
+  })
+  popupWin.startCloseTimer(5000)
 
-  addon.hooks.onDialogEvents("dialogExample");
+  addon.hooks.onDialogEvents("dialogExample")
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
-  ztoolkit.unregisterAll();
-  addon.data.popup?.window?.close();
+  ztoolkit.unregisterAll()
+  addon.data.popup?.window?.close()
 }
 
 function onShutdown(): void {
   ztoolkit.unregisterAll()
-  addon.data.popup?.window?.close();
+  addon.data.popup?.window?.close()
   // Remove addon object
   addon.data.alive = false
   delete Zotero[config.addonInstance]
@@ -79,7 +79,7 @@ async function onNotify(
   extraData: { [key: string]: any },
 ) {
   // You can add your code to the corresponding notify type
-  ztoolkit.log("notify", event, type, ids, extraData);
+  ztoolkit.log("notify", event, type, ids, extraData)
   if (
     event == "select" &&
     type == "tab" &&
@@ -87,7 +87,7 @@ async function onNotify(
   ) {
     // BasicExampleFactory.exampleNotifierCallback();
   } else {
-    return;
+    return
   }
 }
 

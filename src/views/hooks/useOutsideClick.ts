@@ -9,7 +9,7 @@ export function useOutsideClick(callback: () => void) {
         callback()
       }
     }
-
+    const document = Zotero.getMainWindow().document
     document.addEventListener('click', handleClick, true)
     addon.data.popup.window!.addEventListener('click', handleClick, true)
     return () => {

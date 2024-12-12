@@ -17,7 +17,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { create } from 'domain'
 import { CallbackManager, CallbackManagerForChainRun } from 'langchain/callbacks'
 import { ClarificationActionResponse, RoutingActionResponse, ExecutorActionResponse } from '../utils/actions'
-import { OutputActionParser } from '../utils/parsers'
+import { OutputActionParser } from '../utils/lcParsers'
 import { serializeStates } from '../utils/states'
 
 const OPENAI_API_KEY = (Zotero.Prefs.get(`${config.addonRef}.OPENAI_API_KEY`) as string) || 'YOUR_OPENAI_API_KEY'
@@ -74,10 +74,10 @@ export function createRouteFunctions(routes: Routes): RouteFunction[] {
                     type: 'string',
                     description: `
                   The name of the executor to handle the request. Must be one of the following:\n${Object.entries(
-                    routes
-                  )
-                    .map(([key, value]) => `- ${key}: ${value.description}`)
-                    .join('\n')}
+                      routes
+                    )
+                        .map(([key, value]) => `- ${key}: ${value.description}`)
+                        .join('\n')}
                   `.trim(),
                     enum: Object.keys(routes),
                   },

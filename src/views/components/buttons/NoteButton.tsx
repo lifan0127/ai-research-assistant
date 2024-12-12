@@ -1,38 +1,38 @@
-import React, { useState } from "react";
+import React, { useState } from "react"
 import {
   DocumentTextIcon,
-  PlusSmallIcon,
-  MinusSmallIcon,
-} from "@heroicons/react/24/outline";
-import { BotMessageProps, UserMessageProps } from "../message/types";
-import { useOutsideClick } from "../../hooks/useOutsideClick";
-import { noteButtonDef } from "./types";
-import { createStandaloneNote, createChildNote } from "../../../apis/zotero";
+  PlusIcon,
+  MinusIcon,
+} from "@heroicons/react/24/outline"
+import { BotMessageProps, UserMessageProps } from "../../features/message/types"
+import { useOutsideClick } from "../../hooks/useOutsideClick"
+import { noteButtonDef } from "./types"
+import { createStandaloneNote, createChildNote } from "../../../apis/zotero"
 
 interface NoteButtonProps extends noteButtonDef {
-  input: BotMessageProps["input"];
-  states?: UserMessageProps["states"];
+  input: BotMessageProps["content"]
+  states?: UserMessageProps["states"]
 }
 
 export function NoteButton({ utils, input, states }: NoteButtonProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useOutsideClick(() => setOpen(false));
-  const items = states?.items ?? [];
+  const [open, setOpen] = useState(false)
+  const ref = useOutsideClick(() => setOpen(false))
+  const items = states?.items ?? []
 
   function handleOpen() {
-    setOpen(!open);
+    setOpen(!open)
   }
 
   async function createNote() {
-    const content = await utils.createNote(input);
-    const note = await createStandaloneNote(content);
-    ZoteroPane.selectItem(note.id, true);
+    const content = await utils.createNote(input)
+    const note = await createStandaloneNote(content)
+    Zotero.getActiveZoteroPane().selectItem(note.id, true)
   }
 
   async function addNoteToItem(itemId: number) {
-    const content = await utils.createNote(input);
-    const note = await createChildNote(content, itemId as number);
-    ZoteroPane.selectItem(note.id);
+    const content = await utils.createNote(input)
+    const note = await createChildNote(content, itemId as number)
+    Zotero.getActiveZoteroPane().selectItem(note.id)
   }
 
   return (
@@ -51,12 +51,12 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
           />
           <span className="ml-2 text-sm">Note</span>
           {open ? (
-            <MinusSmallIcon
+            <MinusIcon
               className="ml-2 w-4 h-4 text-neutral-500"
               aria-hidden="true"
             />
           ) : (
-            <PlusSmallIcon
+            <PlusIcon
               className="ml-2 w-4 h-4 text-neutral-500"
               aria-hidden="true"
             />
@@ -81,7 +81,7 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
           const itemTitle =
             item.title && item.title.length > 64
               ? item.title.slice(0, 64) + "..."
-              : item.title;
+              : item.title
           return (
             <li key={item.id}>
               <button
@@ -91,9 +91,9 @@ export function NoteButton({ utils, input, states }: NoteButtonProps) {
                 Add child note to "{itemTitle}"
               </button>
             </li>
-          );
+          )
         })}
       </ul>
     </div>
-  );
+  )
 }

@@ -2,11 +2,11 @@
 // import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
 import hooks from './hooks'
 import { config } from '../package.json'
-import { BasicTool, unregister, UITool, PromptManager, ClipboardHelper, KeyboardManager, ProgressWindowHelper } from 'zotero-plugin-toolkit'
+import { BasicTool, unregister, UITool, PromptManager, ClipboardHelper, KeyboardManager, ProgressWindowHelper, ExtraFieldTool } from 'zotero-plugin-toolkit'
 import { ReactRootManager } from './views/root'
-import { Messages } from './modules/messages'
+import { MessageStore, FileMessageStore } from './modules/messageStore'
 
-class Addon {
+export class Addon {
   public data: {
     alive: boolean
     // Env type, see build.js
@@ -14,20 +14,20 @@ class Addon {
     ztoolkit: CustomToolkit
     // ztoolkit: ZoteroToolkit
     locale?: {
-      current: any;
+      current: any
     }
     prefs?: {
       window: Window
     }
     popup: {
       window: Window
-      messages: Messages
+      messageStore: MessageStore
     }
   }
   // Lifecycle hooks
   public hooks: typeof hooks
   // APIs
-  public api: {}
+  public api: object
 
   constructor() {
     const ztoolkit = new CustomToolkit()
@@ -36,8 +36,8 @@ class Addon {
       env: __env__,
       ztoolkit,
       popup: {
-        window,
-        messages: new Messages(),
+        window: Zotero.getMainWindow(),
+        messageStore: new FileMessageStore(),
       },
     }
     this.hooks = hooks
@@ -68,6 +68,7 @@ export class CustomToolkit extends BasicTool {
   Clipboard: typeof ClipboardHelper
   // LargePref: typeof LargePrefHelper
   ProgressWindow: typeof ProgressWindowHelper
+  ExtraField: ExtraFieldTool
 
   constructor() {
     super()
@@ -79,11 +80,10 @@ export class CustomToolkit extends BasicTool {
     // this.LargePref = LargePrefHelper
     this.ProgressWindow = ProgressWindowHelper
     this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
+    this.ExtraField = new ExtraFieldTool(this)
   }
 
   unregisterAll() {
     unregister(this)
   }
 }
-
-export default Addon

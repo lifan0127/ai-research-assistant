@@ -1,7 +1,7 @@
 // @ts-check Let TS check this config file
 
-import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
+import eslint from "@eslint/js"
+import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   {
@@ -10,6 +10,20 @@ export default tseslint.config(
   {
     extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
     rules: {
+      "no-restricted-globals": [
+        "error",
+        { message: "Use `Zotero.getMainWindow()` instead.", name: "window" },
+        {
+          message: "Use `Zotero.getMainWindow().document` instead.",
+          name: "document",
+        },
+        {
+          message: "Use `Zotero.getActiveZoteroPane()` instead.",
+          name: "ZoteroPane",
+        },
+        "Zotero_Tabs",
+      ],
+
       "@typescript-eslint/ban-ts-comment": [
         "warn",
         {
@@ -29,4 +43,4 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-assertion": "off",
     },
   },
-);
+)

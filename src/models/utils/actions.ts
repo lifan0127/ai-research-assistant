@@ -29,9 +29,9 @@ export interface RoutingActionResponse extends BaseActionResponse {
 }
 
 export interface SearchActionResponse extends BaseActionResponse {
-  action: 'search'
-  payload: {
-    keywords?: string[]
+  widget: 'search'
+  input: {
+    qtexts?: string[]
     creators?: string[]
     tags?: string[]
     years?: {

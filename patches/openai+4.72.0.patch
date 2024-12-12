@@ -1,0 +1,10 @@
+diff --git a/node_modules/openai/uploads.mjs b/node_modules/openai/uploads.mjs
+index 7357361..ef72666 100644
+--- a/node_modules/openai/uploads.mjs
++++ b/node_modules/openai/uploads.mjs
+@@ -1,4 +1,4 @@
+-import { FormData, File, getMultipartRequestOptions, isFsReadStream, } from "./_shims/index.mjs";
++import { getMultipartRequestOptions, isFsReadStream, } from "./_shims/index.mjs";
+ export { fileFromPath } from "./_shims/index.mjs";
+ export const isResponseLike = (value) => value != null &&
+     typeof value === 'object' &&

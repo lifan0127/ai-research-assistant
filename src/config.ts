@@ -9,22 +9,9 @@ import { config } from '../package.json'
 // import { crypto } from './polyfills/crypto'
 // import { setTimeout, clearTimeout } from './polyfills/timers'
 // import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
+import { Addon } from './addon'
 
 export default function globalConfig() {
-
-  // process.env = { ...process.env, LANGCHAIN_TRACING: __env__ === 'development' ? 'true' : 'false' }
-  if (__env__ === 'development') {
-    const tracing = Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_TRACING_V2`)
-    if (tracing) {
-      process.env = {
-        ...process.env,
-        LANGCHAIN_TRACING_V2: 'true',
-        LANGCHAIN_ENDPOINT: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_ENDPOINT`) as string,
-        LANGCHAIN_API_KEY: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_API_KEY`) as string,
-        LANGCHAIN_PROJECT: Zotero.Prefs.get(`${config.addonRef}.LANGCHAIN_PROJECT`) as string,
-      }
-    }
-  }
 
   const basicTool = new BasicTool()
 
@@ -72,8 +59,11 @@ export default function globalConfig() {
     defineGlobal("document")
     defineGlobal("ZoteroPane")
     defineGlobal("Zotero_Tabs")
+    defineGlobal("AbortController")
+    // _globalThis.FormData = basicTool.getGlobal('FormData')
+    defineGlobal("FormData")
 
-    const Addon = require('./addon').default
+    // const Addon = require('./addon').Addon
     _globalThis.addon = new Addon()
     defineGlobal("ztoolkit", () => {
       return _globalThis.addon.data.ztoolkit

@@ -16,7 +16,7 @@ import { ClarificationActionResponse, ErrorActionResponse, VisionActionResponse 
 import { ZoteroCallbacks } from '../utils/callbacks'
 import { ReadOnlyBufferWindowMemory } from '../utils/memory'
 import { SimplifiedStates, serializeStates, States } from '../utils/states'
-import { OutputActionParser } from '../utils/parsers'
+import { OutputActionParser } from '../utils/lcParsers'
 import * as zot from '../../apis/zotero'
 
 const VISION_DEFAULT_PROMPT = ChatPromptTemplate.fromPromptMessages([

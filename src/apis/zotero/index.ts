@@ -1,4 +1,4 @@
-export { search } from './search'
+export { legacySearch as search } from './legacySearch'
 export { createCitations } from './citation'
 export { getItemAndBestAttachment, findItemByTitle, getItemById, ItemInfo } from './item'
 export { suggest, FieldName, suggestItems, suggestCollections } from './suggest'

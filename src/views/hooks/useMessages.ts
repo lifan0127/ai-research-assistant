@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react'
-import { Message } from '../components/message/types'
+import { Message } from '../features/message/types'
 import { generateMessageId } from '../../models/utils/identifiers'
 
 export function useMessages() {
-  const messageStore = addon.data.popup.messages
+  const messageStore = addon.data.popup.messageStore
   const loadedMessages = useMemo(() => messageStore.loadMessages(), [])
   const [messages, setMessages] = useState<Message[]>(loadedMessages)
 
@@ -16,6 +16,17 @@ export function useMessages() {
     const newMessage = { ...message, id: generateMessageId(), timestamp: new Date().toISOString() } as Message
     setMessages(messages => [...messages, newMessage])
     messageStore.appendMessage(newMessage)
+    return message.id
+  }
+
+  function initMessage(message: Partial<Message>) {
+    const newMessage = { ...message, id: generateMessageId(), timestamp: new Date().toISOString() } as Message
+    setMessages(messages => [...messages, newMessage])
+    return message.id
+  }
+
+  function persistMessage(message: Message) {
+    messageStore.appendMessage(message)
   }
 
   // Update a message in place without changing other messages in the list.
@@ -40,5 +51,5 @@ export function useMessages() {
     messageStore.clearMessages()
   }
 
-  return { messages, getMesssage, addMessage, editMessage, updateMessage, clearMessages }
+  return { messages, getMesssage, addMessage, editMessage, updateMessage, clearMessages, initMessage, persistMessage }
 }

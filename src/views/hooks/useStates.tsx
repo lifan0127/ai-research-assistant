@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { find } from 'lodash'
-import { uniqBy, groupBy } from 'lodash'
+import React, { useState, useEffect } from "react"
+import { find } from "lodash"
+import { uniqBy, groupBy } from "lodash"
 import {
   SelectedCreator,
   SelectedTag,
@@ -12,9 +12,9 @@ import {
   StateSelections,
   selectionConfig,
   MentionValue,
-} from '../../models/utils/states'
-import * as zot from '../../apis/zotero'
-import { title } from 'process'
+} from "../../models/utils/states"
+import * as zot from "../../apis/zotero"
+import { title } from "process"
 
 export const defaultStates: States = {
   creators: [],
@@ -25,12 +25,15 @@ export const defaultStates: States = {
 }
 
 export const defaultValue: MentionValue = {
-  newValue: '',
-  newPlainTextValue: '',
+  newValue: "",
+  newPlainTextValue: "",
   mentions: [],
 }
 
-export function useStates(inputStates: States = defaultStates, inputValue: MentionValue = defaultValue) {
+export function useStates(
+  inputStates: States = defaultStates,
+  inputValue: MentionValue = defaultValue,
+) {
   const [states, setStates] = useState<States>(inputStates)
   const [value, setValue] = useState<MentionValue>(inputValue)
 
@@ -39,32 +42,44 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
       // console.log({ mentions: value.mentions })
       // Group mentions by type
       const mentionsByType = groupBy(
-        uniqBy(value.mentions, mention => mention.id).map(mention => mention.id.split('|')),
-        ([type]) => type
+        uniqBy(value.mentions, (mention) => mention.id).map((mention) =>
+          mention.id.split("|"),
+        ),
+        ([type]) => type,
       )
 
       // Handle mentioned items
-      const itemIds = states.items.map(item => item.id)
-      const mentionedItemIds = (mentionsByType.items || []).map(([, id]) => parseInt(id))
-      const newItems = await Promise.all(
-        mentionedItemIds.filter(id => !itemIds.includes(id)).map(async id => await zot.getItemById(id))
+      const itemIds = states.items.map((item) => item.id)
+      const mentionedItemIds = (mentionsByType.items || []).map(([, id]) =>
+        parseInt(id),
       )
-      const remainingItems = states.items.filter(item => mentionedItemIds.includes(item.id))
+      const newItems = await Promise.all(
+        mentionedItemIds
+          .filter((id) => !itemIds.includes(id))
+          .map(async (id) => await zot.getItemById(id)),
+      )
+      const remainingItems = states.items.filter((item) =>
+        mentionedItemIds.includes(item.id),
+      )
       const items = [...remainingItems, ...newItems]
 
       // Handle mentioned collections
-      const collectionIds = states.collections.map(collection => collection.id)
-      const mentionedCollectionIds = (mentionsByType.collections || []).map(([, id]) => parseInt(id))
+      const collectionIds = states.collections.map(
+        (collection) => collection.id,
+      )
+      const mentionedCollectionIds = (mentionsByType.collections || []).map(
+        ([, id]) => parseInt(id),
+      )
       const newCollections = await Promise.all(
         mentionedCollectionIds
-          .filter(id => !collectionIds.includes(id))
-          .map(async id => {
+          .filter((id) => !collectionIds.includes(id))
+          .map(async (id) => {
             const { title } = await zot.getCollectionById(id)
-            return { id, type: 'collection' as const, title }
-          })
+            return { id, type: "collection" as const, title }
+          }),
       )
-      const remainingCollections = states.collections.filter(collection =>
-        mentionedCollectionIds.includes(collection.id)
+      const remainingCollections = states.collections.filter((collection) =>
+        mentionedCollectionIds.includes(collection.id),
       )
       const collections = [...remainingCollections, ...newCollections]
 
@@ -72,23 +87,23 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
       const tags = (mentionsByType.tags || []).map(([, id]) => ({
         id,
         title: Zotero.Utilities.Internal.Base64.decode(id),
-        type: 'tag' as const,
+        type: "tag" as const,
       }))
 
       // Handle mentioned creators
       const creators = (mentionsByType.creators || []).map(([, id]) => ({
         id,
         title: Zotero.Utilities.Internal.Base64.decode(id),
-        type: 'creator' as const,
+        type: "creator" as const,
       }))
 
       // Handle mentioned images
       const images = (mentionsByType.images || []).map(([display, id]) => {
-        const image = states.images.find(image => image.id === id)!.image
+        const image = states.images.find((image) => image.id === id)!.image
         return {
           id: id,
           title: display,
-          type: 'image' as const,
+          type: "image" as const,
           image,
         }
       })
@@ -102,44 +117,61 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
   // For individual selection, match by id
   // For selections by type, match by id prefix
   function matcherFactory(selection?: StateSelection) {
-    return !!selection
-      ? (name: StateName, mention: MentionValue['mentions'][0]) => mention.id === `${name}|${selection.id}`
-      : (name: StateName, mention: MentionValue['mentions'][0]) => mention.id.startsWith(`${name}|`)
+    return selection
+      ? (name: StateName, mention: MentionValue["mentions"][0]) =>
+          mention.id === `${name}|${selection.id}`
+      : (name: StateName, mention: MentionValue["mentions"][0]) =>
+          mention.id.startsWith(`${name}|`)
   }
 
   function removeMentions(name: StateName, selection?: StateSelection) {
     const matcher = matcherFactory(selection)
     // Divide mentions into matches and others
     const { matches, others } = value.mentions.reduce(
-      (all: { matches: MentionValue['mentions']; others: MentionValue['mentions'] }, mention) => {
+      (
+        all: {
+          matches: MentionValue["mentions"]
+          others: MentionValue["mentions"]
+        },
+        mention,
+      ) => {
         if (matcher(name, mention)) {
           return { ...all, matches: [...all.matches, mention] }
         } else {
           return { ...all, others: [...all.others, mention] }
         }
       },
-      { matches: [], others: [] }
+      { matches: [], others: [] },
     )
     let { newValue, newPlainTextValue } = value
     // For each match, update value, plainTextValue and mentions.
-    for (let match of matches.reverse()) {
+    for (const match of matches.reverse()) {
       // Remove extra whitespace surrounding the removed mention, if necessary
       const hasExtraWhiteSpace =
-        (match.index === 0 || newPlainTextValue[match.plainTextIndex - 1] === ' ') &&
+        (match.index === 0 ||
+          newPlainTextValue[match.plainTextIndex - 1] === " ") &&
         (match.plainTextIndex === newPlainTextValue.length - 1 ||
-          newPlainTextValue[match.plainTextIndex + match.display.length] === ' ')
-      const mentionLength = newValue.slice(match.index).indexOf(match.id) + match.id.length + 1
+          newPlainTextValue[match.plainTextIndex + match.display.length] ===
+            " ")
+      const mentionLength =
+        newValue.slice(match.index).indexOf(match.id) + match.id.length + 1
       const plainTextMentionLength = match.display.length
       // Calculate the mention lengths for removal by slice
-      const mentionOffset = hasExtraWhiteSpace ? mentionLength + 1 : mentionLength
-      const plainTextMentionOffset = hasExtraWhiteSpace ? plainTextMentionLength + 1 : plainTextMentionLength
+      const mentionOffset = hasExtraWhiteSpace
+        ? mentionLength + 1
+        : mentionLength
+      const plainTextMentionOffset = hasExtraWhiteSpace
+        ? plainTextMentionLength + 1
+        : plainTextMentionLength
       // For each match, remove its reference in value and plainTextValue
-      newValue = newValue.slice(0, match.index) + newValue.slice(match.index + mentionOffset)
+      newValue =
+        newValue.slice(0, match.index) +
+        newValue.slice(match.index + mentionOffset)
       newPlainTextValue =
         newPlainTextValue.slice(0, match.plainTextIndex) +
         newPlainTextValue.slice(match.plainTextIndex + plainTextMentionOffset)
       // Update the index of other mentions
-      others.forEach(mention => {
+      others.forEach((mention) => {
         if (mention.index > match.index) {
           mention.index -= mentionOffset
         }
@@ -154,7 +186,9 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
   function add(name: StateName, selections: StateSelection[]) {
     // Update selection
     const newSelections = selections.reduce((all: typeof selections, ind) => {
-      const match = find(states[name], { id: ind.id }) as StateSelection | undefined
+      const match = find(states[name], { id: ind.id }) as
+        | StateSelection
+        | undefined
       if (match !== undefined) {
         return all
       }
@@ -164,25 +198,35 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
 
     // Add mentions
     let { newValue, newPlainTextValue, mentions } = value
-    for (let selection of selections) {
+    for (const selection of selections) {
       const id = `${name}|${selection.id}`
       const display =
-        name === 'items' && selection?.title && selection.title.length > 32
-          ? selection.title.slice(0, 32) + '...'
+        name === "items" && selection?.title && selection.title.length > 32
+          ? selection.title.slice(0, 32) + "..."
           : (selection.title as string)
       mentions = [
         ...mentions,
-        { childIndex: 2, id, display, index: newValue.length, plainTextIndex: newPlainTextValue.length },
+        {
+          childIndex: 2,
+          id,
+          display,
+          index: newValue.length,
+          plainTextIndex: newPlainTextValue.length,
+        },
       ]
-      newValue += `${selectionConfig[name].prefix}` + `[${selection.title}](${id})` + ' '
-      newPlainTextValue += display + ' '
+      newValue +=
+        `${selectionConfig[name].prefix}` + `[${selection.title}](${id})` + " "
+      newPlainTextValue += display + " "
     }
     setValue({ newValue, newPlainTextValue, mentions })
   }
 
   function remove(name: StateName, selection: StateSelection) {
-    const selections = states[name] as Pick<StateSelection, 'id'>[]
-    setStates({ ...states, [name]: selections.filter(({ id }) => id !== selection.id) })
+    const selections = states[name] as Pick<StateSelection, "id">[]
+    setStates({
+      ...states,
+      [name]: selections.filter(({ id }) => id !== selection.id),
+    })
     removeMentions(name, selection)
   }
 
@@ -195,7 +239,10 @@ export function useStates(inputStates: States = defaultStates, inputValue: Menti
     setStates({ ...states, [name]: selections })
   }
 
-  function reset(states: States = defaultStates, inputValue: MentionValue = defaultValue) {
+  function reset(
+    states: States = defaultStates,
+    inputValue: MentionValue = defaultValue,
+  ) {
     setStates(states)
     setValue(inputValue)
   }

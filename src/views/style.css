@@ -48,3 +48,46 @@
     background-color: rgba(152, 128, 255, 0.2);
   }
 }
+
+.saturation-pulse {
+  filter: saturate(0); /* Start as grayscale */
+  animation: saturation-pulse 2s infinite; /* Apply the animation */
+}
+
+@keyframes saturation-pulse {
+  0% {
+    filter: saturate(0); /* Grayscale */
+  }
+  50% {
+    filter: saturate(2); /* Over-saturated */
+  }
+  100% {
+    filter: saturate(0); /* Back to grayscale */
+  }
+}
+
+.panel-enter {
+  opacity: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.panel-enter-active {
+  opacity: 1;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: opacity 200ms, grid-template-rows 200ms;
+}
+
+.panel-exit {
+  opacity: 1;
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.panel-exit-active {
+  opacity: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: opacity 200ms, grid-template-rows 200ms; 
+}

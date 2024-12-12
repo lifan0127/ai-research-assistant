@@ -1,13 +1,17 @@
-import React, { useState } from 'react'
-import { PencilSquareIcon, PlusSmallIcon, MinusSmallIcon } from '@heroicons/react/24/outline'
-import { BotMessageProps, UserMessageProps } from '../message/types'
-import { useOutsideClick } from '../../hooks/useOutsideClick'
-import { annotationButtonDef } from './types'
-import { updateAnnotation } from '../../../apis/zotero'
+import React, { useState } from "react"
+import {
+  PencilSquareIcon,
+  PlusIcon,
+  MinusIcon,
+} from "@heroicons/react/24/outline"
+import { BotMessageProps, UserMessageProps } from "../../features/message/types"
+import { useOutsideClick } from "../../hooks/useOutsideClick"
+import { annotationButtonDef } from "./types"
+import { updateAnnotation } from "../../../apis/zotero"
 
 interface AnnotateButtonProps extends annotationButtonDef {
-  input: BotMessageProps['input']
-  states?: UserMessageProps['states']
+  input: BotMessageProps["content"]
+  states?: UserMessageProps["states"]
 }
 
 export function AnnotateButton({ utils, input, states }: AnnotateButtonProps) {
@@ -20,8 +24,11 @@ export function AnnotateButton({ utils, input, states }: AnnotateButtonProps) {
   }
 
   async function annotate(annotationId: string) {
-    const [libraryID, key] = annotationId.split('/')
-    const annotation = (await Zotero.Items.getByLibraryAndKeyAsync(parseInt(libraryID), key)) as Zotero.DataObject
+    const [libraryID, key] = annotationId.split("/")
+    const annotation = (await Zotero.Items.getByLibraryAndKeyAsync(
+      parseInt(libraryID),
+      key,
+    )) as Zotero.DataObject
     const content = utils.createAnnotation(input)
     updateAnnotation(annotation.id, content)
   }
@@ -59,22 +66,31 @@ export function AnnotateButton({ utils, input, states }: AnnotateButtonProps) {
           aria-label="Annotation"
           onClick={handleOpen}
         >
-          <PencilSquareIcon className="w-5 h-5 text-neutral-500" aria-hidden="true" />
+          <PencilSquareIcon
+            className="w-5 h-5 text-neutral-500"
+            aria-hidden="true"
+          />
           <span className="ml-2 text-sm">Annotate</span>
           {open ? (
-            <MinusSmallIcon className="ml-2 w-4 h-4 text-neutral-500" aria-hidden="true" />
+            <MinusIcon
+              className="ml-2 w-4 h-4 text-neutral-500"
+              aria-hidden="true"
+            />
           ) : (
-            <PlusSmallIcon className="ml-2 w-4 h-4 text-neutral-500" aria-hidden="true" />
+            <PlusIcon
+              className="ml-2 w-4 h-4 text-neutral-500"
+              aria-hidden="true"
+            />
           )}
         </button>
       </div>
       <ul
         className={`${
-          open ? 'visible' : 'invisible'
+          open ? "visible" : "invisible"
         } absolute left-0 list-none m-0 mt-4 p-0 shadow-lg border border-solid border-gray-200`}
-        style={{ background: '-moz-field' }}
+        style={{ background: "-moz-field" }}
       >
-        {annotations.map(item => {
+        {annotations.map((item) => {
           console.log({ item })
           return (
             <li key={item.id}>
@@ -85,7 +101,11 @@ export function AnnotateButton({ utils, input, states }: AnnotateButtonProps) {
                 Add annotation to "{item.id}"
               </button>
               <div className="h-20 p-1">
-                <img className="h-full aspect-auto" src={item.image} title={item.id} />
+                <img
+                  className="h-full aspect-auto"
+                  src={item.image}
+                  title={item.id}
+                />
               </div>
             </li>
           )

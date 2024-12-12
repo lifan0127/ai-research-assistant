@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 /**
  * Most of this code is from Zotero team's official Make It Red example[1]
  * or the Zotero 7 documentation[2].
@@ -5,18 +7,9 @@
  * [2] https://www.zotero.org/support/dev/zotero_7_for_developers
  */
 
-var config = {
-  addonID: "aria@apex974.com",
-  addonRef: 'aria'
-}
-
-if (typeof Zotero == "undefined") {
-  var Zotero
-}
-
 var chromeHandle
 
-function install(data, reason) {}
+function install(data, reason) { }
 
 // APP_STARTUP: 1,
 // APP_SHUTDOWN: 2,
@@ -66,7 +59,7 @@ function install(data, reason) {}
 // }
 
 async function startup({ id, version, resourceURI, rootURI }, reason) {
-  await Zotero.initializationPromise;
+  await Zotero.initializationPromise
   // String 'rootURI' introduced in Zotero 7
   if (!rootURI) {
     rootURI = resourceURI.spec
@@ -74,11 +67,11 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
 
   var aomStartup = Components.classes[
     "@mozilla.org/addons/addon-manager-startup;1"
-  ].getService(Components.interfaces.amIAddonManagerStartup);
-  var manifestURI = Services.io.newURI(rootURI + "manifest.json");
+  ].getService(Components.interfaces.amIAddonManagerStartup)
+  var manifestURI = Services.io.newURI(rootURI + "manifest.json")
   chromeHandle = aomStartup.registerChrome(manifestURI, [
     ["content", "__addonRef__", rootURI + "chrome/content/"],
-  ]);
+  ])
 
   // // Initialize the plugin SQLite database
   // switch (reason) {
@@ -102,14 +95,22 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
 
   const ctx = {
     rootURI,
-  };
-  ctx._globalThis = ctx;
+  }
+  ctx._globalThis = ctx
 
   Services.scriptloader.loadSubScript(
     `${rootURI}/chrome/content/scripts/__addonRef__.js`,
     ctx,
-  );
-  Zotero.__addonInstance__.hooks.onStartup();
+  )
+  Zotero.__addonInstance__.hooks.onStartup()
+}
+
+async function onMainWindowLoad({ window }, reason) {
+  Zotero.__addonInstance__?.hooks.onMainWindowLoad(window)
+}
+
+async function onMainWindowUnload({ window }, reason) {
+  Zotero.__addonInstance__?.hooks.onMainWindowUnload(window)
 }
 
 function shutdown({ id, version, resourceURI, rootURI }, reason) {
@@ -121,13 +122,13 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
       Components.interfaces.nsISupports
     ).wrappedJSObject
   }
-  Zotero.__addonInstance__.hooks.onShutdown()
+  Zotero.__addonInstance__?.hooks.onShutdown()
 
   Cc["@mozilla.org/intl/stringbundle;1"]
     .getService(Components.interfaces.nsIStringBundleService)
     .flushBundles()
 
-  Cu.unload(`${rootURI}/chrome/content/scripts/index.js`)
+  Cu.unload(`${rootURI}/chrome/content/scripts/__addonRef__.js`)
 
   if (chromeHandle) {
     chromeHandle.destruct()
@@ -138,25 +139,25 @@ function shutdown({ id, version, resourceURI, rootURI }, reason) {
 function uninstall(data, reason) { }
 
 // Loads default preferences from defaults/preferences/prefs.js in Zotero 6
-function setDefaultPrefs(rootURI) {
-  var branch = Services.prefs.getDefaultBranch("")
-  var obj = {
-    pref(pref, value) {
-      switch (typeof value) {
-        case "boolean":
-          branch.setBoolPref(pref, value)
-          break
-        case "string":
-          branch.setStringPref(pref, value)
-          break
-        case "number":
-          branch.setIntPref(pref, value)
-          break
-        default:
-          Zotero.logError(`Invalid type '${typeof value}' for pref '${pref}'`)
-      }
-    },
-  }
-  Zotero.getMainWindow().console.log(rootURI + "prefs.js")
-  Services.scriptloader.loadSubScript(rootURI + "prefs.js", obj)
-}
+// function setDefaultPrefs(rootURI) {
+//   var branch = Services.prefs.getDefaultBranch("")
+//   var obj = {
+//     pref(pref, value) {
+//       switch (typeof value) {
+//         case "boolean":
+//           branch.setBoolPref(pref, value)
+//           break
+//         case "string":
+//           branch.setStringPref(pref, value)
+//           break
+//         case "number":
+//           branch.setIntPref(pref, value)
+//           break
+//         default:
+//           Zotero.logError(`Invalid type '${typeof value}' for pref '${pref}'`)
+//       }
+//     },
+//   }
+//   Zotero.getMainWindow().console.log(rootURI + "prefs.js")
+//   Services.scriptloader.loadSubScript(rootURI + "prefs.js", obj)
+// }

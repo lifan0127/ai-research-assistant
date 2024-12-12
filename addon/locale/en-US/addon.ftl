@@ -9,5 +9,5 @@ prefs-table-title = Title
 prefs-table-detail = Detail
 tabpanel-lib-tab-label = Lib Tab
 tabpanel-reader-tab-label = Reader Tab
-aria-dialog =
+dialog =
   .title = Aria: AI Research Assistant

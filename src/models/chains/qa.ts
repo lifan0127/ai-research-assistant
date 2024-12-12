@@ -16,7 +16,7 @@ import { config } from '../../../package.json'
 import { ClarificationActionResponse, ErrorActionResponse, QAActionResponse } from '../utils/actions'
 import { ZoteroCallbacks } from '../utils/callbacks'
 import { ReadOnlyBufferWindowMemory } from '../utils/memory'
-import { OutputActionParser } from '../utils/parsers'
+import { OutputActionParser } from '../utils/lcParsers'
 import { loadSearchChain, SearchChain } from './search'
 import * as zot from '../../apis/zotero'
 

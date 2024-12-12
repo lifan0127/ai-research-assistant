@@ -2,7 +2,7 @@ import { BasicTool, BasicOptions, ManagerTool, UITool, KeyboardManager } from 'z
 import { Providers } from './Providers'
 import { config } from '../../package.json'
 import React from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 
 export class ReactRoot {
   private ui: UITool
@@ -82,37 +82,40 @@ export class ReactRoot {
     const windowArgs = {
       _initPromise: Zotero.Promise.defer(),
     }
+    const window = Zotero.getMainWindow()
     const dialogWidth = Math.max(window.outerWidth * 0.6, 720)
     const dialogHeight = window.outerHeight * 0.8
     const left = window.screenX + window.outerWidth / 2 - dialogWidth / 2
     const top = window.screenY + window.outerHeight / 2 - dialogHeight / 2
+
     const dialog = (window as any).openDialog(
       'chrome://aria/content/popup.xhtml',
       `${config.addonRef}-window`,
-      `chrome,titlebar,status,left=${left},top=${top},resizable=yes`,
+      `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
       windowArgs
     )
-    setTimeout(() => {
-      // Setting width and height in openDialog doesn't work in Zotero 7
-      dialog.resizeTo(dialogWidth, dialogHeight)
-    }, 100)
+    // setTimeout(() => {
+    //   // Setting width and height in openDialog doesn't work in Zotero 7 with http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul
+    //   dialog.resizeTo(dialogWidth, dialogHeight)
+    // }, 100)
     // Assign the dialog to the addon object so that it can be accessed from within the addon
     addon.data.popup.window = dialog
     // await windowArgs._initPromise.promise
     this.dialog = dialog
-    const this2 = this
+    // const this2 = this
     dialog!.addEventListener(
       'load',
-      function () {
+      () => {
         const entry = dialog.document.getElementById('aria-entry-point')
-        ReactDOM.render(React.createElement(Providers), entry)
+        const root = createRoot(entry)
+        root.render(React.createElement(Providers))
       },
       { once: true }
     )
     dialog.addEventListener(
       'dialogclosing',
-      function () {
-        this2.dialog = undefined
+      () => {
+        this.dialog = undefined
       },
       { once: true }
     )

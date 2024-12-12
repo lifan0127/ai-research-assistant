@@ -4,7 +4,7 @@ export const searchResultsAction: any = {
     widget: 'SEARCH_RESULTS',
     input: {
       query: {
-        keywords: [
+        qtexts: [
           'machine learning',
           'artificial intelligence',
           'deep learning',

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { FEEDBACK_URL } from '../../constants'
 import { config } from '../../../package.json'
-import { BotMessageProps, FeedbackContent } from '../components/message/types'
+import { FeedbackContent } from '../features/message/types'
 
 export function useFeedback() {
   const [openFeedback, setOpenFeedback] = useState(false)

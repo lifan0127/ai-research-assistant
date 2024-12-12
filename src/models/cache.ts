@@ -1,5 +1,3 @@
-// import { BaseCache } from 'langchain/dist/cache'
-
 export class SQLiteCache {
   db: any
   constructor() {

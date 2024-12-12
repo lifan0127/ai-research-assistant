@@ -10,9 +10,8 @@
     "esModuleInterop": true
   },
   "include": [
+    "node_modules/zotero-types",
     "src",
-    "typing",
-    "node_modules/zotero-types"
   ],
   "exclude": [
     "builds",

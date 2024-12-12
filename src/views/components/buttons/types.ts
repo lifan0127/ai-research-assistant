@@ -18,3 +18,10 @@ export interface annotationButtonDef {
     createAnnotation: (props: any) => string
   }
 }
+
+export interface stopRespondingButtonDef {
+  name: 'STOP_RESPONDING'
+  utils: {
+    stopResponding: (props: any) => void
+  }
+}
