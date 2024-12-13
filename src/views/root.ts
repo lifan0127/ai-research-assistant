@@ -1,8 +1,14 @@
-import { BasicTool, BasicOptions, ManagerTool, UITool, KeyboardManager } from 'zotero-plugin-toolkit'
-import { Providers } from './Providers'
-import { config } from '../../package.json'
-import React from 'react'
-import { createRoot } from 'react-dom/client'
+import {
+  BasicTool,
+  BasicOptions,
+  ManagerTool,
+  UITool,
+  KeyboardManager,
+} from "zotero-plugin-toolkit"
+import { Providers } from "./Providers"
+import { config } from "../../package.json"
+import React from "react"
+import { createRoot } from "react-dom/client"
 
 export class ReactRoot {
   private ui: UITool
@@ -15,7 +21,7 @@ export class ReactRoot {
   constructor(Keyboard: KeyboardManager) {
     this.base = new BasicTool()
     this.ui = new UITool()
-    this.document = this.base.getGlobal('document')
+    this.document = this.base.getGlobal("document")
     // this.registerStyle()
     this.registerToolbar()
     this.registerShortcut(Keyboard)
@@ -35,17 +41,18 @@ export class ReactRoot {
   // }
 
   private registerToolbar() {
-    const ariaBtn = this.ui.createElement(this.document, 'toolbarbutton', {
-      id: 'zotero-tb-aria',
+    const ariaBtn = this.ui.createElement(this.document, "toolbarbutton", {
+      id: "zotero-tb-aria",
       removeIfExists: true,
       attributes: {
-        class: 'zotero-tb-button',
-        tooltiptext: 'Launch Aria',
-        style: 'list-style-image: url(chrome://aria/content/icons/favicon@16x16.png)',
+        class: "zotero-tb-button",
+        tooltiptext: "Launch Aria",
+        style:
+          "list-style-image: url(chrome://aria/content/icons/favicon@16x16.png)",
       },
       listeners: [
         {
-          type: 'click',
+          type: "click",
           listener: () => {
             if (this.dialog && !this.dialog.closed) {
               this.dialog.focus()
@@ -56,7 +63,7 @@ export class ReactRoot {
         },
       ],
     })
-    const toolbarNode = this.document.getElementById('zotero-tb-note-add')
+    const toolbarNode = this.document.getElementById("zotero-tb-note-add")
     if (toolbarNode) {
       toolbarNode.after(ariaBtn)
     }
@@ -64,17 +71,19 @@ export class ReactRoot {
 
   private removeMessagesInPrefs() {
     try {
-      const rootKey = 'extensions.zotero.aria.messageKeys'
+      const rootKey = "extensions.zotero.aria.messageKeys"
       const rootVal = Zotero.Prefs.get(rootKey, true)
-      if (typeof rootVal !== 'string') {
+      if (typeof rootVal !== "string") {
         return
       }
       const messageKeys = JSON.parse(rootVal) || []
-      messageKeys.forEach((key: string) => Zotero.Prefs.clear('aria.message.' + key, true))
+      messageKeys.forEach((key: string) =>
+        Zotero.Prefs.clear("aria.message." + key, true),
+      )
       Zotero.Prefs.clear(rootKey, true)
-      console.log('Aria messages in prefs removed.')
+      console.log("Aria messages in prefs removed.")
     } catch (error) {
-      console.log('Error removing Aria messages in prefs', error)
+      console.log("Error removing Aria messages in prefs", error)
     }
   }
 
@@ -89,42 +98,42 @@ export class ReactRoot {
     const top = window.screenY + window.outerHeight / 2 - dialogHeight / 2
 
     const dialog = (window as any).openDialog(
-      'chrome://aria/content/popup.xhtml',
+      "chrome://aria/content/popup.xhtml",
       `${config.addonRef}-window`,
       `chrome,titlebar,status,width=${dialogWidth},height=${dialogHeight},left=${left},top=${top},resizable=yes`,
-      windowArgs
+      windowArgs,
     )
-    // setTimeout(() => {
-    //   // Setting width and height in openDialog doesn't work in Zotero 7 with http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul
-    //   dialog.resizeTo(dialogWidth, dialogHeight)
-    // }, 100)
+
     // Assign the dialog to the addon object so that it can be accessed from within the addon
     addon.data.popup.window = dialog
     // await windowArgs._initPromise.promise
     this.dialog = dialog
     // const this2 = this
     dialog!.addEventListener(
-      'load',
+      "load",
       () => {
-        const entry = dialog.document.getElementById('aria-entry-point')
+        const entry = dialog.document.getElementById("aria-entry-point")
         const root = createRoot(entry)
         root.render(React.createElement(Providers))
       },
-      { once: true }
+      { once: true },
     )
     dialog.addEventListener(
-      'dialogclosing',
+      "dialogclosing",
       () => {
         this.dialog = undefined
       },
-      { once: true }
+      { once: true },
     )
   }
 
   private registerShortcut(Keyboard: KeyboardManager) {
     // Keycodes: https://github.com/windingwind/zotero-plugin-toolkit/blob/da8a602b81a7586b51a29baff86d22d0422b6580/src/managers/shortcut.ts#L746
-    const modifiers = (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) || 'shift'
-    const key = (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || 'r'
+    const modifiers =
+      (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_MODIFIER`) as string) ||
+      "shift"
+    const key =
+      (Zotero.Prefs.get(`${config.addonRef}.SHORTCUT_KEY`) as string) || "r"
     Keyboard.register((ev, data) => {
       if (data.type === "keyup" && data.keyboard) {
         if (data.keyboard.equals(`${modifiers},${key}`)) {
@@ -134,7 +143,6 @@ export class ReactRoot {
             this.launchApp()
           }
         }
-
       }
     })
     // ztoolkit.Keyboard.register('event', {
@@ -167,11 +175,14 @@ export class ReactRootManager extends ManagerTool {
       name: string
       label?: string
       when?: () => boolean
-      callback: ((reactRoot: ReactRoot) => Promise<void>) | ((reactRoot: ReactRoot) => void) | any[]
-    }[]
-  ) { }
+      callback:
+        | ((reactRoot: ReactRoot) => Promise<void>)
+        | ((reactRoot: ReactRoot) => void)
+        | any[]
+    }[],
+  ) {}
 
-  public unregister(name: string) { }
+  public unregister(name: string) {}
 
-  public unregisterAll() { }
+  public unregisterAll() {}
 }
