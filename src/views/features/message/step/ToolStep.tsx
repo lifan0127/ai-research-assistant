@@ -32,9 +32,9 @@ export function ToolStep({ input, control }: ToolStepProps) {
 
   useEffect(() => {
     const runTool = async () => {
-      const output = await runFunctionTool(tool, toolArguments)
+      const output = (await runFunctionTool(tool, toolArguments)) || "No output"
       addFunctionCallOutput(id, output)
-      setOutput(output)
+      setOutput(() => output)
       scrollToEnd()
     }
     runTool()
