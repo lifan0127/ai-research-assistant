@@ -2,7 +2,7 @@ import React from "react"
 import { marked } from "marked"
 import { StopIcon } from "@heroicons/react/24/solid"
 import { stopRespondingButtonDef } from "./types"
-import { BotMessageStatus } from "../../features/message/types"
+import { BotMessageStatus } from "../../../typings/legacyMessages"
 
 interface StopRespondingButtonProps extends stopRespondingButtonDef {
   status: BotMessageStatus

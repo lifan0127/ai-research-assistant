@@ -1,5 +1,5 @@
-import { BasicTool } from 'zotero-plugin-toolkit'
-import { config } from '../package.json'
+import { BasicTool } from "zotero-plugin-toolkit"
+import { config } from "../../package.json"
 // import { fsPromises } from './polyfills/fs'
 // import './polyfills/object'
 // import './polyfills/array'
@@ -9,10 +9,9 @@ import { config } from '../package.json'
 // import { crypto } from './polyfills/crypto'
 // import { setTimeout, clearTimeout } from './polyfills/timers'
 // import { ZoteroTextEncoder, ZoteroTextDecoder } from './polyfills/textencoder'
-import { Addon } from './addon'
+import { Addon } from "./addon"
 
 export default function globalConfig() {
-
   const basicTool = new BasicTool()
 
   function defineGlobal(name: Parameters<BasicTool["getGlobal"]>[0]): void
@@ -25,7 +24,7 @@ export default function globalConfig() {
     })
   }
 
-  if (!basicTool.getGlobal('Zotero')[config.addonInstance]) {
+  if (!basicTool.getGlobal("Zotero")[config.addonInstance]) {
     // Set global variables
     // _globalThis.Zotero = basicTool.getGlobal('Zotero')
     // _globalThis.console = basicTool.getGlobal('Zotero').getMainWindow().console
@@ -52,7 +51,7 @@ export default function globalConfig() {
     // addon.hooks.onStartup()
 
     defineGlobal("console", () => {
-      const window = basicTool.getGlobal('Zotero').getMainWindow() as any
+      const window = basicTool.getGlobal("Zotero").getMainWindow() as any
       return window.console
     })
     defineGlobal("window")

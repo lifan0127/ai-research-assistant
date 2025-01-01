@@ -22,7 +22,7 @@ export function CodeHighlighter({
 }: CodeHighlighterProps) {
   return (
     <div className={className}>
-      <SyntaxHighlighter language={language} style={docco}>
+      <SyntaxHighlighter language={language} style={docco} wrapLongLines={true}>
         {code}
       </SyntaxHighlighter>
     </div>

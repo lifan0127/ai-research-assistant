@@ -1,6 +1,6 @@
-import { createSearchInstance, SearchParameters } from '../../apis/zotero/search'
-import type { nsXPCComponents_Classes } from '../../typing/global'
-import { waitForWindow } from './utils'
+import { createSearchInstance, SearchParameters } from "../search"
+import type { nsXPCComponents_Classes } from "../../../typings/global"
+import { waitForWindow } from "../utils/utils"
 
 interface AdvancedSearchWindow {
   ZoteroAdvancedSearch: {
@@ -40,14 +40,14 @@ export async function openAdvancedSearch(searchParams: SearchParameters) {
 
   // Wait for the advanced search window to load
   // Based on https://github.com/zotero/zotero/blob/dc47650eb353a389dd01c20102ad5f4bbca7758b/test/tests/advancedSearchTest.js#L27
-  const searchWin = await waitForWindow(
+  const searchWin = (await waitForWindow(
     "chrome://zotero/content/advancedSearch.xhtml",
     async (win) => {
       while (!win.ZoteroAdvancedSearch?.itemsView) {
         await Zotero.Promise.delay(5)
       }
     },
-  ) as unknown as AdvancedSearchWindow
+  )) as unknown as AdvancedSearchWindow
 
   const advancedSearch = searchWin.ZoteroAdvancedSearch
   await advancedSearch.search()

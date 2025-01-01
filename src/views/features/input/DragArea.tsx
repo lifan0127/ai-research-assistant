@@ -1,16 +1,16 @@
-import React, { useState } from 'react'
-import { parseDataTransfer } from '../../../models/utils/dataTransfer'
-import { ItemInfo } from '../../../apis/zotero/item'
+import React, { useState } from "react"
+import { parseDataTransfer } from "../../../models/utils/dataTransfer"
+import { ItemInfo } from "../../../apis/zotero/item"
 import {
   StateName,
   StateSelection,
   SelectedItem,
   SelectedCollection,
   SelectedImage,
-} from '../../../models/utils/states'
-import { useDialog } from '../../hooks/useDialog'
-import { useDragging } from '../../hooks/useDragging'
-import { escapeTitle, MentionValue } from '../../../models/utils/states'
+} from "../../../models/utils/states"
+import { useDialog } from "../../../hooks/useDialog"
+import { useDragging } from "../../../hooks/useDragging"
+import { escapeTitle, MentionValue } from "../../../models/utils/states"
 
 export interface DragAreaProps {
   id?: string
@@ -22,16 +22,24 @@ export interface DragAreaProps {
   inputRef: React.RefObject<HTMLTextAreaElement>
 }
 
-export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSelection, inputRef }: DragAreaProps) {
+export function DragArea({
+  id,
+  value,
+  setValue,
+  onDragEnter,
+  onDragLeave,
+  addSelection,
+  inputRef,
+}: DragAreaProps) {
   const dialog = useDialog()
   const { setIsDragging } = useDragging()
-  const [backgroundColor, setBackgroundColor] = useState('bg-white/50')
+  const [backgroundColor, setBackgroundColor] = useState("bg-white/50")
 
   function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault()
     event.stopPropagation()
-    event.dataTransfer.dropEffect = 'copy'
-    setBackgroundColor('bg-rose-100')
+    event.dataTransfer.dropEffect = "copy"
+    setBackgroundColor("bg-rose-100")
   }
 
   function handleDrageEnter(event: React.DragEvent<HTMLDivElement>) {
@@ -43,7 +51,7 @@ export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSel
   function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault()
     event.stopPropagation()
-    setBackgroundColor('bg-white/50')
+    setBackgroundColor("bg-white/50")
     onDragLeave(event)
   }
 
@@ -51,35 +59,44 @@ export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSel
     event.preventDefault()
     event.stopPropagation()
     setIsDragging(0)
-    setBackgroundColor('bg-white/50')
+    setBackgroundColor("bg-white/50")
     const { type, ...data } = await parseDataTransfer(event.dataTransfer)
     switch (type) {
-      case 'zotero/item': {
+      case "zotero/item": {
         const { items = [] } = data
         addSelection(
-          'items',
-          items.map(item => ({ ...item, title: escapeTitle(item.title || '') }))
+          "items",
+          items.map((item) => ({
+            ...item,
+            title: escapeTitle(item.title || ""),
+          })),
         )
         break
       }
-      case 'zotero/collection': {
+      case "zotero/collection": {
         const { collection } = data
         if (collection) {
-          addSelection('collections', [
-            { ...collection, type: 'collection', title: escapeTitle(collection.title) },
+          addSelection("collections", [
+            {
+              ...collection,
+              type: "collection",
+              title: escapeTitle(collection.title),
+            },
           ] as SelectedCollection[])
         }
         break
       }
-      case 'zotero/annotation-image': {
+      case "zotero/annotation-image": {
         const { image, libraryID, key } = data
         const id = `${libraryID}/${key}`
-        addSelection('images', [{ title: `Figure (${id})`, id, image }] as SelectedImage[])
+        addSelection("images", [
+          { title: `Figure (${id})`, id, image },
+        ] as SelectedImage[])
         break
       }
-      case 'text/plain': {
+      case "text/plain": {
         const { text } = data
-        if (text && text !== '') {
+        if (text && text !== "") {
           setValue({
             newValue: value.newValue + text,
             newPlainTextValue: value.newPlainTextValue + text,
@@ -102,7 +119,12 @@ export function DragArea({ id, value, setValue, onDragEnter, onDragLeave, addSel
       onDragEnter={handleDrageEnter}
       onDrop={handleDrop}
     >
-      <div className={'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ' + (!!id ? 'text-xl' : 'text-3xl')}>
+      <div
+        className={
+          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 " +
+          (!!id ? "text-xl" : "text-3xl")
+        }
+      >
         Drop Area
       </div>
     </div>

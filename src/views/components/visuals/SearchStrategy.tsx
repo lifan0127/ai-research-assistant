@@ -6,7 +6,7 @@ import {
   NestedQuery,
   SearchParameters,
 } from "../../../apis/zotero/search"
-import { openAdvancedSearch } from "../../../controls/zotero/search"
+import { openAdvancedSearch } from "../../../apis/zotero/controls/search"
 
 interface SearchParametersBlockProps {
   query: SearchParameters

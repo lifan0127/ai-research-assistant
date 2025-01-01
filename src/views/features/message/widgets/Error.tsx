@@ -53,6 +53,7 @@ function Container({ error, children }: ContainerProps) {
 }
 
 export interface Input {
+  status: "COMPLETED" | "IN_PROGRESS"
   error: any
 }
 

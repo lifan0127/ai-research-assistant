@@ -9,14 +9,15 @@ import {
 } from "@tanstack/react-table"
 import { marked } from "marked"
 import tablemark from "tablemark"
+import { DocumentIcon } from "@heroicons/react/24/outline"
 import { getItemAndBestAttachment } from "../../../../apis/zotero/item"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
 import { ItemButton } from "../../../components/buttons/ItemButton"
 import { createCollection } from "../../../../apis/zotero/collection"
-import { ARIA_LIBRARY } from "../../../../constants"
+import { ARIA_LIBRARY } from "../../../../utils/constants"
 import { config } from "../../../../../package.json"
 import { copyButtonDef, noteButtonDef } from "../../../components/buttons/types"
-import { DEFAULT_BIB_STYLE } from "../../../../constants"
+import { DEFAULT_BIB_STYLE } from "../../../../utils/constants"
 import { SearchActionResponse } from "../../../../models/utils/actions"
 import * as zot from "../../../../apis/zotero"
 import { isEmpty, cloneDeep, set } from "lodash"
@@ -29,14 +30,16 @@ import {
   NestedQuery,
   nestedSearch,
 } from "../../../../apis/zotero/search"
-import { openAdvancedSearch } from "../../../../controls/zotero/search"
+import { openAdvancedSearch } from "../../../../apis/zotero/controls/search"
 import { transformPreviewResult } from "../../../../apis/zotero/item"
 import { SearchStrategy } from "../../../components/visuals/SearchStrategy"
 
 const columnHelper =
   createColumnHelper<ReturnType<typeof transformPreviewResult>>()
 
-export type Input = undefined
+export interface Input {
+  status: "COMPLETED" | "IN_PROGRESS"
+}
 export interface Context {
   query: NestedQuery
 }
@@ -52,12 +55,12 @@ export function Component({ input, context: { query }, control }: Props) {
   const [output, setOutput] =
     useState<Awaited<ReturnType<typeof nestedSearch>>>()
   const ref = useRef<HTMLButtonElement>(null)
+  const [showSearchOutput, setShowSearchOutput] = useState(false)
 
   useEffect(() => {
     async function searchZotero(query?: NestedQuery) {
       if (query) {
         const output = await nestedSearch(query)
-        console.log({ output })
         setOutput(output)
       }
       return null
@@ -102,6 +105,7 @@ export function Component({ input, context: { query }, control }: Props) {
     }),
     columnHelper.accessor("year", {
       header: "Year",
+      cell: ({ cell }) => cell.getValue() || "–",
     }),
     // Note: The following doesn't work as useRef becomes null in ItemButtons
     // columnHelper.accessor('links', {
@@ -153,6 +157,24 @@ export function Component({ input, context: { query }, control }: Props) {
     const { count, results } = output
     return (
       <div>
+        {__env__ === "development" ? (
+          <div>
+            <DocumentIcon
+              title={JSON.stringify({ input }, null, 2)}
+              className="h-6 w-6 text-gray-200 absolute right-2"
+              onClick={() => setShowSearchOutput(!showSearchOutput)}
+            />
+            {showSearchOutput ? (
+              <div className="bg-slate-50 z-10 text-xs absolute right-10">
+                <CodeHighlighter
+                  code={stringify({ input, results })}
+                  language="json"
+                  className="text-sm"
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <h4 className="p-0 m-0 pt-4 mb-1 text-tomato text-lg">
           Results{" "}
           <small>

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { debounce } from "lodash"
 
 class GlobalDebounceManager {
@@ -44,6 +44,11 @@ export function useScroll(containerRef: React.RefObject<HTMLDivElement>) {
   // Flag to ignore content-induced scrolls
   const scrollingByContentChange = useRef(false)
 
+  // Track scroll position
+  const [scrollPosition, setScrollPosition] = useState(
+    containerRef.current?.scrollTop || 0,
+  )
+
   const scrollToEnd = useCallback(() => {
     const debouncedScroll = globalDebounceManager.debounceGlobal(() => {
       if (containerRef.current) {
@@ -80,6 +85,9 @@ export function useScroll(containerRef: React.RefObject<HTMLDivElement>) {
       // Pause scrolling if the user scrolls manually
       pauseScroll()
 
+      // Update scroll position state
+      setScrollPosition(container.scrollTop)
+
       // Check if user has scrolled to the bottom to resume
       const isAtScrollEnd =
         container.scrollTop + container.clientHeight >= container.scrollHeight
@@ -98,5 +106,5 @@ export function useScroll(containerRef: React.RefObject<HTMLDivElement>) {
     }
   }, [containerRef, pauseScroll, resumeScroll])
 
-  return { scrollToEnd, pauseScroll, resumeScroll }
+  return { scrollToEnd, pauseScroll, resumeScroll, scrollPosition }
 }

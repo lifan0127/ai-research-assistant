@@ -1,8 +1,12 @@
-import { ARIA_LIBRARY } from '../../constants'
-import { createCollection } from './collection'
+import { ARIA_LIBRARY } from "../../utils/constants"
+import { createCollection } from "./collection"
 
-export async function createStandaloneNote(content: string, collectionId?: number, addToAriaCollection = true) {
-  const note = new Zotero.Item('note')
+export async function createStandaloneNote(
+  content: string,
+  collectionId?: number,
+  addToAriaCollection = true,
+) {
+  const note = new Zotero.Item("note")
   note.setNote(content)
   if (collectionId) {
     note.addToCollection(collectionId)
@@ -16,7 +20,7 @@ export async function createStandaloneNote(content: string, collectionId?: numbe
 }
 
 export async function createChildNote(content: string, itemId: number) {
-  const note = new Zotero.Item('note')
+  const note = new Zotero.Item("note")
   note.setNote(content)
   note.parentID = itemId
   await note.saveTx()

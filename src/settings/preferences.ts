@@ -1,11 +1,11 @@
-import { config, homepage } from '../../package.json'
+import { config, homepage } from "../../package.json"
 import { getString } from "../utils/locale"
 
 export function registerPrefs() {
   Zotero.PreferencePanes.register({
     pluginID: config.addonID,
-    src: rootURI + 'chrome/content/preferences.xhtml',
-    label: getString('prefs-title'),
+    src: rootURI + "chrome/content/preferences.xhtml",
+    label: getString("prefs-title"),
     image: `chrome://${config.addonRef}/content/icons/favicon@0.333x.png`,
     helpURL: homepage,
   })
@@ -29,7 +29,7 @@ async function updatePrefsUI() {
   // You can initialize some UI elements on prefs window
   // with addon.data.prefs.window.document
   // Or bind some events to the elements
-  const renderLock = ztoolkit.getGlobal('Zotero').Promise.defer()
+  const renderLock = ztoolkit.getGlobal("Zotero").Promise.defer()
   // const tableHelper = new ztoolkit.VirtualizedTable(addon.data.prefs?.window!)
   //   .setContainerId(`${config.addonRef}-table-container`)
   //   .setProp({
@@ -85,7 +85,7 @@ async function updatePrefsUI() {
   //     renderLock.resolve()
   //   })
   await renderLock.promise
-  ztoolkit.log('Preference table rendered!')
+  ztoolkit.log("Preference table rendered!")
 }
 
 function bindPrefEvents() {
@@ -102,49 +102,85 @@ function bindPrefEvents() {
   //     addon.data.prefs!.window.alert(`Successfully changed to ${(e.target as HTMLInputElement).value}!`)
   //   })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-0`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-0`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI Model to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-1`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-1`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI Model to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-2`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-2`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI Model to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-3`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-3`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI Model to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_BASE_URL`)
-    ?.addEventListener('change', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Base URL to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_BASE_URL`,
+    )
+    ?.addEventListener("change", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI Base URL to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-shift`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new shortcut combo to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-shift`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new shortcut combo to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-ctrl-shift`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new shortcut combo to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-ctrl-shift`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new shortcut combo to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-alt-shift`)
-    ?.addEventListener('command', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new shortcut combo to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-alt-shift`,
+    )
+    ?.addEventListener("command", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new shortcut combo to take effect.`,
+      )
     })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-SHORTCUT_KEY`)
-    ?.addEventListener('change', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new shortcut combo to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-SHORTCUT_KEY`,
+    )
+    ?.addEventListener("change", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new shortcut combo to take effect.`,
+      )
     })
   // addon.data
   //   .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-2`)
@@ -152,8 +188,12 @@ function bindPrefEvents() {
   //     addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
   //   })
   addon.data
-    .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_API_KEY`)
-    ?.addEventListener('change', e => {
-      addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI API Key to take effect.`)
+    .prefs!!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-OPENAI_API_KEY`,
+    )
+    ?.addEventListener("change", (e) => {
+      addon.data.prefs!.window.alert(
+        `Please restart Zotero for your new OPENAI API Key to take effect.`,
+      )
     })
 }

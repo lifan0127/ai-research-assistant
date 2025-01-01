@@ -4,8 +4,11 @@ import {
   PlusIcon,
   MinusIcon,
 } from "@heroicons/react/24/outline"
-import { BotMessageProps, UserMessageProps } from "../../features/message/types"
-import { useOutsideClick } from "../../hooks/useOutsideClick"
+import {
+  BotMessageProps,
+  UserMessageProps,
+} from "../../../typings/legacyMessages"
+import { useOutsideClick } from "../../../hooks/useOutsideClick"
 import { noteButtonDef } from "./types"
 import { createStandaloneNote, createChildNote } from "../../../apis/zotero"
 

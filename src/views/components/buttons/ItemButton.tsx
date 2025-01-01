@@ -1,7 +1,7 @@
 import React, { useRef } from "react"
 import { ItemIcon } from "../../icons/zotero"
 import { ItemInfo, AttachmentInfo } from "../../../apis/zotero/item"
-import { useDialog } from "../../hooks/useDialog"
+import { useDialog } from "../../../hooks/useDialog"
 
 interface ItemButtonProps {
   item: Pick<ItemInfo, "id" | "type"> | Pick<AttachmentInfo, "id" | "type">

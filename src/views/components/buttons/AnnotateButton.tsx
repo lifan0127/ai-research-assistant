@@ -4,8 +4,11 @@ import {
   PlusIcon,
   MinusIcon,
 } from "@heroicons/react/24/outline"
-import { BotMessageProps, UserMessageProps } from "../../features/message/types"
-import { useOutsideClick } from "../../hooks/useOutsideClick"
+import {
+  BotMessageProps,
+  UserMessageProps,
+} from "../../../typings/legacyMessages"
+import { useOutsideClick } from "../../../hooks/useOutsideClick"
 import { annotationButtonDef } from "./types"
 import { updateAnnotation } from "../../../apis/zotero"
 
@@ -91,7 +94,6 @@ export function AnnotateButton({ utils, input, states }: AnnotateButtonProps) {
         style={{ background: "-moz-field" }}
       >
         {annotations.map((item) => {
-          console.log({ item })
           return (
             <li key={item.id}>
               <button

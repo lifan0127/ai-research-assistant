@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState } from "react";
+import React, { Fragment, useMemo, useState } from "react"
 import {
   MagnifyingGlassIcon,
   QuestionMarkCircleIcon,
@@ -7,10 +7,10 @@ import {
   ArrowsRightLeftIcon,
   SparklesIcon,
   ListBulletIcon,
-} from "@heroicons/react/24/outline";
-import { selectionConfig } from "../../../models/utils/states";
-import { useOutsideClick } from "../../hooks/useOutsideClick";
-import { LinkButton } from "../../components/buttons/LinkButton";
+} from "@heroicons/react/24/outline"
+import { selectionConfig } from "../../../models/utils/states"
+import { useOutsideClick } from "../../../hooks/useOutsideClick"
+import { LinkButton } from "../../components/buttons/LinkButton"
 
 const prompts = [
   {
@@ -38,24 +38,24 @@ const prompts = [
     title: "Compare two papers",
     template: "Compare / and / in 2-3 sentences.",
   },
-];
+]
 
 const selectionMap: {
-  [key: string]: { label: string; prefix: string; backgroundColor: string };
+  [key: string]: { label: string; prefix: string; backgroundColor: string }
 } = Object.values(selectionConfig).reduce(
   (all, { label, prefix, backgroundColor }) => ({
     ...all,
     [prefix]: { label: label.singular, prefix, backgroundColor },
   }),
   {},
-);
+)
 
 export const prefixes = Object.values(selectionConfig)
   .map(({ prefix }) => prefix)
-  .join("");
+  .join("")
 
 interface TemplateProps {
-  template: string;
+  template: string
 }
 
 function Template({ template }: TemplateProps) {
@@ -63,24 +63,24 @@ function Template({ template }: TemplateProps) {
     const regex = new RegExp(
       `[${prefixes.replace(/[.*+?^${}()|[\]]/g, "\\$&")}][^[]`,
       "g",
-    );
-    let match;
-    let lastIndex = -1;
-    let output: (string | JSX.Element)[] = [];
+    )
+    let match
+    let lastIndex = -1
+    let output: (string | JSX.Element)[] = []
     while ((match = regex.exec(template))) {
-      let currentIndex = match.index;
+      let currentIndex = match.index
       output.push(
         <Fragment key={`text-${lastIndex}-${currentIndex}`}>
           {template.substring(lastIndex, currentIndex)}
         </Fragment>,
-      );
+      )
       const { label, prefix, backgroundColor } = selectionMap[
         template[currentIndex]
       ] || {
         label: "unknown",
         prefix: template[currentIndex],
         backgroundColor: "#ffc",
-      };
+      }
       output.push(
         <span
           key={`prefix-${currentIndex}`}
@@ -90,26 +90,26 @@ function Template({ template }: TemplateProps) {
           {prefix}
           {label}
         </span>,
-      );
-      lastIndex = currentIndex + 1;
+      )
+      lastIndex = currentIndex + 1
     }
     output.push(
       <Fragment key={`text-${lastIndex}-${template.length}`}>
         {template.substring(lastIndex, template.length)}
       </Fragment>,
-    );
-    return <div>{output}</div>;
-  }, [template]);
+    )
+    return <div>{output}</div>
+  }, [template])
 
   return (
     <div className="h-full text-left text-base text-gray-500">
       {transformedTemplate}
     </div>
-  );
+  )
 }
 
 interface PromptLibraryProps {
-  setPromptTemplate: (template: { template: string } | undefined) => void;
+  setPromptTemplate: (template: { template: string } | undefined) => void
 }
 
 export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
@@ -139,28 +139,28 @@ export function PromptLibrary({ setPromptTemplate }: PromptLibraryProps) {
         </li>
       ))}
     </ul>
-  );
+  )
 }
 
 interface PromptListProps {
-  displayButtons: boolean;
-  setPromptTemplate: (template: { template: string } | undefined) => void;
+  displayButtons: boolean
+  setPromptTemplate: (template: { template: string } | undefined) => void
 }
 
 export function PromptList({
   displayButtons,
   setPromptTemplate,
 }: PromptListProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useOutsideClick(() => setOpen(false));
+  const [open, setOpen] = useState(false)
+  const ref = useOutsideClick(() => setOpen(false))
 
   function handleOpen() {
-    setOpen(!open);
+    setOpen(!open)
   }
 
   function handleSelect(template: string) {
-    setPromptTemplate({ template });
-    setOpen(false);
+    setPromptTemplate({ template })
+    setOpen(false)
   }
 
   return (
@@ -199,7 +199,7 @@ export function PromptList({
         </ul>
       </div>
     </div>
-  );
+  )
 }
 
 export function parsePromptTemplate(
@@ -210,22 +210,22 @@ export function parsePromptTemplate(
 ) {
   const regex = new RegExp(
     `[${prefixes.replace(/[.*+?^${}()|[\]]/g, "\\$&")}][^[]`,
-  );
-  const match = prompt.match(regex);
+  )
+  const match = prompt.match(regex)
   if (match) {
-    const prefix = match[0][0];
-    const matchIndex = match.index as number;
+    const prefix = match[0][0]
+    const matchIndex = match.index as number
     const query =
       selectionStart === undefined || selectionEnd === undefined
         ? ""
         : selectionStart === selectionEnd
           ? prompt.slice(matchIndex + 1, selectionStart)
-          : prompt.slice(selectionStart, selectionEnd + 1);
+          : prompt.slice(selectionStart, selectionEnd + 1)
     const position = selectionEnd
       ? Math.max(selectionEnd, matchIndex + 1)
-      : matchIndex + 1;
-    return { prefix, query, position };
+      : matchIndex + 1
+    return { prefix, query, position }
   } else {
-    return null;
+    return null
   }
 }

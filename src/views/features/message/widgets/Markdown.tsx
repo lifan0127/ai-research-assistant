@@ -11,6 +11,7 @@ import { customMarkdownRenderer } from "../../../utils/markdown"
 import { Control } from "../../../components/types"
 
 export interface Input {
+  status: "COMPLETED" | "IN_PROGRESS"
   content: string
 }
 
@@ -20,26 +21,18 @@ export interface Props {
 }
 
 export function Component({
-  input: { content },
-  control: { scrollToEnd },
+  input: { status, content },
+  control: { save, scrollToEnd },
 }: Props) {
-  const renderer = {
-    link(href: string, title: string, text: string[]) {
-      return (
-        <button
-          key={text + href}
-          className="text-tomato p-0 border-none bg-transparent hover:underline hover:cursor-pointer"
-          title={title}
-          onClick={() => Zotero.launchURL(href)}
-        >
-          {text && text.length > 0 ? text[0] : href}
-        </button>
-      )
-    },
-  }
   useEffect(() => {
     scrollToEnd()
   }, [content])
+
+  useEffect(() => {
+    if (status === "COMPLETED") {
+      save(content)
+    }
+  }, [status])
 
   return (
     <div className="[&>*]:mx-2 [&_*]:mt-0 [&_*]:leading-7 [&_*]:pb-2 text-lg [&_ul]:ml-[12px] [&_ol]:ml-[12px] [&_ul]:pl-[8px] [&_ol]:pl-[8px] [&_table]:border-solid [&_table]:border-t-2 [&_table]:border-l-0 [&_table]:border-b-2 [&_table]:border-r-0 [&_table]:border-gray-200 [&_table]:mb-4">

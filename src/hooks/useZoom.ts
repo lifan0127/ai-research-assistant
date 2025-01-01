@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react"
-import { getPref, setPref } from "../../utils/prefs"
+import { getPref, setPref } from "../utils/prefs"
 
 export function useZoom() {
   const [scale, setScale] = useState(

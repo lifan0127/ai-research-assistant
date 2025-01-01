@@ -11,7 +11,7 @@ import Highlighter from "react-highlight-words"
 import { isEqual } from "lodash"
 import * as zot from "../../../apis/zotero"
 import { States, selectionConfig } from "../../../models/utils/states"
-import { useStates } from "../../hooks/useStates"
+import { useStates } from "../../../hooks/useStates"
 import {
   escapeTitle,
   StateName,
@@ -20,7 +20,7 @@ import {
 import { prefixes, parsePromptTemplate } from "../infoPanel/PromptLibrary"
 import { LinkButton } from "../../components/buttons/LinkButton"
 import { PromptList } from "../infoPanel/PromptLibrary"
-import { INPUT_CHARACTER_LIMIT } from "../../../constants"
+import { INPUT_CHARACTER_LIMIT } from "../../../utils/constants"
 
 const editStyles = {
   control: {

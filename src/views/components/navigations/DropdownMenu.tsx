@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { useOutsideClick } from "../../hooks/useOutsideClick"
+import { useOutsideClick } from "../../../hooks/useOutsideClick"
 import { Confirmation } from "./Confirmation"
 
 interface ButtonItem {
@@ -30,21 +30,19 @@ interface DropdownMenuProps {
   label?: string
   Icon: React.FC
   IconOpen?: React.FC
-  position: { top?: string; bottom?: string; left?: string; right?: string }
 }
 
 export function DropdownMenu({
   label,
   Icon,
   IconOpen,
-  position,
   items,
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const ref = useOutsideClick(() => setOpen(false))
 
   return (
-    <div className="fixed z-10" style={position}>
+    <div className="inline-block relative">
       <div className="relative w-9">
         <button
           ref={ref}

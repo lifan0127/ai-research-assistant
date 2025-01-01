@@ -1,16 +1,23 @@
-import { config } from '../package.json'
-import { getString, initLocale } from './utils/locale'
+import { config } from "../../package.json"
+import { getString, initLocale } from "../utils/locale"
 // import { registerPrompt, registerShortcuts } from './modules/registry'
-import { registerPrefs, registerPrefsScripts } from './modules/preferences'
+import { registerPrefs, registerPrefsScripts } from "./preferences"
 // import { createZToolkit } from "./utils/ztoolkit";
-import { CustomToolkit } from './addon'
+import { CustomToolkit } from "./addon"
 
 async function onStartup() {
-  await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise])
+  await Promise.all([
+    Zotero.initializationPromise,
+    Zotero.unlockPromise,
+    Zotero.uiReadyPromise,
+  ])
   initLocale()
   registerPrefs()
 
-  ztoolkit.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
+  ztoolkit.ProgressWindow.setIconURI(
+    "default",
+    `chrome://${config.addonRef}/content/icons/favicon.png`,
+  )
 
   // TODO: Remove this after zotero#3387 is merged
   if (__env__ === "development") {
@@ -99,7 +106,7 @@ async function onNotify(
  */
 async function onPrefsEvent(type: string, data: { [key: string]: any }) {
   switch (type) {
-    case 'load':
+    case "load":
       registerPrefsScripts(data.window)
       break
     default:

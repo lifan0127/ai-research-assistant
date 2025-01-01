@@ -1,18 +1,18 @@
-import { uniq, cloneDeep, flatten } from 'lodash'
-import { getItemAndBestAttachment } from './item'
-import retry, { Options } from 'async-retry'
-import { compileItemInfo, ItemInfo, getItemsAndBestAttachments } from './item'
-import { ItemMode } from './types'
+import { uniq, cloneDeep, flatten } from "lodash"
+import { getItemAndBestAttachment } from "./item"
+import retry, { Options } from "async-retry"
+import { compileItemInfo, ItemInfo, getItemsAndBestAttachments } from "./item"
+import { ItemMode } from "./types"
 
 export interface SearchCondition {
-  condition: Zotero.Search.Conditions,
-  operator: Zotero.Search.Operator,
-  value?: string,
+  condition: Zotero.Search.Conditions
+  operator: Zotero.Search.Operator
+  value?: string
 }
 
 export interface SearchParameters {
   conditions: SearchCondition[]
-  match: 'any' | 'all'
+  match: "any" | "all"
   title: string
   // searchSubcollections: boolean
   // showOnlyTopLevelItems: boolean
@@ -21,7 +21,7 @@ export interface SearchParameters {
 
 export function createSearchInstance({
   conditions = [],
-  match = 'all' as const,
+  match = "all" as const,
   // searchSubcollections = false,
   // showOnlyTopLevelItems = false,
   // includeParentAndChildItems = false,
@@ -29,12 +29,15 @@ export function createSearchInstance({
   const search = new Zotero.Search()
 
   // Set the join mode based on the 'match' parameter
-  search.addCondition('joinMode', match)
+  search.addCondition("joinMode", match)
 
   // Add each search condition
   for (const { condition, operator, value } of conditions) {
     search.addCondition(condition, operator, value)
   }
+
+  // Search top-level items only
+  search.addCondition("noChildren", "true")
 
   // // Set additional search options
   // if (searchSubcollections) {
@@ -52,7 +55,11 @@ export function createSearchInstance({
   return search
 }
 
-export async function search(searchParams: SearchParameters, limit: number = 10, mode: ItemMode = "preview") {
+export async function search(
+  searchParams: SearchParameters,
+  limit: number = 10,
+  mode: ItemMode = "preview",
+) {
   const search = createSearchInstance(searchParams)
 
   const itemIds = await search.search()
@@ -61,7 +68,10 @@ export async function search(searchParams: SearchParameters, limit: number = 10,
     return { count: 0, results: [] }
   }
 
-  const results = await getItemsAndBestAttachments(limit ? itemIds.slice(0, limit) : itemIds, mode)
+  const results = await getItemsAndBestAttachments(
+    limit ? itemIds.slice(0, limit) : itemIds,
+    mode,
+  )
 
   return { count: itemIds.length, results }
 }
@@ -74,7 +84,7 @@ export type NestedQuery = {
 export type Query = NestedQuery | SearchParameters
 
 // Function to recursively execute searches and combine results
-async function nestedSearchInner(query: Query): Promise<number[]> {
+async function recursiveSearch(query: Query): Promise<number[]> {
   if ("conditions" in query) {
     const search = createSearchInstance(query)
     return await search.search()
@@ -85,22 +95,26 @@ async function nestedSearchInner(query: Query): Promise<number[]> {
   // Results of all subqueries
   const results = await Promise.all(
     subqueries.map(async (subquery) => {
-      if ('conditions' in subquery) {
+      if ("conditions" in subquery) {
         const search = createSearchInstance(subquery)
         return search.search()
       } else if (subquery.subqueries) {
         // Nested subquery
-        return nestedSearchInner(subquery)
+        return recursiveSearch(subquery)
       } else {
         throw new Error("Invalid query structure.")
       }
-    })
+    }),
   )
 
   // Combine results based on the boolean operator
   if (boolean === "AND") {
     // Intersection of results
-    return results.reduce((acc: number[], result: number[]) => acc.filter((id: number) => result.includes(id)), results[0] || [])
+    return results.reduce(
+      (acc: number[], result: number[]) =>
+        acc.filter((id: number) => result.includes(id)),
+      results[0] || [],
+    )
   } else if (boolean === "OR") {
     // Union of results
     return [...new Set(results.flat())]
@@ -110,7 +124,7 @@ async function nestedSearchInner(query: Query): Promise<number[]> {
 }
 
 export async function nestedSearch(query: NestedQuery) {
-  const itemIds: number[] = await nestedSearchInner(query)
+  const itemIds: number[] = await recursiveSearch(query)
   const results = await getItemsAndBestAttachments(itemIds, "preview")
 
   return { count: itemIds.length, results }

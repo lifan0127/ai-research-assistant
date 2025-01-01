@@ -1,6 +1,6 @@
 import React, { useMemo, createContext, useContext } from "react"
-import { ResearchAssistant } from "../../models/assistant"
-import { getPref } from "../../utils/prefs"
+import { ResearchAssistant } from "../models/assistant"
+import { getPref } from "../utils/prefs"
 
 interface AssistantContextType {
   assistant: ResearchAssistant
@@ -25,7 +25,7 @@ export const AssistantContextProvider: React.FC<AssistantProviderProps> = ({
           file: getPref("ASSISTANT_FILE") as string,
         },
         models: {
-          default: "gpt-4o-2024-08-06",
+          default: "gpt-4o",
         },
         messageStore: addon.data.popup.messageStore,
       }),

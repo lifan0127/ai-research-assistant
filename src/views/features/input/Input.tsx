@@ -1,16 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { PaperAirplaneIcon as PaperAirplaneIconDisabled } from '@heroicons/react/24/outline'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
-import { useStates } from '../../hooks/useStates'
-import { useDragging } from '../../hooks/useDragging'
-import { States } from './States'
-import { DragArea } from './DragArea'
-import { States as StatesSchema, MentionValue } from '../../../models/utils/states'
-import { TextField } from './TextField'
-import { isEqual } from 'lodash'
+import React, { useState, useEffect, useRef } from "react"
+import { PaperAirplaneIcon as PaperAirplaneIconDisabled } from "@heroicons/react/24/outline"
+import { PaperAirplaneIcon } from "@heroicons/react/24/solid"
+import { useStates } from "../../../hooks/useStates"
+import { useDragging } from "../../../hooks/useDragging"
+import { States } from "./States"
+import { DragArea } from "./DragArea"
+import {
+  States as StatesSchema,
+  MentionValue,
+} from "../../../models/utils/states"
+import { TextField } from "./TextField"
+import { isEqual } from "lodash"
 
 export interface InputProps {
-  onSubmit: (input: { content: MentionValue; states: StatesSchema }, id?: string) => void
+  onSubmit: (
+    input: { content: MentionValue; states: StatesSchema },
+    id?: string,
+  ) => void
   onCancel?: () => void
   id?: string
   content?: MentionValue
@@ -32,7 +38,7 @@ export function Input({
   promptTemplate,
   setPromptTemplate,
 }: InputProps) {
-  const [dropText, setDropText] = useState<string>('')
+  const [dropText, setDropText] = useState<string>("")
   const { isDragging, setIsDragging, dropArea, setDropArea } = useDragging()
   const inputRef = useRef(null)
   const states = useStates(inputStates, content)
@@ -93,7 +99,8 @@ export function Input({
         {disabled ? (
           <div className="absolute bg-white top-0 left-0 bottom-0 right-0 w-full height-full text-neutral-500 z-40 flex">
             <div className="m-auto">
-              Please finish editing and close the message edit window to resume the conversation here.
+              Please finish editing and close the message edit window to resume
+              the conversation here.
             </div>
           </div>
         ) : null}
@@ -105,7 +112,7 @@ export function Input({
               </div>
             ) : null} */}
             <div className="absolute bottom-0 right-0 pt-4 z-10">
-              {states.value.newPlainTextValue !== '' ? (
+              {states.value.newPlainTextValue !== "" ? (
                 <button
                   className="border-none bg-transparent m-0 p-1 rounded-full text-tomato hover:bg-gray-200"
                   onClick={() => handleSubmit()}

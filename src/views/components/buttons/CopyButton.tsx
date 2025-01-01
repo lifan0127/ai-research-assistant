@@ -1,6 +1,6 @@
 import React from "react"
 import { marked } from "marked"
-import { BotMessageProps } from "../../features/message/types"
+import { BotMessageProps } from "../../../typings/legacyMessages"
 import { Square2StackIcon } from "@heroicons/react/24/outline"
 import { copyButtonDef } from "./types"
 

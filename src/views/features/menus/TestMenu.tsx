@@ -1,13 +1,13 @@
 import React from "react"
 import { WrenchIcon } from "@heroicons/react/24/solid"
 import { DropdownMenu } from "../../components/navigations/DropdownMenu"
-import { Message } from "../message/types"
-import { useDialog } from "../../hooks/useDialog"
+import { Message } from "../../../typings/legacyMessages"
+import { useDialog } from "../../../hooks/useDialog"
 import { searchResultsAction } from "../../components/test/data/searchResults"
 import { qaResponseAction } from "../../components/test/data/qaResponse"
 import { urlMessageAction } from "../../components/test/data/urlMessage"
 import { States, MentionValue } from "../../../models/utils/states"
-import { defaultStates } from "../../hooks/useStates"
+import { defaultStates } from "../../../hooks/useStates"
 
 interface TestMessage {
   type: "BUTTON"
@@ -247,8 +247,5 @@ export function TestMenu({
       handleClick: dialog.minimize,
     },
   ]
-  const position = hasNotification
-    ? { top: "40px", right: "64px" }
-    : { top: "16px", right: "64px" }
-  return <DropdownMenu Icon={WrenchIcon} position={position} items={items} />
+  return <DropdownMenu Icon={WrenchIcon} items={items} />
 }

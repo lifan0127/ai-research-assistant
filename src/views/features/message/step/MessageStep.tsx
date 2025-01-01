@@ -1,83 +1,74 @@
-import React, { useState, useRef } from "react"
-import { StepInput } from "./types"
+import React, { useState, useEffect, useRef } from "react"
+import { StepInput } from "../../../../typings/steps"
 import { Message as OpenAIMessage } from "openai/resources/beta/threads/messages"
-import { DocumentIcon } from "@heroicons/react/24/outline"
-import * as Markdown from "../widgets/Markdown"
+import MarkdownReact from "marked-react"
 import { parsePartialJson } from "../../../../utils/parsers"
 import { Control } from "../../../components/types"
 import { Widget, WidgetProps } from "../../../components/Widget"
-
-export interface MessageStepInput extends StepInput {
-  type: "MESSAGE_STEP"
-  content: OpenAIMessage["content"]
-}
+import { customMarkdownRenderer } from "../../../utils/markdown"
+import { MessageStepInput } from "../../../../typings/steps"
 
 export interface MessageStepProps {
   input: MessageStepInput
   control: Control
 }
 
-export function MessageStep({ input, control }: MessageStepProps) {
-  const { content, status } = input
-  const [showRawActionAndContext, setShowRawActionAndContext] = useState(false)
+export function MessageStep({
+  input: { messages = [] },
+  control: { save, ...restControl },
+}: MessageStepProps) {
   // Ref to store the last successfully parsed values for each item in the array
   const lastValidMessagesRef = useRef<
-    Map<number, { message: string; context?: object; action?: object }>
+    Map<number, { message: string; context?: object; actions?: object[] }>
   >(new Map())
+  const [output, setOutput] = useState<any>([])
+
+  function saveStepWidget(widgetContent: any) {
+    console.log({ widgetContent })
+    const updatedOutput = [...output, widgetContent]
+    setOutput((output: any) => updatedOutput)
+    save({ ...input, content: updatedOutput })
+  }
 
   return (
     <div>
-      {content.map((item, index) => {
+      {messages.map((item, index) => {
         switch (item.type) {
-          case "text": {
-            const parsedValue = parsePartialJson(item.text.value)
+          case "TEXT": {
+            return <pre>{item.text.message}</pre>
+            const parsedValue = parsePartialJson(item.text.message)
             if (parsedValue && parsedValue.message) {
               lastValidMessagesRef.current.set(index, parsedValue)
             }
             const lastValidValue = lastValidMessagesRef.current.get(index)
+            console.log({ item: item.text.value, parsedValue, lastValidValue })
             if (!lastValidValue) {
               return null
             }
-            const { message, context, action } = lastValidValue
+            const { message, context, actions = [] } = lastValidValue
             return (
               <>
-                <Widget
-                  widget="markdown"
-                  input={{ content: message }}
-                  context={context}
-                  control={control}
-                />
-                {status === "COMPLETED" && (action || context) ? (
+                <div className="[&>*]:mx-2 [&_*]:mt-0 [&_*]:leading-7 [&_*]:pb-2 text-lg [&_ul]:ml-[12px] [&_ol]:ml-[12px] [&_ul]:pl-[8px] [&_ol]:pl-[8px] [&_table]:border-solid [&_table]:border-t-2 [&_table]:border-l-0 [&_table]:border-b-2 [&_table]:border-r-0 [&_table]:border-gray-200 [&_table]:mb-4">
+                  <MarkdownReact renderer={customMarkdownRenderer}>
+                    {message}
+                  </MarkdownReact>
+                </div>
+                {status === "COMPLETED" && (actions.length || context) ? (
                   <div className="px-2">
-                    {__env__ === "development" ? (
-                      <div>
-                        <DocumentIcon
-                          title={JSON.stringify({ action, context }, null, 2)}
-                          className="h-6 w-6 text-gray-200 absolute right-2"
-                          onClick={() =>
-                            setShowRawActionAndContext(!showRawActionAndContext)
-                          }
-                        />
-                        {showRawActionAndContext ? (
-                          <div className="bg-slate-50 z-10 text-xs absolute right-10">
-                            <pre>
-                              {JSON.stringify({ action, context }, null, 2)}
-                            </pre>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    <Widget
-                      {...(action as Omit<WidgetProps, "control">)}
-                      context={context}
-                      control={control}
-                    />
+                    {actions.map((action: any) => (
+                      <Widget
+                        widget={action.widget}
+                        input={{ status: "IN_PROGRESS", ...action.input }}
+                        context={context}
+                        control={{ ...restControl, save: saveStepWidget }}
+                      />
+                    ))}
                   </div>
                 ) : null}
               </>
             )
           }
-          case "image_file": {
+          case "IMAGE": {
             return <p>Image File ID: {item.image_file.file_id}</p>
           }
         }

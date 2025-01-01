@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react"
-import { StepInput } from "./types"
+import { StepInput } from "../../../../typings/steps"
 import { Message as OpenAIMessage } from "openai/resources/beta/threads/messages"
 import { DocumentIcon } from "@heroicons/react/24/outline"
 import * as Markdown from "../widgets/Markdown"

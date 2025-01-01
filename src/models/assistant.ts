@@ -1,22 +1,22 @@
-import { serializeError } from 'serialize-error'
-import OpenAI from 'openai'
-import { MessageCreateParams } from 'openai/resources/beta/threads/messages'
-import { Routes, createRouter, createRouteFunctions } from './chains/router'
-import { loadSearchChain } from './chains/search'
-import { loadRetrievalQAChain } from './chains/qa'
-import { ZoteroCallbacks, ErrorCallbacks } from './utils/callbacks'
-import { Message } from '../views/features/message/types'
-import { simplifyStates, serializeStates, States } from './utils/states'
-import { loadVisionChain } from './chains/vision'
-import { getPref, setPref, clearPref } from '../utils/prefs'
-import { routingFormat } from './schemas/routing'
-import { config } from '../../package.json'
-import { AssistantStream } from 'openai/lib/AssistantStream'
-import { MessageStore } from '../modules/messageStore'
-import { RunSubmitToolOutputsParams } from 'openai/resources/beta/threads/runs/runs'
-import { RunStep } from 'openai/resources/beta/threads/runs/steps'
-import { FilePurpose } from 'openai/resources'
-import { Uploadable, FileLike, BlobLike } from 'openai/uploads'
+import { serializeError } from "serialize-error"
+import OpenAI from "openai"
+import { MessageCreateParams } from "openai/resources/beta/threads/messages"
+import { Routes, createRouter, createRouteFunctions } from "./chains/router"
+import { loadSearchChain } from "./chains/search"
+import { loadRetrievalQAChain } from "./chains/qa"
+import { ZoteroCallbacks, ErrorCallbacks } from "./utils/callbacks"
+import { Message } from "../typings/legacyMessages"
+import { simplifyStates, serializeStates, States } from "./utils/states"
+import { loadVisionChain } from "./chains/vision"
+import { getPref, setPref, clearPref } from "../utils/prefs"
+import { routingFormat } from "./schemas/routing"
+import { config } from "../../package.json"
+import { AssistantStream } from "openai/lib/AssistantStream"
+import { MessageStore } from "../utils/messageStore"
+import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs"
+import { RunStep } from "openai/resources/beta/threads/runs/steps"
+import { FilePurpose } from "openai/resources"
+import { Uploadable, FileLike, BlobLike } from "openai/uploads"
 
 interface AssistantIds {
   routing: string
@@ -40,14 +40,14 @@ export class ResearchAssistant {
   currentThread: string
   currentRun?: string
   openai: OpenAI
-  assistantStream?: AssistantStream
+  streams: AssistantStream[] = []
 
   constructor({ assistants, models }: ResearchAssistantFields) {
     this.assistants = assistants
     this.models = models
-    this.currentThread = getPref('CURRENT_THREAD') as string
+    this.currentThread = getPref("CURRENT_THREAD") as string
     this.openai = new OpenAI({
-      apiKey: getPref('OPENAI_API_KEY') as string,
+      apiKey: getPref("OPENAI_API_KEY") as string,
     })
   }
 
@@ -57,43 +57,51 @@ export class ResearchAssistant {
 
   streamMessage(content: string, states: States) {
     this.openai.beta.threads.messages.create(this.currentThread, {
-      role: 'user',
+      role: "user",
       content,
     })
-    this.assistantStream = this.openai.beta.threads.runs.stream(this.currentThread, {
+    const stream = this.openai.beta.threads.runs.stream(this.currentThread, {
       assistant_id: this.assistants.routing,
       model: this.models.default,
       response_format: routingFormat,
       additional_instructions: `Today is ${new Date().toDateString()}`,
     })
-    this.assistantStream.once('runStepCreated', (runStep: RunStep) => {
+    stream.once("runStepCreated", (runStep: RunStep) => {
       this.currentRun = runStep.run_id
     })
-    return this.assistantStream
+    this.streams.push(stream)
+    return stream
   }
 
   streamTools(toolOutputs: RunSubmitToolOutputsParams.ToolOutput[]) {
-    this.assistantStream = this.openai.beta.threads.runs.submitToolOutputsStream(this.currentThread, this.currentRun as string, { tool_outputs: toolOutputs })
-    return this.assistantStream
+    const stream = this.openai.beta.threads.runs.submitToolOutputsStream(
+      this.currentThread,
+      this.currentRun as string,
+      { tool_outputs: toolOutputs },
+    )
+    this.streams.push(stream)
+    return stream
   }
 
   streamQa(question: string) {
     this.openai.beta.threads.messages.create(this.currentThread, {
-      role: 'user',
+      role: "user",
       content: question,
     })
-    this.assistantStream = this.openai.beta.threads.runs.stream(this.currentThread, {
+    const stream = this.openai.beta.threads.runs.stream(this.currentThread, {
       assistant_id: this.assistants.file,
       model: this.models.default,
-      additional_instructions: `Today is ${new Date().toDateString()}. You should ground the question in the context of the user's Zotero library through file_search.`,
+      additional_instructions: `Today is ${new Date().toDateString()}. You should ground the question in the provided context or through file_search in user's Zotero library.`,
     })
-    this.assistantStream.once('runStepCreated', (runStep: RunStep) => {
-      this.currentRun = runStep.run_id
-    })
-    return this.assistantStream
+    this.streams.push(stream)
+    return stream
   }
 
-  async uploadFile(item: Zotero.Item, attachment: Zotero.Item, purpose: FilePurpose) {
+  async uploadFile(
+    item: Zotero.Item,
+    attachment: Zotero.Item,
+    purpose: FilePurpose,
+  ) {
     const fileId = ztoolkit.ExtraField.getExtraField(item, "aria.file.id")
     if (fileId) {
       return fileId
@@ -110,15 +118,17 @@ export class ResearchAssistant {
   }
 
   async indexFile(item: Zotero.Item, fileId: string, vectorStoreId: string) {
-    const vectorStoreIds = JSON.parse(ztoolkit.ExtraField.getExtraField(item, "aria.vectorStore.ids") || "[]")
+    const vectorStoreIds = JSON.parse(
+      ztoolkit.ExtraField.getExtraField(item, "aria.vectorStore.ids") || "[]",
+    )
     if (vectorStoreIds.includes(vectorStoreId)) {
       return
     }
     const response = await this.openai.beta.vectorStores.files.createAndPoll(
       vectorStoreId,
       {
-        file_id: fileId.split("/")[1]
-      }
+        file_id: fileId.split("/")[1],
+      },
     )
     ztoolkit.ExtraField.setExtraField(
       item,
@@ -128,12 +138,14 @@ export class ResearchAssistant {
     return response
   }
 
-  abort() {
-    this.assistantStream?.abort()
+  abortAll() {
+    this.streams.forEach((stream) => stream.abort())
   }
 
   async resetMemory() {
-    const messages = await this.openai.beta.threads.messages.list(this.currentThread)
+    const messages = await this.openai.beta.threads.messages.list(
+      this.currentThread,
+    )
     for (const message of messages.data) {
       this.openai.beta.threads.messages.del(this.currentThread, message.id)
     }
@@ -141,12 +153,14 @@ export class ResearchAssistant {
 
   rebuildMemory(messages: Message[]) {
     this.memory.chatHistory.clear()
-    messages.forEach(message => {
+    messages.forEach((message) => {
       switch (message.type) {
-        case 'USER_MESSAGE': {
-          return this.memory.chatHistory.addUserMessage(message.content.newValue)
+        case "USER_MESSAGE": {
+          return this.memory.chatHistory.addUserMessage(
+            message.content.newValue,
+          )
         }
-        case 'BOT_MESSAGE': {
+        case "BOT_MESSAGE": {
           return this.memory.chatHistory.addAIChatMessage(message._raw)
         }
       }

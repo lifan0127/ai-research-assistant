@@ -12,8 +12,8 @@ import {
   StateSelections,
   selectionConfig,
   MentionValue,
-} from "../../models/utils/states"
-import * as zot from "../../apis/zotero"
+} from "../models/utils/states"
+import * as zot from "../apis/zotero"
 import { title } from "process"
 
 export const defaultStates: States = {

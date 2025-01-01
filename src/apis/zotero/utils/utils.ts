@@ -1,5 +1,8 @@
 // Function to wait for a window to load
-export async function waitForWindow(uri: string, callback: (win: Window) => void) {
+export async function waitForWindow(
+  uri: string,
+  callback: (win: Window) => void,
+) {
   const deferred = Zotero.Promise.defer()
   const loadObserver = (event: any) => {
     const target = event.target

@@ -12,7 +12,7 @@
   animation: dot-flashing 1s infinite linear alternate;
   animation-delay: 0.5s;
 }
-.dot-flashing::before, 
+.dot-flashing::before,
 .dot-flashing::after {
   content: "";
   display: inline-block;
@@ -44,7 +44,8 @@
   0% {
     background-color: #9880ff;
   }
-  50%, 100% {
+  50%,
+  100% {
     background-color: rgba(152, 128, 255, 0.2);
   }
 }
@@ -76,7 +77,9 @@
   opacity: 1;
   display: grid;
   grid-template-rows: 1fr;
-  transition: opacity 200ms, grid-template-rows 200ms;
+  transition:
+    opacity 200ms,
+    grid-template-rows 200ms;
 }
 
 .panel-exit {
@@ -89,5 +92,7 @@
   opacity: 0;
   display: grid;
   grid-template-rows: 0fr;
-  transition: opacity 200ms, grid-template-rows 200ms; 
+  transition:
+    opacity 200ms,
+    grid-template-rows 200ms;
 }

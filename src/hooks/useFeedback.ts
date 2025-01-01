@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react'
-import { FEEDBACK_URL } from '../../constants'
-import { config } from '../../../package.json'
-import { FeedbackContent } from '../features/message/types'
+import React, { useState, useCallback } from "react"
+import { FEEDBACK_URL } from "../utils/constants"
+import { config } from "../../package.json"
+import { FeedbackContent } from "../typings/legacyMessages"
 
 export function useFeedback() {
   const [openFeedback, setOpenFeedback] = useState(false)
@@ -10,7 +10,7 @@ export function useFeedback() {
   const submitRequest = useCallback(async (content: FeedbackContent) => {
     try {
       const res = await fetch(FEEDBACK_URL, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(content),
       })
       if (res.status === 200) {
@@ -25,13 +25,15 @@ export function useFeedback() {
 
   async function submit(
     content: FeedbackContent,
-    editMessageVote: (vote: 'up' | 'down') => void,
-    callback: (success: boolean) => void
+    editMessageVote: (vote: "up" | "down") => void,
+    callback: (success: boolean) => void,
   ) {
-    const noConfirmation = Zotero.Prefs.get(`${config.addonRef}.FEEDBACK_NO_CONFIRMATION`)
+    const noConfirmation = Zotero.Prefs.get(
+      `${config.addonRef}.FEEDBACK_NO_CONFIRMATION`,
+    )
     if (noConfirmation) {
       const user = Zotero.Prefs.get(`${config.addonRef}.USER_EMAIL`) as string
-      content.user = user !== '' ? user : null
+      content.user = user !== "" ? user : null
       const success = await submitRequest(content)
       if (success) {
         editMessageVote(content.vote)
@@ -41,7 +43,7 @@ export function useFeedback() {
       setOpenFeedback(true)
       setCallback(() => async () => {
         const user = Zotero.Prefs.get(`${config.addonRef}.USER_EMAIL`) as string
-        content.user = user !== '' ? user : null
+        content.user = user !== "" ? user : null
         const success = await submitRequest(content)
         if (success) {
           editMessageVote(content.vote)

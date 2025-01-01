@@ -163,7 +163,6 @@ export class QAChain extends BaseChain {
     if (action === 'clarification' || action === 'error') {
       return output
     }
-    console.log({ output })
     const { answer, sources = [] } = payload as QAActionResponse['payload']
     const itemIds = sources.reduce((all: number[], source) => {
       try {

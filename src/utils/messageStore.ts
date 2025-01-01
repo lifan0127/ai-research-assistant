@@ -1,12 +1,16 @@
-import { config } from '../../package.json'
-import { Message } from '../views/features/message/types'
-import type { nsXPCComponents_Classes } from '../typing/global'
+import { config } from "../../package.json"
+import { Message } from "../typings/legacyMessages"
+import type { nsXPCComponents_Classes } from "../typings/global"
 
 export abstract class MessageStore {
-  constructor() { }
+  constructor() {}
   abstract loadMessages(): Message[]
   abstract appendMessage(message: Message): void
-  abstract modifyMessage(messageIndex: number, updatedMessage: Message, trim?: boolean): void
+  abstract modifyMessage(
+    messageIndex: number,
+    updatedMessage: Message,
+    trim?: boolean,
+  ): void
   abstract clearMessages(): void
 }
 
@@ -15,11 +19,19 @@ export class FileMessageStore extends MessageStore {
 
   constructor() {
     super()
-    this.file = this.initFile(PathUtils.join(Zotero.DataDirectory._dir, config.addonRef, 'messages.jsonl'))
+    this.file = this.initFile(
+      PathUtils.join(
+        Zotero.DataDirectory._dir,
+        config.addonRef,
+        "messages.jsonl",
+      ),
+    )
   }
 
   private initFile(path: string) {
-    const file = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsIFile)
+    const file = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/file/local;1"
+    ].createInstance(Components.interfaces.nsIFile)
 
     file.initWithPath(path)
 
@@ -40,31 +52,32 @@ export class FileMessageStore extends MessageStore {
   public loadMessages() {
     const messages = []
 
-    const inputStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-input-stream;1'].createInstance(
-      Components.interfaces.nsIFileInputStream
-    )
+    const inputStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/network/file-input-stream;1"
+    ].createInstance(Components.interfaces.nsIFileInputStream)
     inputStream.init(this.file, 0x01, 0o444, 0) // read only
 
-    const converterStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/intl/converter-input-stream;1'].createInstance(
-      Components.interfaces.nsIConverterInputStream
-    )
+    const converterStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/intl/converter-input-stream;1"
+    ].createInstance(Components.interfaces.nsIConverterInputStream)
     converterStream.init(
       inputStream,
-      'UTF-8',
+      "UTF-8",
       1024,
-      Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER
+      Components.interfaces.nsIConverterInputStream
+        .DEFAULT_REPLACEMENT_CHARACTER,
     )
 
     const outStr: any = {}
-    let lineBuffer = ''
+    let lineBuffer = ""
     let hasMore
     try {
       do {
         hasMore = converterStream.readString(1024, outStr)
         lineBuffer += outStr.value
 
-        while (lineBuffer.includes('\n')) {
-          const eolIndex = lineBuffer.indexOf('\n')
+        while (lineBuffer.includes("\n")) {
+          const eolIndex = lineBuffer.indexOf("\n")
           const line = lineBuffer.substring(0, eolIndex)
           lineBuffer = lineBuffer.substring(eolIndex + 1)
 
@@ -78,24 +91,27 @@ export class FileMessageStore extends MessageStore {
       const corruptedFilePath = PathUtils.join(
         Zotero.DataDirectory._dir,
         config.addonRef,
-        `messages_corrupted_${new Date().valueOf()}.jsonl`
+        `messages_corrupted_${new Date().valueOf()}.jsonl`,
       )
-      this.file.copyTo(null as any, `messages_corrupted_${new Date().valueOf()}.jsonl`)
+      this.file.copyTo(
+        null as any,
+        `messages_corrupted_${new Date().valueOf()}.jsonl`,
+      )
 
       // Clear the original file
-      const foStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-output-stream;1'].createInstance(
-        Components.interfaces.nsIFileOutputStream
-      )
+      const foStream = (Components.classes as nsXPCComponents_Classes)[
+        "@mozilla.org/network/file-output-stream;1"
+      ].createInstance(Components.interfaces.nsIFileOutputStream)
       foStream.init(this.file, 0x02 | 0x20, 0o666, 0) // 0x02: write, 0x20: truncate
       foStream.close()
       const error = {
-        code: 'load_message_history_error',
+        code: "load_message_history_error",
         file: corruptedFilePath,
       }
       return [
         {
-          type: 'BOT_MESSAGE',
-          widget: 'ERROR' as const,
+          type: "BOT_MESSAGE",
+          widget: "ERROR" as const,
           input: {
             error,
           },
@@ -111,19 +127,19 @@ export class FileMessageStore extends MessageStore {
   }
 
   public appendMessage(message: Message) {
-    const messageLine = JSON.stringify(message) + '\n'
+    const messageLine = JSON.stringify(message) + "\n"
 
     // Open the file for appending
-    const foStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-output-stream;1'].createInstance(
-      Components.interfaces.nsIFileOutputStream
-    )
+    const foStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/network/file-output-stream;1"
+    ].createInstance(Components.interfaces.nsIFileOutputStream)
     foStream.init(this.file, 0x02 | 0x08 | 0x10, 0o666, 0) // 0x02: write, 0x08: create, 0x10: append
 
     // Create a converter stream for UTF-8 encoding
-    const converterStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/intl/converter-output-stream;1'].createInstance(
-      Components.interfaces.nsIConverterOutputStream
-    )
-    converterStream.init(foStream, 'UTF-8', 0, 0)
+    const converterStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/intl/converter-output-stream;1"
+    ].createInstance(Components.interfaces.nsIConverterOutputStream)
+    converterStream.init(foStream, "UTF-8", 0, 0)
 
     // Write the message with a newline character
     converterStream.writeString(messageLine)
@@ -132,40 +148,49 @@ export class FileMessageStore extends MessageStore {
     converterStream.close()
   }
 
-  public modifyMessage(messageIndex: number, updatedMessage: Message, trim = false) {
+  public modifyMessage(
+    messageIndex: number,
+    updatedMessage: Message,
+    trim = false,
+  ) {
     const tempFile = this.file.clone()
-    tempFile.leafName = 'temp_' + tempFile.leafName
+    tempFile.leafName = "temp_" + tempFile.leafName
 
     // Streams for reading the original file and writing to the temp file
-    const inputStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-input-stream;1'].createInstance(
-      Components.interfaces.nsIFileInputStream
-    )
-    const outputStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-output-stream;1'].createInstance(
-      Components.interfaces.nsIFileOutputStream
-    )
+    const inputStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/network/file-input-stream;1"
+    ].createInstance(Components.interfaces.nsIFileInputStream)
+    const outputStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/network/file-output-stream;1"
+    ].createInstance(Components.interfaces.nsIFileOutputStream)
 
     inputStream.init(this.file, 0x01, 0o444, 0) // read only
     outputStream.init(tempFile, 0x02 | 0x08 | 0x20, 0o666, 0) // write, create, truncate
 
     // Create a converter stream for reading UTF-8 encoding
-    const converterInputStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/intl/converter-input-stream;1'].createInstance(
-      Components.interfaces.nsIConverterInputStream
+    const converterInputStream = (
+      Components.classes as nsXPCComponents_Classes
+    )["@mozilla.org/intl/converter-input-stream;1"].createInstance(
+      Components.interfaces.nsIConverterInputStream,
     )
     converterInputStream.init(
       inputStream,
-      'UTF-8',
+      "UTF-8",
       1024,
-      Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER
+      Components.interfaces.nsIConverterInputStream
+        .DEFAULT_REPLACEMENT_CHARACTER,
     )
 
     // Create a converter stream for writing UTF-8 encoding
-    const converterOutputStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/intl/converter-output-stream;1'].createInstance(
-      Components.interfaces.nsIConverterOutputStream
+    const converterOutputStream = (
+      Components.classes as nsXPCComponents_Classes
+    )["@mozilla.org/intl/converter-output-stream;1"].createInstance(
+      Components.interfaces.nsIConverterOutputStream,
     )
-    converterOutputStream.init(outputStream, 'UTF-8', 0, 0)
+    converterOutputStream.init(outputStream, "UTF-8", 0, 0)
 
-    const outStr: { value: string } = { value: '' }
-    let lineBuffer = ''
+    const outStr: { value: string } = { value: "" }
+    let lineBuffer = ""
     let currentLineIndex = 0
     let hasMore = true
 
@@ -174,23 +199,25 @@ export class FileMessageStore extends MessageStore {
       lineBuffer += outStr.value
       let eolIndex
 
-      while ((eolIndex = lineBuffer.indexOf('\n')) >= 0) {
+      while ((eolIndex = lineBuffer.indexOf("\n")) >= 0) {
         // Extract a line
         const line = lineBuffer.substring(0, eolIndex)
         lineBuffer = lineBuffer.substring(eolIndex + 1)
 
         if (currentLineIndex === messageIndex) {
           // Replace the line with the updated message
-          converterOutputStream.writeString(JSON.stringify(updatedMessage) + '\n')
+          converterOutputStream.writeString(
+            JSON.stringify(updatedMessage) + "\n",
+          )
           if (trim) {
             // If trimming, we stop writing any further lines
-            lineBuffer = ''
+            lineBuffer = ""
             hasMore = false
             break
           }
         } else {
           // Write the line as is
-          converterOutputStream.writeString(line + '\n')
+          converterOutputStream.writeString(line + "\n")
         }
         currentLineIndex++
       }
@@ -210,9 +237,9 @@ export class FileMessageStore extends MessageStore {
   }
 
   public clearMessages() {
-    const foStream = (Components.classes as nsXPCComponents_Classes)['@mozilla.org/network/file-output-stream;1'].createInstance(
-      Components.interfaces.nsIFileOutputStream
-    )
+    const foStream = (Components.classes as nsXPCComponents_Classes)[
+      "@mozilla.org/network/file-output-stream;1"
+    ].createInstance(Components.interfaces.nsIFileOutputStream)
     foStream.init(this.file, 0x02 | 0x20, 0o666, 0) // 0x02: write, 0x20: truncate
 
     // Close the file stream immediately to truncate the file

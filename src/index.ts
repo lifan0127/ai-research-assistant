@@ -1,4 +1,3 @@
-import globalConfig from './config'
+import globalConfig from "./settings/config"
 
 globalConfig()
-

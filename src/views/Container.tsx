@@ -7,8 +7,8 @@ import React, {
   useContext,
   useCallback,
 } from "react"
-import { useMessages } from "./hooks/useMessages"
-import { useDragging } from "./hooks/useDragging"
+import { useMessages } from "../hooks/useMessages"
+import { useDragging } from "../hooks/useDragging"
 import { TestMenu } from "./features/menus/TestMenu"
 import { ResearchAssistant } from "../models/assistant"
 import {
@@ -16,9 +16,8 @@ import {
   ErrorActionResponse,
   ExecutorActionResponse,
 } from "../models/utils/actions"
-import { UserMessage } from "./features/message/UserMessage"
-import { BotMessage } from "./features/message/BotMessage"
-import { UserMessageProps } from "./features/message/types"
+import { UserMessage, UserMessageControl } from "./features/message/UserMessage"
+import { BotMessage, BotMessageControl } from "./features/message/BotMessage"
 import { Header } from "./features/Header"
 import { MainMenu } from "./features/menus/MainMenu"
 import { Input } from "./features/input/Input"
@@ -26,19 +25,19 @@ import { Version } from "./components/Version"
 import "./style.css"
 import { States, areStatesEmpty, MentionValue } from "../models/utils/states"
 import { Feedback } from "./features/Feedback"
-import { useFeedback } from "./hooks/useFeedback"
+import { useFeedback } from "../hooks/useFeedback"
 import { InfoPanel } from "./features/infoPanel/InfoPanel"
 import { PromptLibrary } from "./features/infoPanel/PromptLibrary"
 import { FAQ } from "./features/infoPanel/FAQ"
 import { config } from "../../package.json"
 import { getPref, setPref } from "../utils/prefs"
 import { debounce, set } from "lodash"
-import { useZoom } from "./hooks/useZoom"
-import { useNotification } from "./hooks/useNotification"
-import { useAssistant } from "./hooks/useAssistant"
-import { useScroll } from "./hooks/useScroll"
+import { useZoom } from "../hooks/useZoom"
+import { useNotification } from "../hooks/useNotification"
+import { useAssistant } from "../hooks/useAssistant"
+import { useScroll } from "../hooks/useScroll"
 import { AssistantStream } from "openai/lib/AssistantStream"
-import { useFunctionCalls } from "./hooks/useFunctionCalls"
+import { useFunctionCalls } from "../hooks/useFunctionCalls"
 import { nestedSearch } from "../apis/zotero/search"
 import { SearchStrategy } from "./components/visuals/SearchStrategy"
 
@@ -53,21 +52,28 @@ export function Container() {
   const [userInput, setUserInput] = useState<UserInput>()
   const { isDragging, setIsDragging } = useDragging()
   const {
+    metadata,
     messages,
-    addMessage,
-    editMessage,
-    updateMessage,
+    getMesssage,
+    addUserMessage,
+    addBotMessage,
+    updateUserMessage,
+    addBotStep,
+    updateBotStep,
+    addBotAction,
+    updateBotAction,
     clearMessages,
-    initMessage,
-    persistMessage,
-  } = useMessages()
+    findLastUserMessage,
+  } = useMessages("DEFAULT_ID")
   const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } =
     useFeedback()
   const [promptTemplate, setPromptTemplate] = useState<
     { template: string } | undefined
   >()
   const [isLoading, setIsLoading] = useState(false)
+  // Keep track of the last copied message
   const [copyId, setCopyId] = useState<string>()
+  // Keep track of the last edited user message
   const [editId, setEditId] = useState<string | undefined>()
   const containerRef = useRef<HTMLDivElement>(null)
   const { assistant } = useAssistant()
@@ -79,15 +85,14 @@ export function Container() {
     addFunctionCallOutput,
     clearFunctionCalls,
   } = useFunctionCalls()
-  const { scrollToEnd, pauseScroll, resumeScroll } = useScroll(containerRef)
+  const { scrollToEnd, pauseScroll, resumeScroll, scrollPosition } =
+    useScroll(containerRef)
 
   useEffect(() => {
     scrollToEnd()
   }, [])
 
   useEffect(() => {
-    console.log("tool stream check")
-    console.log({ functionCalls, fullfilled: functionCallsFulfilled() })
     if (functionCallsFulfilled()) {
       console.log("tool stream begin")
       const stream = assistant.streamTools(functionCalls)
@@ -139,7 +144,7 @@ export function Container() {
   //           },
   //           _raw,
   //         }
-  //         return addMessage(newBotMessage)
+  //         return addBotMessage(newBotMessage)
   //       }
   //       default: {
   //         const { widget, input, _raw } = payload
@@ -149,7 +154,7 @@ export function Container() {
   //           input: input as LegacyBotMessageProps["input"],
   //           _raw,
   //         }
-  //         return addMessage(newBotMessage)
+  //         return addBotMessage(newBotMessage)
   //       }
   //     }
   //   }
@@ -177,20 +182,28 @@ export function Container() {
     id?: string,
   ) {
     const { content, states } = input
-    const newUserMessage = {
-      type: "USER_MESSAGE" as const,
-      content,
-      states,
+    if (id) {
+      const updatedUserMessage = {
+        type: "USER_MESSAGE" as const,
+        id,
+        content,
+        states,
+      }
+      // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
+      setUserInput({ content, states })
+    } else {
+      const newUserMessage = {
+        content,
+        states,
+      }
+      addUserMessage(newUserMessage)
     }
-    addMessage(newUserMessage)
+
     const stream = assistant.streamMessage(content.newValue, states)
 
-    initMessage({
-      type: "BOT_MESSAGE",
+    addBotMessage({
       stream: stream,
-      messageSlice: messages,
-      scrollToEnd: scrollToEnd,
-      persistMessage,
+      steps: [],
     })
     scrollToEnd()
     // if (id) {
@@ -267,95 +280,26 @@ export function Container() {
     })
   }
 
-  const query = {
-    boolean: "AND",
-    subqueries: [
-      {
-        boolean: "OR",
-        subqueries: [
-          {
-            conditions: [
-              {
-                condition: "creator",
-                operator: "is",
-                value: "Andrew D. White",
-              },
-              {
-                condition: "creator",
-                operator: "is",
-                value: "Andrew White",
-              },
-            ],
-            match: "any",
-            title: "Creator: Andrew D. White or Andrew White",
-          },
-          {
-            conditions: [
-              {
-                condition: "tag",
-                operator: "contains",
-                value: "LLMs",
-              },
-              {
-                condition: "tag",
-                operator: "contains",
-                value: "chemistry",
-              },
-              {
-                condition: "tag",
-                operator: "contains",
-                value: "digital chemistry",
-              },
-            ],
-            match: "any",
-            title: "Tags: LLMs, chemistry, or digital chemistry",
-          },
-          {
-            conditions: [
-              {
-                condition: "tag",
-                operator: "doesNotContain",
-                value: "materials science",
-              },
-            ],
-            match: "all",
-            title: "Exclude: Materials Science",
-          },
-        ],
-      },
-      {
-        conditions: [
-          {
-            condition: "tag",
-            operator: "contains",
-            value: "LLMs",
-          },
-          {
-            condition: "tag",
-            operator: "contains",
-            value: "chemistry",
-          },
-          {
-            condition: "tag",
-            operator: "contains",
-            value: "digital chemistry",
-          },
-        ],
-        match: "any",
-        title: "Tags: LLMs, chemistry, or digital chemistry",
-      },
-      {
-        conditions: [
-          {
-            condition: "tag",
-            operator: "doesNotContain",
-            value: "materials science",
-          },
-        ],
-        match: "all",
-        title: "Exclude: Materials Science",
-      },
-    ],
+  const userMessageControl: Omit<UserMessageControl, "isCopied" | "isEditing"> =
+    {
+      setCopyId,
+      setEditId,
+      setPromptTemplate,
+      onSubmit: handleSubmit,
+    }
+
+  const botMessageControl: Omit<BotMessageControl, "isCopied"> = {
+    setCopyId,
+    setFunctionCallsCount,
+    addFunctionCallOutput,
+    scrollToEnd,
+    pauseScroll,
+    resumeScroll,
+    addBotStep,
+    updateBotStep,
+    addBotAction,
+    updateBotAction,
+    findLastUserMessage,
   }
 
   return (
@@ -366,15 +310,14 @@ export function Container() {
       onDragLeave={() => setIsDragging(isDragging - 1)}
     >
       {notification}
-      <div
-        className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
-        ref={containerRef}
-      >
-        <Header />
-        <button onClick={handleTest}>Test</button>
-        <div className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words">
-          <SearchStrategy query={query} />
-        </div>
+      <Header scrollPosition={scrollPosition}>
+        {__env__ === "development" ? (
+          <TestMenu
+            setUserInput={setUserInput}
+            addMessage={addUserMessage}
+            hasNotification={hasNotification}
+          />
+        ) : null}
         <MainMenu
           containerRef={containerRef}
           resetMemory={assistant.resetMemory}
@@ -383,13 +326,16 @@ export function Container() {
           zoom={zoom}
           hasNotification={hasNotification}
         />
-        {__env__ === "development" ? (
-          <TestMenu
-            setUserInput={setUserInput}
-            addMessage={addMessage}
-            hasNotification={hasNotification}
-          />
-        ) : null}
+      </Header>
+      <div
+        className={`w-full flex-auto mb-4 overflow-x-hidden overflow-y-scroll flex flex-col justify-start`}
+        ref={containerRef}
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 100%)",
+        }}
+      >
+        {/* <button onClick={handleTest}>Test File Search</button> */}
         <InfoPanel
           promptLibrary={
             <PromptLibrary setPromptTemplate={setPromptTemplate} />
@@ -399,46 +345,28 @@ export function Container() {
         {messages.map((message, index) => {
           switch (message.type) {
             case "USER_MESSAGE": {
-              const {
-                copyId: _1,
-                setCopyId: _2,
-                editId: _3,
-                setEditId: _4,
-                ...props
-              } = message
               return (
                 <UserMessage
-                  key={props.id}
-                  copyId={copyId}
-                  setCopyId={setCopyId}
-                  editId={editId}
-                  setEditId={setEditId}
-                  setPromptTemplate={setPromptTemplate}
-                  {...(props as Omit<
-                    UserMessageProps,
-                    | "copyId"
-                    | "setCopyId"
-                    | "editId"
-                    | "setEditId"
-                    | "setPromptTemplate"
-                  >)}
-                  onSubmit={handleSubmit}
+                  key={message.id}
+                  input={message}
+                  control={{
+                    ...userMessageControl,
+                    isCopied: copyId === message.id,
+                    isEditing: editId === message.id,
+                  }}
                 />
               )
             }
             case "BOT_MESSAGE": {
-              const { copyId: _1, setCopyId: _2, ...props } = message
+              // return <pre>{JSON.stringify(message, null, 2)}</pre>
               return (
                 <BotMessage
-                  key={props.id}
-                  copyId={copyId}
-                  setCopyId={setCopyId}
-                  setFunctionCallsCount={setFunctionCallsCount}
-                  addFunctionCallOutput={addFunctionCallOutput}
-                  {...(props as any)}
-                  scrollToEnd={scrollToEnd}
-                  pauseScroll={pauseScroll}
-                  resumeScroll={resumeScroll}
+                  key={message.id}
+                  input={message}
+                  control={{
+                    ...botMessageControl,
+                    isCopied: copyId === message.id,
+                  }}
                 />
               )
             }

@@ -1,16 +1,25 @@
 // import ZoteroToolkit from 'zotero-plugin-toolkit/dist/index'
 // import { ColumnOptions } from 'zotero-plugin-toolkit/dist/helpers/virtualizedTable'
-import hooks from './hooks'
-import { config } from '../package.json'
-import { BasicTool, unregister, UITool, PromptManager, ClipboardHelper, KeyboardManager, ProgressWindowHelper, ExtraFieldTool } from 'zotero-plugin-toolkit'
-import { ReactRootManager } from './views/root'
-import { MessageStore, FileMessageStore } from './modules/messageStore'
+import hooks from "./hooks"
+import { config } from "../../package.json"
+import {
+  BasicTool,
+  unregister,
+  UITool,
+  PromptManager,
+  ClipboardHelper,
+  KeyboardManager,
+  ProgressWindowHelper,
+  ExtraFieldTool,
+} from "zotero-plugin-toolkit"
+import { ReactRootManager } from "../views/root"
+import { MessageStore, FileMessageStore } from "../utils/messageStore"
 
 export class Addon {
   public data: {
     alive: boolean
     // Env type, see build.js
-    env: 'development' | 'production'
+    env: "development" | "production"
     ztoolkit: CustomToolkit
     // ztoolkit: ZoteroToolkit
     locale?: {
@@ -79,7 +88,10 @@ export class CustomToolkit extends BasicTool {
     this.Clipboard = ClipboardHelper
     // this.LargePref = LargePrefHelper
     this.ProgressWindow = ProgressWindowHelper
-    this.ProgressWindow.setIconURI('default', `chrome://${config.addonRef}/content/icons/favicon.png`)
+    this.ProgressWindow.setIconURI(
+      "default",
+      `chrome://${config.addonRef}/content/icons/favicon.png`,
+    )
     this.ExtraField = new ExtraFieldTool(this)
   }
 

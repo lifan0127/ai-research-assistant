@@ -6,7 +6,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline"
 import { Input, InputProps } from "../input/Input"
-import { useDragging } from "../../hooks/useDragging"
+import { useDragging } from "../../../hooks/useDragging"
 import { SelectionIcon } from "../../icons/zotero"
 import {
   StateName,
@@ -17,7 +17,7 @@ import {
   areStatesEmpty,
 } from "../../../models/utils/states"
 import { TextField } from "../input/TextField"
-import { UserMessageProps } from "./types"
+import { UserMessageInput } from "../../../typings/messages"
 
 interface SelectionToggleProps {
   name: StateName
@@ -145,16 +145,33 @@ function Gallery({ images }: GalleryProps) {
   )
 }
 
+export interface UserMessageControl {
+  isCopied: boolean
+  setCopyId: (id?: string) => void
+  isEditing: boolean
+  setEditId: (id?: string) => void
+  setPromptTemplate: (prompt?: { template: string }) => void
+  onSubmit: (
+    input: Pick<UserMessageInput, "content" | "states">,
+    id?: string,
+  ) => void
+}
+
+interface UserMessageProps {
+  input: UserMessageInput
+  control: UserMessageControl
+}
+
 export function UserMessage({
-  id,
-  content,
-  states,
-  onSubmit,
-  copyId,
-  setCopyId,
-  editId,
-  setEditId,
-  setPromptTemplate,
+  input: { id, content, states },
+  control: {
+    setCopyId,
+    isCopied,
+    setEditId,
+    isEditing,
+    setPromptTemplate,
+    onSubmit,
+  },
 }: UserMessageProps) {
   // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
@@ -206,7 +223,7 @@ export function UserMessage({
       // onMouseEnter={handleMouseEnter}
       // onMouseLeave={handleMouseLeave}
     >
-      {id === editId ? (
+      {isEditing ? (
         <div
           ref={ref}
           className="bg-tomato p-2 border border-neutral-500 rounded shadow-md shadow-black/20 text-black break-words min-w-[320px]"
@@ -248,7 +265,7 @@ export function UserMessage({
                       aria-hidden="true"
                     />
                     <span className="ml-2 text-sm text-white">
-                      {copyId === id ? "Copied" : "Copy"}
+                      {isCopied ? "Copied" : "Copy"}
                     </span>
                   </button>
                 </div>

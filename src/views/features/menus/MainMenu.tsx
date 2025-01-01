@@ -2,13 +2,13 @@ import React, { useState } from "react"
 import { Bars3Icon } from "@heroicons/react/24/outline"
 import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/20/solid"
 import { LegacyResearchAssistant } from "../../../models/legacyAssistant"
-import { useDialog } from "../../hooks/useDialog"
+import { useDialog } from "../../../hooks/useDialog"
 import { DropdownMenu } from "../../components/navigations/DropdownMenu"
 import { Confirmation } from "../../components/navigations/Confirmation"
 import { chatHistoryToNote } from "../../utils/chatHistory"
-import { Message } from "../message/types"
-import { useDragging } from "../../hooks/useDragging"
-import { useZoom } from "../../hooks/useZoom"
+import { Message } from "../../../typings/legacyMessages"
+import { useDragging } from "../../../hooks/useDragging"
+import { useZoom } from "../../../hooks/useZoom"
 
 interface ScaleButtonGroupProps {
   scale: number
@@ -141,12 +141,10 @@ export function MainMenu({
       },
     },
   ]
-  const position = hasNotification
-    ? { top: "40px", right: "24px" }
-    : { top: "16px", right: "24px" }
+
   return (
     <>
-      <DropdownMenu items={items} Icon={Bars3Icon} position={position} />
+      <DropdownMenu items={items} Icon={Bars3Icon} />
       <Confirmation
         message={confirmationMessage}
         open={confirmationOpen}

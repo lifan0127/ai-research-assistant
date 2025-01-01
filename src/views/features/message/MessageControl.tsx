@@ -1,6 +1,9 @@
 import React from "react"
 import { marked } from "marked"
-import { BotMessageProps, UserMessageProps } from "./types"
+import {
+  BotMessageProps,
+  UserMessageProps,
+} from "../../../typings/legacyMessages"
 import * as Markdown from "./widgets/Markdown"
 import * as SearchResults from "./widgets/Search"
 import * as QAResponse from "./widgets/QA"

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
 import stringify from "json-stringify-pretty-compact"
-import { StepInput } from "./types"
+import { StepInput } from "../../../../typings/steps"
 import { Control } from "../../../components/types"
 import { ZoteroIcon } from "../../../icons/zotero"
 import { runFunctionTool } from "../../../../models/tools"
