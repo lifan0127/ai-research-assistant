@@ -7,9 +7,9 @@ import {
   MessageDelta,
   MessageContent,
 } from "openai/resources/beta/threads/messages"
-import { MessageStep, MessageStepInput } from "../step/MessageStep"
-import { ToolStep, ToolStepInput } from "../step/ToolStep"
-import { ErrorStep, ErrorStepInput } from "../step/ErrorStep"
+import { MessageStep, MessageStepInput } from "../steps/MessageStep"
+import { ToolStep, ToolStepInput } from "../steps/ToolStep"
+import { ErrorStep, ErrorStepInput } from "../steps/ErrorStep"
 import { createCitations } from "../../../../apis/zotero/citation"
 import { ItemButton } from "../../../components/buttons/ItemButton"
 import { createCollection } from "../../../../apis/zotero/collection"
