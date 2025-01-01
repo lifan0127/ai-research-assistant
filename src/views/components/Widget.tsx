@@ -1,8 +1,8 @@
 import React from "react"
-import * as Markdown from "../features/message/widgets/Markdown"
-import * as Search from "../features/message/widgets/Search"
-import * as QA from "../features/message/widgets/QA"
-import * as Error from "../features/message/widgets/Error"
+import * as Markdown from "../features/messages/widgets/Markdown"
+import * as Search from "../features/messages/widgets/Search"
+import * as QA from "../features/messages/widgets/QA"
+import * as Error from "../features/messages/widgets/Error"
 import { Control } from "./types"
 
 export interface WidgetProps {

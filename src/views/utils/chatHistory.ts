@@ -1,8 +1,8 @@
 import { marked } from "marked"
-import * as Markdown from "../features/message/widgets/Markdown"
-import * as SearchResults from "../features/message/widgets/Search"
-import * as QAResponse from "../features/message/widgets/QA"
-import * as Error from "../features/message/widgets/Error"
+import * as Markdown from "../features/messages/widgets/Markdown"
+import * as SearchResults from "../features/messages/widgets/Search"
+import * as QAResponse from "../features/messages/widgets/QA"
+import * as Error from "../features/messages/widgets/Error"
 import { Message } from "../../typings/legacyMessages"
 import { config } from "../../../package.json"
 import { createCollection } from "../../apis/zotero/collection"
@@ -26,43 +26,43 @@ export async function chatHistoryToNote(messages: Message[]) {
             const items =
               states.items && states.items.length
                 ? "<h4>Items</h4><ul>" +
-                  states.items
-                    .map((item) => `<li>${item.title}</li>`)
-                    .join("\n") +
-                  "</ul>"
+                states.items
+                  .map((item) => `<li>${item.title}</li>`)
+                  .join("\n") +
+                "</ul>"
                 : ""
             const collections =
               states.collections && states.collections.length
                 ? "<h4>Collections</h4><ul>" +
-                  states.collections
-                    .map((col) => `<li>${col.title}</li>`)
-                    .join("\n") +
-                  "</ul>"
+                states.collections
+                  .map((col) => `<li>${col.title}</li>`)
+                  .join("\n") +
+                "</ul>"
                 : ""
             const creators =
               states.creators && states.collections.length
                 ? "<h4>Creators</h4><ul>" +
-                  states.creators
-                    .map((creator) => `<li>${creator.title}</li>`)
-                    .join("\n") +
-                  "</ul>"
+                states.creators
+                  .map((creator) => `<li>${creator.title}</li>`)
+                  .join("\n") +
+                "</ul>"
                 : ""
             const tags =
               states.tags && states.tags.length
                 ? "<h4>Tags</h4><ul>" +
-                  states.tags.map((tag) => `<li>${tag}</li>`).join("\n") +
-                  "</ul>"
+                states.tags.map((tag) => `<li>${tag}</li>`).join("\n") +
+                "</ul>"
                 : ""
             const images =
               states.images && states.images.length
                 ? "<h4>Images</h4><ul>" +
-                  states.images
-                    .map(
-                      (img) =>
-                        `<li>${img.id}<img src="${img.image}" title="${img.title}"/></li>`,
-                    )
-                    .join("\n") +
-                  "</ul>"
+                states.images
+                  .map(
+                    (img) =>
+                      `<li>${img.id}<img src="${img.image}" title="${img.title}"/></li>`,
+                  )
+                  .join("\n") +
+                "</ul>"
                 : ""
             return `
           <div>
@@ -144,9 +144,9 @@ export async function chatHistoryToNote(messages: Message[]) {
   const note = new Zotero.Item("note")
   note.setNote(
     '<div data-schema-version="8">' +
-      `<h1>New Chat History from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-      chatHistoryHtml +
-      "</div>",
+    `<h1>New Chat History from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
+    chatHistoryHtml +
+    "</div>",
   )
   const ariaCollection = await createCollection(ARIA_LIBRARY)
   note.addToCollection(ariaCollection.id)

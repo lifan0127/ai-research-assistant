@@ -16,8 +16,11 @@ import {
   ErrorActionResponse,
   ExecutorActionResponse,
 } from "../models/utils/actions"
-import { UserMessage, UserMessageControl } from "./features/message/UserMessage"
-import { BotMessage, BotMessageControl } from "./features/message/BotMessage"
+import {
+  UserMessage,
+  UserMessageControl,
+} from "./features/messages/UserMessage"
+import { BotMessage, BotMessageControl } from "./features/messages/BotMessage"
 import { Header } from "./features/Header"
 import { MainMenu } from "./features/menus/MainMenu"
 import { Input } from "./features/input/Input"
