@@ -100,12 +100,9 @@ export function Container() {
       console.log("tool stream begin")
       const stream = assistant.streamTools(functionCalls)
       clearFunctionCalls()
-      initMessage({
-        type: "BOT_MESSAGE",
+      addBotMessage({
         stream: stream,
-        messageSlice: messages,
-        scrollToEnd: scrollToEnd,
-        persistMessage,
+        steps: [],
       })
     }
   }, [functionCalls, functionCallsFulfilled, clearFunctionCalls])
@@ -305,6 +302,7 @@ export function Container() {
     findLastUserMessage,
   }
 
+  console.log({ messages })
   return (
     <div
       className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"

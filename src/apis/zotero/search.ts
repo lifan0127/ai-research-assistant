@@ -3,6 +3,7 @@ import { getItemAndBestAttachment } from "./item"
 import retry, { Options } from "async-retry"
 import { compileItemInfo, ItemInfo, getItemsAndBestAttachments } from "./item"
 import { ItemMode } from "./types"
+import { Query } from "../../typings/actions"
 
 export interface SearchCondition {
   condition: Zotero.Search.Conditions
@@ -76,12 +77,12 @@ export async function search(
   return { count: itemIds.length, results }
 }
 
-export type NestedQuery = {
-  boolean: "AND" | "OR"
-  subqueries: (NestedQuery | SearchParameters)[]
-}
+// export type NestedQuery = {
+//   boolean: "AND" | "OR"
+//   subqueries: (NestedQuery | SearchParameters)[]
+// }
 
-export type Query = NestedQuery | SearchParameters
+// export type Query = NestedQuery | SearchParameters
 
 // Function to recursively execute searches and combine results
 async function recursiveSearch(query: Query): Promise<number[]> {
@@ -95,12 +96,12 @@ async function recursiveSearch(query: Query): Promise<number[]> {
   // Results of all subqueries
   const results = await Promise.all(
     subqueries.map(async (subquery) => {
-      if ("conditions" in subquery) {
+      if ("conditions" in subquery!) {
         const search = createSearchInstance(subquery)
         return search.search()
-      } else if (subquery.subqueries) {
+      } else if (subquery!.subqueries) {
         // Nested subquery
-        return recursiveSearch(subquery)
+        return recursiveSearch(subquery!)
       } else {
         throw new Error("Invalid query structure.")
       }
@@ -123,7 +124,7 @@ async function recursiveSearch(query: Query): Promise<number[]> {
   }
 }
 
-export async function nestedSearch(query: NestedQuery) {
+export async function nestedSearch(query: Query) {
   const itemIds: number[] = await recursiveSearch(query)
   const results = await getItemsAndBestAttachments(itemIds, "preview")
 

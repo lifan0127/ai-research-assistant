@@ -8,3 +8,7 @@ export function generateMessageId() {
 export function generateStepId() {
   return "step_" + Zotero.Utilities.randomString(STEP_ID_LENGTH)
 }
+
+export function generateActionId() {
+  return "action_" + Zotero.Utilities.randomString(STEP_ID_LENGTH)
+}

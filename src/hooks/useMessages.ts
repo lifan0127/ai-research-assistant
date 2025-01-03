@@ -5,7 +5,7 @@ import {
   BotMessageInput,
 } from "../typings/messages"
 import { MessageStepInput, StepInput } from "../typings/steps"
-import { generateMessageId, generateStepId } from "../utils/identifiers"
+import { generateMessageId, generateStepId, generateActionId } from "../utils/identifiers"
 import { generateTimestamp } from "../utils/datetime"
 import { Action } from "../typings/actions"
 import { useAssistant } from "./useAssistant"
@@ -22,36 +22,36 @@ interface MessagesState {
 
 type MessagesAction =
   | {
-      type: "ADD_USER_MESSAGE"
-      payload: UserMessageInput
-    }
+    type: "ADD_USER_MESSAGE"
+    payload: UserMessageInput
+  }
   | { type: "ADD_BOT_MESSAGE"; payload: BotMessageInput }
   | {
-      type: "UPDATE_USER_MESSAGE"
-      payload: { id: string; updates: Partial<UserMessageInput> }
-    }
+    type: "UPDATE_USER_MESSAGE"
+    payload: { id: string; updates: Partial<UserMessageInput> }
+  }
   | { type: "ADD_BOT_STEP"; payload: { messageId: string; step: StepInput } }
   | {
-      type: "UPDATE_BOT_STEP"
-      payload: {
-        messageId: string
-        stepId: string
-        updates: Partial<MessageStepInput>
-      }
+    type: "UPDATE_BOT_STEP"
+    payload: {
+      messageId: string
+      stepId: string
+      updates: Partial<StepInput>
     }
+  }
   | {
-      type: "ADD_BOT_ACTION"
-      payload: { messageId: string; stepId: string; action: Action }
-    }
+    type: "ADD_BOT_ACTIONS"
+    payload: { messageId: string; stepId: string; actions: Action[] }
+  }
   | {
-      type: "UPDATE_BOT_ACTION"
-      payload: {
-        messageId: string
-        stepId: string
-        actionId: string
-        updates: Partial<Action>
-      }
+    type: "UPDATE_BOT_ACTION"
+    payload: {
+      messageId: string
+      stepId: string
+      actionId: string
+      updates: Partial<Action>
     }
+  }
   | { type: "LOAD_MESSAGES"; payload: string }
   | { type: "CLEAR_MESSAGES" }
 
@@ -103,7 +103,7 @@ function messagesReducer(
         ...state,
         messages: state.messages.map((message) =>
           message.type === "BOT_MESSAGE" &&
-          message.id === action.payload.messageId
+            message.id === action.payload.messageId
             ? { ...message, steps: [...message.steps, action.payload.step] }
             : message,
         ),
@@ -116,41 +116,75 @@ function messagesReducer(
         ...state,
         messages: state.messages.map((message) =>
           message.type === "BOT_MESSAGE" &&
-          message.id === action.payload.messageId
+            message.id === action.payload.messageId
             ? {
-                ...message,
-                steps: message.steps.map((step) =>
-                  step.type === "MESSAGE_STEP" &&
-                  step.id === action.payload.stepId
-                    ? { ...step, ...action.payload.updates }
-                    : step,
-                ),
-              }
+              ...message,
+              steps: message.steps.map((step) => {
+                // No update for other steps
+                if (step.id !== action.payload.stepId) {
+                  return step
+                }
+                // For message step, need additional handling for adding actions
+                if (step.type === "MESSAGE_STEP") {
+                  const messageUpdate = action.payload.updates as Partial<MessageStepInput>
+                  // If messages is part of the update, look for TEXT message type
+                  if (messageUpdate?.messages) {
+                    return {
+                      ...step,
+                      ...action.payload.updates,
+                      messages: messageUpdate.messages.map((message) => {
+                        // For TEXT message type, add ID to actions
+                        if (message.type === "TEXT") {
+                          return {
+                            ...message,
+                            text: {
+                              ...message.text,
+                              actions: message.text.actions?.map((action) => {
+                                return { ...action, id: generateActionId() }
+                              }),
+                            },
+                          }
+                        }
+                        // For other message types, return message as-is
+                        return message
+                      }),
+                    } as MessageStepInput
+                  }
+                  // Update the step as-is, if messages is not part of the update
+                  return {
+                    ...step,
+                    ...action.payload.updates,
+                  } as MessageStepInput
+                }
+                // Update other types of step as-is
+                return { ...step, ...action.payload.updates } as StepInput
+              })
+            }
             : message,
         ),
       }
     }
 
-    case "ADD_BOT_ACTION": {
+    case "ADD_BOT_ACTIONS": {
       return {
         ...state,
         messages: state.messages.map((message) =>
           message.type === "BOT_MESSAGE" &&
-          message.id === action.payload.messageId
+            message.id === action.payload.messageId
             ? {
-                ...message,
-                steps: message.steps.map((step) =>
-                  step.type === "MESSAGE_STEP" &&
+              ...message,
+              steps: message.steps.map((step) =>
+                step.type === "MESSAGE_STEP" &&
                   step.id === action.payload.stepId
-                    ? {
-                        ...step,
-                        actions: step.message.actions
-                          ? [...step.message.actions, action.payload.action]
-                          : [action.payload.action],
-                      }
-                    : step,
-                ),
-              }
+                  ? {
+                    ...step,
+                    actions: step.message.actions
+                      ? [...step.message.actions, action.payload.action]
+                      : [action.payload.action],
+                  }
+                  : step,
+              ),
+            }
             : message,
         ),
       }
@@ -161,23 +195,34 @@ function messagesReducer(
         ...state,
         messages: state.messages.map((message) =>
           message.type === "BOT_MESSAGE" &&
-          message.id === action.payload.messageId
+            message.id === action.payload.messageId
             ? {
-                ...message,
-                steps: message.steps.map((step) =>
-                  step.type === "MESSAGE_STEP" &&
+              ...message,
+              steps: message.steps.map((step) =>
+                step.type === "MESSAGE_STEP" &&
                   step.id === action.payload.stepId
-                    ? {
-                        ...step,
-                        actions: step.message.actions!.map((action) =>
-                          action.id === action.payload.actionId
-                            ? { ...action, ...action.payload.updates }
-                            : action,
-                        ),
+                  ? {
+                    ...step,
+                    messages: step.messages.map((message) => {
+                      if (message.type !== "TEXT") {
+                        return message
                       }
-                    : step,
-                ),
-              }
+                      return {
+                        ...message,
+                        text: {
+                          ...message.text,
+                          actions: message.text.actions!.map((act) =>
+                            act.id === action.payload.actionId
+                              ? { ...act, ...action.payload.updates }
+                              : act,
+                          ),
+                        },
+                      }
+                    }),
+                  }
+                  : step,
+              ),
+            }
             : message,
         ),
       }
@@ -266,7 +311,7 @@ export function useMessages(id: string) {
 
   function addBotStep(
     messageId: string,
-    step: Omit<StepInput, "id" | "timestamp">,
+    step: Omit<StepInput, "id" | "messageId" | "timestamp">,
   ) {
     const stepId = generateStepId()
     const timestamp = generateTimestamp()
@@ -274,7 +319,7 @@ export function useMessages(id: string) {
       type: "ADD_BOT_STEP",
       payload: {
         messageId,
-        step: { id: stepId, timestamp, ...step } as StepInput,
+        step: { id: stepId, messageId, timestamp, ...step } as StepInput,
       },
     })
     return stepId
@@ -283,13 +328,12 @@ export function useMessages(id: string) {
   function updateBotStep(
     messageId: string,
     stepId: string,
-    partialStep: Partial<Omit<MessageStepInput, "id">>,
+    partialStep: Partial<Omit<StepInput, "id">> & { type: StepInput["type"] },
   ) {
-    console.log({ messageId, stepId, partialStep })
-    // dispatch({
-    //   type: "UPDATE_BOT_STEP",
-    //   payload: { messageId, stepId, updates: partialStep },
-    // })
+    dispatch({
+      type: "UPDATE_BOT_STEP",
+      payload: { messageId, stepId, updates: partialStep },
+    })
   }
 
   function addBotAction(

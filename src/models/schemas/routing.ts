@@ -32,17 +32,17 @@ const ConditionSchema = z.object({
 
 type Query =
   | {
-      conditions: Array<z.infer<typeof ConditionSchema>>
-      match: "all" | "any"
-      title: string
-    }
+    conditions: Array<z.infer<typeof ConditionSchema>>
+    match: "all" | "any"
+    title: string
+  }
   | {
-      boolean: "AND" | "OR"
-      subqueries: Query[]
-    }
+    boolean: "AND" | "OR"
+    subqueries: Query[]
+  }
   | null
 
-const QuerySchema: z.ZodType<Query> = z
+export const QuerySchema: z.ZodType<Query> = z
   .union([
     z
       .object({
@@ -69,7 +69,6 @@ const QuerySchema: z.ZodType<Query> = z
       .describe("A compound query object."),
   ])
   .describe("Zotero search query to be used in search and qa actions.")
-  .nullable()
 
 export const SearchActionSchema = z
   .object({
@@ -106,7 +105,7 @@ export const RouteSchema = z.object({
   message: z
     .string()
     .describe(
-      "Either a direct response to user request or a brief explanation of the prescribed actions.",
+      "Either a direct response to user request or a brief explanation of the prescribed actions. The actions will be executed and presented to the user following this message.",
     ),
   context: z
     .object({
@@ -121,173 +120,3 @@ export const RouteSchema = z.object({
 })
 
 export const routingFormat = zodResponseFormat(RouteSchema, "response")
-
-// export const routingFormat = {
-//   name: "response",
-//   strict: true,
-//   schema: {
-//     $schema: "http://json-schema.org/draft-07/schema#",
-//     additionalProperties: false,
-//     definitions: {
-//       condition: {
-//         type: "object",
-//         properties: {
-//           condition: {
-//             type: "string",
-//             enum: [
-//               "abstractNote",
-//               "anyField",
-//               "collection",
-//               "creator",
-//               "date",
-//               "dateAdded",
-//               "dateModified",
-//               "itemType",
-//               "note",
-//               "tag",
-//               "title",
-//               "type",
-//               "libraryID",
-//             ],
-//             description: "The field to apply the condition on.",
-//           },
-//           operator: {
-//             type: "string",
-//             enum: [
-//               "contains",
-//               "doesNotContain",
-//               "is",
-//               "isNot",
-//               "beginsWith",
-//               "isBefore",
-//               "isAfter",
-//             ],
-//             description: "The operator to apply in the condition.",
-//           },
-//           value: {
-//             type: "string",
-//             description: "The value to compare against.",
-//           },
-//         },
-//         required: ["condition", "operator", "value"],
-//         additionalProperties: false,
-//       },
-//       query: {
-//         type: ["object", "null"],
-//         anyOf: [
-//           {
-//             type: "object",
-//             properties: {
-//               conditions: {
-//                 type: "array",
-//                 items: {
-//                   $ref: "#/definitions/condition",
-//                 },
-//                 description: "List of search conditions to apply.",
-//               },
-//               match: {
-//                 type: "string",
-//                 enum: ["all", "any"],
-//                 description: "Determines if all or any conditions must be met.",
-//               },
-//               title: {
-//                 type: "string",
-//                 description: "The title of the group of conditions.",
-//               },
-//             },
-//             required: ["conditions", "match", "title"],
-//             additionalProperties: false,
-//           },
-//           {
-//             type: "object",
-//             properties: {
-//               boolean: {
-//                 type: "string",
-//                 enum: ["AND", "OR"],
-//                 description: "Logical operator to combine subqueries.",
-//               },
-//               subqueries: {
-//                 type: "array",
-//                 items: {
-//                   $ref: "#/definitions/query",
-//                 },
-//                 description: "List of subqueries or conditions to be combined.",
-//               },
-//             },
-//             required: ["boolean", "subqueries"],
-//             additionalProperties: false,
-//           },
-//         ],
-//       },
-//       action: {
-//         type: "object",
-//         anyOf: [
-//           {
-//             type: "object",
-//             properties: {
-//               widget: {
-//                 type: "string",
-//                 const: "search",
-//                 description:
-//                   "Action for retrieving a list of items from the Zotero library.",
-//               },
-//             },
-//             required: ["widget"],
-//             additionalProperties: false,
-//           },
-//           {
-//             type: "object",
-//             properties: {
-//               widget: {
-//                 type: "string",
-//                 const: "qa",
-//                 description:
-//                   "Action for answering a question based on the Zotero library.",
-//               },
-//               input: {
-//                 type: "object",
-//                 properties: {
-//                   question: {
-//                     type: "string",
-//                     description: "The question to be answered.",
-//                   },
-//                 },
-//                 required: ["question"],
-//                 additionalProperties: false,
-//               },
-//             },
-//             required: ["widget", "input"],
-//             additionalProperties: false,
-//           },
-//         ],
-//       },
-//     },
-//     type: "object",
-//     properties: {
-//       actions: {
-//         type: "array",
-//         items: {
-//           $ref: "#/definitions/action",
-//         },
-//         description:
-//           "Optional action to be taken by the assistant based on user intent.",
-//       },
-//       context: {
-//         type: "object",
-//         properties: {
-//           query: {
-//             $ref: "#/definitions/query",
-//           },
-//         },
-//         required: ["query"],
-//         additionalProperties: false,
-//       },
-//       message: {
-//         type: "string",
-//         description:
-//           "Either a direct response to user request or a brief explanation of the assistant action.",
-//       },
-//     },
-//     required: ["message", "context", "actions"],
-//   },
-// }

@@ -3,5 +3,4 @@ export interface Control {
   pauseScroll: () => void
   resumeScroll: () => void
   addFunctionCallOutput: (tool_call_id: string, output: string) => void
-  save: (stepOrWidget: any) => void
 }

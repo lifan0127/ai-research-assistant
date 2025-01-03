@@ -21,51 +21,59 @@ import { DEFAULT_BIB_STYLE } from "../../../../utils/constants"
 import { SearchActionResponse } from "../../../../models/utils/actions"
 import * as zot from "../../../../apis/zotero"
 import { isEmpty, cloneDeep, set } from "lodash"
-import { Control } from "../../../components/types"
+import { SearchActionControl, Query } from "../../../../typings/actions"
 import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
 import {
   SearchCondition,
   SearchParameters,
-  NestedQuery,
   nestedSearch,
 } from "../../../../apis/zotero/search"
 import { openAdvancedSearch } from "../../../../apis/zotero/controls/search"
 import { transformPreviewResult } from "../../../../apis/zotero/item"
 import { SearchStrategy } from "../../../components/visuals/SearchStrategy"
+import { StructuredMessage } from "../../../../typings/steps"
 
 const columnHelper =
   createColumnHelper<ReturnType<typeof transformPreviewResult>>()
 
 export interface Input {
   status: "COMPLETED" | "IN_PROGRESS"
+  id: string
+  messageId: string
+  stepId: string
 }
 export interface Context {
-  query: NestedQuery
+  query: Query
 }
 
 export interface Props {
   input: Input
-  context: { query: NestedQuery }
-  control: Control
+  context: StructuredMessage["context"]
+  control: SearchActionControl
 }
 
-export function Component({ input, context: { query }, control }: Props) {
-  const { scrollToEnd } = control
-  const [output, setOutput] =
-    useState<Awaited<ReturnType<typeof nestedSearch>>>()
+export function Component({
+  input: { messageId, stepId, id, output, ...input },
+  context: { query },
+  control,
+}: Props) {
+  console.log({ searchActionid: id, output })
+  const { scrollToEnd, updateBotAction } = control
+  // const [output, setOutput] =
+  //   useState<Awaited<ReturnType<typeof nestedSearch>>>()
   const ref = useRef<HTMLButtonElement>(null)
   const [showSearchOutput, setShowSearchOutput] = useState(false)
 
   useEffect(() => {
-    async function searchZotero(query?: NestedQuery) {
+    async function searchZotero(query: Query | undefined) {
       if (query) {
         const output = await nestedSearch(query)
-        setOutput(output)
+        updateBotAction(messageId, stepId, id, { output })
       }
       return null
     }
-    searchZotero(query)
+    searchZotero(query as Query)
   }, [query])
 
   // async function openInAdvancedSearchWindow(event: React.MouseEvent) {

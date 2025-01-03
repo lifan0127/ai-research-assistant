@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import React, { useState, useEffect, useRef, useContext } from "react"
 import {
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline,
@@ -8,7 +8,6 @@ import {
   HandThumbDownIcon as HandThumbDownIconSolid,
   StopIcon,
 } from "@heroicons/react/24/solid"
-import { findLast } from "lodash"
 import {
   Text,
   Message as OpenAIMessage,
@@ -16,30 +15,29 @@ import {
   ImageFile,
 } from "openai/resources/beta/threads/messages"
 import {
+  FunctionToolCall,
   ToolCall,
-  ToolCallDelta,
 } from "openai/resources/beta/threads/runs/steps"
 import { OpenAIError } from "openai/error"
 import { anonymizeError } from "../../../models/utils/error"
 import { StopRespondingButton } from "../../components/buttons/StopRespondingButton"
-import { WidgetProps, Widget } from "../../components/Widget"
+import { WidgetProps, Widget } from "./actions/Widget"
 import { MessageControl } from "./MessageControl"
 import { MessageStep } from "./steps/MessageStep"
-import { ToolStep, ToolStepInput } from "./steps/ToolStep"
-import { ErrorStep, ErrorStepInput } from "./steps/ErrorStep"
+import { ToolStep } from "./steps/ToolStep"
+import { ErrorStep } from "./steps/ErrorStep"
 import { Run } from "openai/resources/beta/threads/runs/runs"
 import { AssistantStreamEvent } from "openai/resources/beta/assistants"
 import { generateMessageId } from "../../../utils/identifiers"
 import { BotMessageInput, UserMessageInput } from "../../../typings/messages"
 import { UseMessages } from "../../../hooks/useMessages"
-import { MessageStepInput } from "../../../typings/steps"
-
-export type BotMessageStatus =
-  | "begin"
-  | "streaming"
-  | "done"
-  | "aborted"
-  | "error"
+import {
+  MessageStepInput,
+  ToolStepInput,
+  ErrorStepInput,
+  TextMessageContent,
+} from "../../../typings/steps"
+import { serializeError } from "serialize-error"
 
 type StepInput = MessageStepInput | ToolStepInput | ErrorStepInput
 
@@ -81,10 +79,11 @@ export function BotMessage({
   },
 }: BotMessageProps) {
   // const [vote, setVote] = useState(message.vote)
+  const stepsRef = useRef(steps)
+  const toolCallCountRef = useRef(0)
   const [error, setError] = useState(false)
   const [text, setText] = useState("")
   const [action, setAction] = useState<Omit<WidgetProps, "control">>()
-  const [status, setStatus] = useState<BotMessageStatus>("begin")
   const [messageId, setMessageId] = useState<string>()
   const [messageTimestamp, setMessageTimestamp] = useState<string>()
   const ref = useRef<HTMLDivElement>(null)
@@ -100,27 +99,21 @@ export function BotMessage({
   // useEffect(() => {
   //   if (message.content) {
   //     setText(message.content)
-  //     setStatus("done")
   //   }
   // }, [message.content])
 
   useEffect(() => {
-    if (stream?.on) {
-      let _steps: (MessageStepInput | ToolStepInput | ErrorStepInput)[] = []
-      let _toolCallCount = 0
+    stepsRef.current = steps
+  }, [steps])
 
+  useEffect(() => {
+    if (stream?.on) {
       const handleMessageCreated = (message: OpenAIMessage) => {
         addBotStep(id, {
           type: "MESSAGE_STEP",
-          messages: {
-            text: {
-              message: "",
-              actions: [],
-              context: {},
-            },
-          },
+          messages: [],
           status: "IN_PROGRESS",
-        } as Omit<MessageStepInput, "id" | "timestamp">)
+        } as Omit<MessageStepInput, "id" | "messageId" | "timestamp">)
         // _steps = [
         //   {
         //     id: message.id,
@@ -132,26 +125,29 @@ export function BotMessage({
         // ]
         // _toolCallCount = 0
         // setSteps(_steps)
-        setStatus("streaming")
       }
 
       const handleMessageDelta = (
         _delta: MessageDelta,
         snapshot: OpenAIMessage,
       ) => {
-        const currentStep = steps.at(-1) as MessageStepInput
-        console.log({ steps, currentStep })
+        const currentStep = stepsRef.current.at(-1) as MessageStepInput
         updateBotStep(id, currentStep.id, {
-          messages: [
-            {
-              type: "TEXT",
-              text: {
-                message: "test message",
-                actions: [],
-                context: {},
-              },
-            },
-          ],
+          messages: snapshot.content.map((message) => {
+            switch (message.type) {
+              case "text": {
+                return {
+                  type: "TEXT" as const,
+                  text: {
+                    raw: message.text,
+                  },
+                }
+              }
+              default: {
+                throw new Error("Not implemented")
+              }
+            }
+          }),
         })
         // if (_steps.length === 1) {
         //   _steps = [
@@ -181,59 +177,56 @@ export function BotMessage({
       }
 
       const handleMessageDone = () => {
-        const currentStep = steps.at(-1) as MessageStepInput
+        const currentStep = stepsRef.current.at(-1) as MessageStepInput
         updateBotStep(id, currentStep.id, {
+          messages: currentStep.messages.map((message) => {
+            switch (message.type) {
+              case "TEXT": {
+                const parsed = JSON.parse(message.text.raw!.value)
+                return {
+                  ...message,
+                  text: {
+                    message: parsed.message,
+                    context: parsed.context || {},
+                    actions: parsed.actions || [],
+                  },
+                }
+              }
+              default: {
+                return message
+              }
+            }
+          }),
           status: "COMPLETED",
-        })
-        // const lastStep = _steps.at(-1) as MessageStepInput | ToolStepInput
-        // _steps = [
-        //   ..._steps.slice(0, -1),
-        //   { ...lastStep, status: "COMPLETED" } as any,
-        // ]
-        // setSteps(_steps)
-        setStatus("done")
-        // console.log("message done")
-        // const { stream, messageSlice, ...messageContent } = message
-        // // editMessage({
-        // //   ...messageContent,
-        // //   status: "done",
-        // //   steps: _steps,
-        // // })
+        } as Partial<MessageStepInput> & Pick<MessageStepInput, "type">)
       }
 
-      const handleTextDone = async (content: Text) => {
-        // const { message, actions } = JSON.parse(content.value)
-        // setStatus("done")
-      }
+      const handleTextDone = async (content: Text) => {}
 
       const handleImageFileDone = (content: ImageFile) => {
         console.log("imageFileDone", content)
       }
 
       const handleToolCallDone = (toolCall: ToolCall) => {
-        _toolCallCount += 1
-        if (_toolCallCount > 5) {
+        toolCallCountRef.current += 1
+        if (toolCallCountRef.current > 5) {
           throw new Error("Too many tool calls")
         }
 
         switch (toolCall.type) {
           case "function": {
-            console.log("toolCallDone - create toolcall step")
-            console.log({ toolCall })
-            const { name: tool, arguments: toolArguments } = toolCall.function
-            _steps = [
-              ..._steps,
-              {
+            const { name, arguments: parameters } =
+              toolCall.function as FunctionToolCall["function"]
+            addBotStep(id, {
+              type: "TOOL_STEP",
+              tool: {
                 id: toolCall.id,
-                type: "TOOL_STEP",
-                timestamp: new Date().toISOString(),
-                tool,
-                toolArguments,
-                status: "COMPLETED",
+                name,
+                parameters: JSON.parse(parameters),
               },
-            ]
+              status: "IN_PROGRESS",
+            } as Omit<ToolStepInput, "id" | "timestamp">)
             // setSteps(_steps)
-            // setStatus("done")
             break
           }
           default: {
@@ -243,43 +236,36 @@ export function BotMessage({
       }
 
       const handleEvent = ({ event, data }: AssistantStreamEvent) => {
-        // switch (event) {
-        //   case "thread.run.failed": {
-        //     _steps = [
-        //       ..._steps,
-        //       {
-        //         id: generateMessageId(),
-        //         type: "ERROR_STEP",
-        //         timestamp: new Date().toISOString(),
-        //         error: new Error("Thread run failed"),
-        //         status: "COMPLETED",
-        //       },
-        //     ]
-        //     _toolCallCount = 0
-        //     setSteps(_steps)
-        //     setStatus("error")
-        //     console.log("thread.run.failed", { event, data })
-        //     break
-        //   }
-        //   case "thread.run.requires_action": {
-        //     const requiredAction = data.required_action as Run.RequiredAction
-        //     switch (requiredAction.type) {
-        //       case "submit_tool_outputs": {
-        //         const { tool_calls } = requiredAction.submit_tool_outputs
-        //         const functionCalls = tool_calls.filter(
-        //           ({ type }) => type === "function",
-        //         )
-        //         if (functionCalls.length > 0) {
-        //           console.log(
-        //             `set function calls count: ${functionCalls.length}`,
-        //           )
-        //           setFunctionCallsCount(functionCalls.length)
-        //         }
-        //         break
-        //       }
-        //     }
-        //   }
-        // }
+        switch (event) {
+          case "thread.run.failed": {
+            addBotStep(id, {
+              type: "ERROR_STEP",
+              error: {
+                message: "Thread run failed",
+                stack: serializeError(data),
+              },
+              status: "COMPLETED",
+            } as Omit<ErrorStepInput, "id" | "timestamp">)
+            toolCallCountRef.current = 0
+            console.log("thread.run.failed", { event, data })
+            break
+          }
+          case "thread.run.requires_action": {
+            const requiredAction = data.required_action as Run.RequiredAction
+            switch (requiredAction.type) {
+              case "submit_tool_outputs": {
+                const { tool_calls } = requiredAction.submit_tool_outputs
+                const functionCalls = tool_calls.filter(
+                  ({ type }) => type === "function",
+                )
+                if (functionCalls.length > 0) {
+                  setFunctionCallsCount(functionCalls.length)
+                }
+                break
+              }
+            }
+          }
+        }
       }
 
       const handleAbort = () => {
@@ -309,7 +295,7 @@ export function BotMessage({
       }
 
       const handleEnd = () => {
-        console.log("end")
+        console.log("stream end")
       }
 
       stream
@@ -330,11 +316,12 @@ export function BotMessage({
           .off("messageDelta", handleMessageDelta)
           .off("messageDone", handleMessageDone)
           .off("textDone", handleTextDone)
-          .off("run", handleEvent)
           .off("imageFileDone", handleImageFileDone)
           .off("toolCallDone", handleToolCallDone)
+          .off("event", handleEvent)
           .off("abort", handleAbort)
           .off("error", handleError)
+          .off("end", handleEnd)
       }
     }
   }, [stream])
@@ -415,20 +402,37 @@ export function BotMessage({
     stream?.abort()
   }
 
-  if (status === "begin") {
+  if (steps.length === 0) {
+    console.log({ id, stream, steps })
     return (
       <div className="p-[15px]">
         <div className="dot-flashing "></div>
       </div>
     )
   }
+
   const control = {
     scrollToEnd,
     pauseScroll,
     resumeScroll,
-    addFunctionCallOutput,
-    save: saveMessageStep,
   }
+
+  const messageStepControl = {
+    ...control,
+    save: saveMessageStep,
+    updateBotAction,
+  }
+
+  const toolStepControl = {
+    ...control,
+    updateBotStep,
+    addFunctionCallOutput,
+  }
+
+  const errorStepControl = {
+    ...control,
+  }
+
   return (
     <div className="relative self-start w-auto max-w-full sm:max-w-[85%] my-2 pb-2">
       {steps.map((step) => {
@@ -439,30 +443,29 @@ export function BotMessage({
                 ref={ref}
                 className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words"
               >
-                {/* <MessageStep input={step} control={control} /> */}
-                <pre>{JSON.stringify(step, null, 2)}</pre>
+                <MessageStep input={step} control={messageStepControl} />
                 <div className="flex pt-3">
-                  {status === "streaming" ? (
+                  {step.status === "IN_PROGRESS" ? (
                     <div className="flex-none flex space-x-2">
                       <StopRespondingButton
                         name="STOP_RESPONDING"
-                        status={status}
+                        status={step.status}
                         utils={{ stopResponding }}
                       />
                     </div>
                   ) : (
                     <>
-                      <div className="flex-none flex space-x-2">
+                      {/* <div className="flex-none flex space-x-2">
                         <MessageControl
                           {...message}
                           copyId={copyId}
                           setCopyId={setCopyId}
                           states={states}
                         />
-                      </div>
+                      </div> */}
                       <div className="flex-auto"></div>
                       <div className="flex-none flex flex-col">
-                        <div className="self-end">
+                        {/* <div className="self-end">
                           <button
                             type="button"
                             className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
@@ -499,7 +502,7 @@ export function BotMessage({
                               />
                             )}
                           </button>
-                        </div>
+                        </div> */}
                         {error ? (
                           <div className="text-xs text-red-500">
                             Failed to submit feedback
@@ -513,7 +516,7 @@ export function BotMessage({
             )
           }
           case "TOOL_STEP": {
-            return <ToolStep input={step} control={control} />
+            return <ToolStep input={step} control={toolStepControl} />
           }
           case "ERROR_STEP": {
             return (

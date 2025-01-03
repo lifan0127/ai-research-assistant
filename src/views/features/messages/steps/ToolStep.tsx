@@ -1,44 +1,44 @@
 import React, { useEffect, useRef, useState } from "react"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
 import stringify from "json-stringify-pretty-compact"
-import { StepInput } from "../../../../typings/steps"
-import { Control } from "../../../components/types"
+import { ToolStepInput, ToolStepControl } from "../../../../typings/steps"
 import { ZoteroIcon } from "../../../icons/zotero"
 import { runFunctionTool } from "../../../../models/tools"
 import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
 import { tools } from "../../../../models/tools"
 import { CSSTransition } from "react-transition-group"
 
-export interface ToolStepInput extends StepInput {
-  type: "TOOL_STEP"
-  tool: string
-  toolArguments: string
-}
-
 export interface ToolStepProps {
   input: ToolStepInput
-  control: Control
+  control: ToolStepControl
 }
 
 export function ToolStep({ input, control }: ToolStepProps) {
-  const { id, tool, toolArguments: toolArgumentsString } = input
-  const toolArguments = JSON.parse(toolArgumentsString)
-  const [output, setOutput] = useState<string>()
+  const {
+    id,
+    messageId,
+    status,
+    tool: { id: toolCallId, name, parameters, output },
+  } = input
   const [expanded, setExpanded] = useState(false)
   const ref = useRef(null)
   const toolInfo =
-    tools[tool as "search_tag" | "search_creator" | "search_item"]
-  const { scrollToEnd, pauseScroll, addFunctionCallOutput } = control
+    tools[name as "search_tag" | "search_creator" | "search_item"]
+  const { scrollToEnd, pauseScroll, addFunctionCallOutput, updateBotStep } =
+    control
 
   useEffect(() => {
     const runTool = async () => {
-      const output = (await runFunctionTool(tool, toolArguments)) || "No output"
-      addFunctionCallOutput(id, output)
-      setOutput(() => output)
+      const output = (await runFunctionTool(name, parameters)) || "No output"
+      updateBotStep(messageId, id, {
+        status: "COMPLETED",
+        tool: { name, parameters, output },
+      } as Omit<ToolStepInput, "id" | "messageId">)
+      addFunctionCallOutput(toolCallId, output)
       scrollToEnd()
     }
     runTool()
-  }, [input])
+  }, [name, parameters])
 
   const handleClick = (event: React.MouseEvent) => {
     event.preventDefault()
@@ -49,7 +49,7 @@ export function ToolStep({ input, control }: ToolStepProps) {
   return (
     <div style={{ width: "fit-content" }}>
       <span className="mr-2">
-        <ZoteroIcon pulsing={!output} />
+        <ZoteroIcon pulsing={status === "IN_PROGRESS"} />
       </span>
       <a
         href="#"
@@ -58,7 +58,7 @@ export function ToolStep({ input, control }: ToolStepProps) {
         style={{ textDecorationLine: "none" }}
       >
         Using tool <span className="font-bold">{toolInfo.title}</span>
-        {output ? (
+        {status === "COMPLETED" ? (
           expanded ? (
             <ChevronUpIcon className="h-6 w-6 align-middle" />
           ) : (
@@ -77,12 +77,12 @@ export function ToolStep({ input, control }: ToolStepProps) {
           <div>{toolInfo.description}</div>
           <div className="max-h-60 overflow-auto">
             <CodeHighlighter
-              code={stringify(toolArguments)}
+              code={stringify(parameters)}
               language="json"
               className="text-sm"
             />
           </div>
-          {output ? (
+          {status === "COMPLETED" ? (
             <>
               <div>The following response was used:</div>
               <div className="max-h-60 overflow-auto">
