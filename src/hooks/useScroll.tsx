@@ -40,14 +40,58 @@ class GlobalDebounceManager {
 
 const globalDebounceManager = new GlobalDebounceManager()
 
+type ScrollCallback = (scrollTop: number, container: HTMLDivElement) => void
+
+// Manage a single scroll event listener and allow multiple hooks to register their callbacks
+const listenerRegistry = new Map<
+  HTMLDivElement,
+  {
+    callbacks: Set<(scrollTop: number, container: HTMLDivElement) => void>
+    listener: () => void
+  }
+>()
+
+function useSharedScrollListener(
+  containerRef: React.RefObject<HTMLDivElement>,
+  callback: ScrollCallback,
+) {
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    if (!listenerRegistry.has(container)) {
+      // Create a new registry entry if none exists
+      const callbacks = new Set<ScrollCallback>()
+      const listener = () => {
+        const scrollTop = container.scrollTop
+        callbacks.forEach((cb) => cb(scrollTop, container))
+      }
+
+      listenerRegistry.set(container, { callbacks, listener })
+      container.addEventListener("scroll", listener)
+    }
+
+    // Register the callback
+    const { callbacks } = listenerRegistry.get(container)!
+    callbacks.add(callback)
+
+    return () => {
+      // Remove the callback
+      callbacks.delete(callback)
+
+      // Cleanup if no callbacks remain
+      if (callbacks.size === 0) {
+        const { listener } = listenerRegistry.get(container)!
+        container.removeEventListener("scroll", listener)
+        listenerRegistry.delete(container)
+      }
+    }
+  }, [containerRef, callback])
+}
+
 export function useScroll(containerRef: React.RefObject<HTMLDivElement>) {
   // Flag to ignore content-induced scrolls
   const scrollingByContentChange = useRef(false)
-
-  // Track scroll position
-  const [scrollPosition, setScrollPosition] = useState(
-    containerRef.current?.scrollTop || 0,
-  )
 
   const scrollToEnd = useCallback(() => {
     const debouncedScroll = globalDebounceManager.debounceGlobal(() => {
@@ -70,41 +114,72 @@ export function useScroll(containerRef: React.RefObject<HTMLDivElement>) {
   }, [])
 
   // Handle user scrolls and differentiate them from content-induced scrolls
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    // Handler to manage scroll events
-    const handleScroll = () => {
-      // Ignore scrolls caused by content change
-      if (scrollingByContentChange.current) {
-        scrollingByContentChange.current = false // Reset the flag
-        return
-      }
-
-      // Pause scrolling if the user scrolls manually
-      pauseScroll()
-
-      // Update scroll position state
-      setScrollPosition(container.scrollTop)
-
-      // Check if user has scrolled to the bottom to resume
-      const isAtScrollEnd =
-        container.scrollTop + container.clientHeight >= container.scrollHeight
-      if (isAtScrollEnd) {
-        resumeScroll()
-      }
+  useSharedScrollListener(containerRef, (scrollTop, container) => {
+    if (scrollingByContentChange.current) {
+      scrollingByContentChange.current = false
+      return
     }
 
-    // Attach the event listener for scroll
-    container.addEventListener("scroll", handleScroll)
+    // Pause scrolling if the user scrolls manually
+    pauseScroll()
 
-    // Cleanup the event listener on unmount
-    return () => {
-      container.removeEventListener("scroll", handleScroll)
-      globalDebounceManager.reset()
+    // Check if user has scrolled to the bottom to resume
+    const isAtScrollEnd =
+      container.scrollTop + container.clientHeight >= container.scrollHeight
+    if (isAtScrollEnd) {
+      resumeScroll()
     }
-  }, [containerRef, pauseScroll, resumeScroll])
+  })
 
-  return { scrollToEnd, pauseScroll, resumeScroll, scrollPosition }
+  // // Handle user scrolls and differentiate them from content-induced scrolls
+  // useEffect(() => {
+  //   const container = containerRef.current
+  //   if (!container) return
+
+  //   // Handler to manage scroll events
+  //   const handleScroll = () => {
+  //     // Ignore scrolls caused by content change
+  //     if (scrollingByContentChange.current) {
+  //       scrollingByContentChange.current = false // Reset the flag
+  //       return
+  //     }
+
+  //     // Pause scrolling if the user scrolls manually
+  //     pauseScroll()
+
+  //     // Check if user has scrolled to the bottom to resume
+  //     const isAtScrollEnd =
+  //       container.scrollTop + container.clientHeight >= container.scrollHeight
+  //     if (isAtScrollEnd) {
+  //       resumeScroll()
+  //     }
+  //   }
+
+  //   // Attach the event listener for scroll
+  //   container.addEventListener("scroll", handleScroll)
+
+  //   // Cleanup the event listener on unmount
+  //   return () => {
+  //     container.removeEventListener("scroll", handleScroll)
+  //     globalDebounceManager.reset()
+  //   }
+  // }, [containerRef, pauseScroll, resumeScroll])
+
+  return { scrollToEnd, pauseScroll, resumeScroll }
+}
+
+export function useScrollPosition(
+  containerRef: React.RefObject<HTMLDivElement>,
+) {
+  // Track scroll position
+  const [scrollPosition, setScrollPosition] = useState(
+    containerRef.current?.scrollTop || 0,
+  )
+
+  // Track scroll position
+  useSharedScrollListener(containerRef, (scrollTop) => {
+    setScrollPosition(scrollTop)
+  })
+
+  return scrollPosition
 }

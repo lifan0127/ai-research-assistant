@@ -7,7 +7,7 @@ import React, {
   useContext,
   useCallback,
 } from "react"
-import { useMessages } from "../hooks/useMessages"
+import { useMessages, ConversationInfo } from "../hooks/useMessages/hook"
 import { useDragging } from "../hooks/useDragging"
 import { TestMenu } from "./features/menus/TestMenu"
 import { ResearchAssistant } from "../models/assistant"
@@ -50,12 +50,14 @@ interface UserInput {
 }
 
 export function Container() {
+  const [currentConversation, setCurrentConversation] = useState(
+    JSON.parse(getPref("CURRENT_CONVERSATION") as string) as ConversationInfo,
+  )
   const zoom = useZoom()
   const { notification, hasNotification } = useNotification()
   const [userInput, setUserInput] = useState<UserInput>()
   const { isDragging, setIsDragging } = useDragging()
   const {
-    metadata,
     messages,
     getMesssage,
     addUserMessage,
@@ -67,7 +69,7 @@ export function Container() {
     updateBotAction,
     clearMessages,
     findLastUserMessage,
-  } = useMessages("DEFAULT_ID")
+  } = useMessages(currentConversation)
   const { submitFeedback, openFeedback, setOpenFeedback, submitCallback } =
     useFeedback()
   const [promptTemplate, setPromptTemplate] = useState<
@@ -88,12 +90,15 @@ export function Container() {
     addFunctionCallOutput,
     clearFunctionCalls,
   } = useFunctionCalls()
-  const { scrollToEnd, pauseScroll, resumeScroll, scrollPosition } =
-    useScroll(containerRef)
+  const { scrollToEnd, pauseScroll, resumeScroll } = useScroll(containerRef)
 
   useEffect(() => {
-    scrollToEnd()
+    // scrollToEnd()
   }, [])
+
+  useEffect(() => {
+    assistant.setThread(currentConversation.metadata.threadId)
+  }, [currentConversation])
 
   useEffect(() => {
     if (functionCallsFulfilled()) {
@@ -196,7 +201,7 @@ export function Container() {
         content,
         states,
       }
-      addUserMessage(newUserMessage)
+      await addUserMessage(newUserMessage)
     }
 
     const stream = assistant.streamMessage(content.newValue, states)
@@ -205,7 +210,7 @@ export function Container() {
       stream: stream,
       steps: [],
     })
-    scrollToEnd()
+    // scrollToEnd()
     // if (id) {
     //   const updatedUserMessage = {
     //     type: "USER_MESSAGE" as const,
@@ -302,7 +307,6 @@ export function Container() {
     findLastUserMessage,
   }
 
-  console.log({ messages })
   return (
     <div
       className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
@@ -311,7 +315,7 @@ export function Container() {
       onDragLeave={() => setIsDragging(isDragging - 1)}
     >
       {notification}
-      <Header scrollPosition={scrollPosition}>
+      <Header containerRef={containerRef}>
         {__env__ === "development" ? (
           <TestMenu
             setUserInput={setUserInput}
