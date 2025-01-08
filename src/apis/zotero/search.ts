@@ -118,7 +118,7 @@ async function recursiveSearch(query: Query): Promise<number[]> {
     )
   } else if (boolean === "OR") {
     // Union of results
-    return [...new Set(results.flat())]
+    return uniq(results.flat())
   } else {
     throw new Error(`Unsupported boolean operator: ${boolean}`)
   }

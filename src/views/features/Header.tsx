@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react"
 import { config, version } from "../../../package.json"
+import { useScrollPosition } from "../../hooks/useScroll"
 
 interface HeaderProps {
-  scrollPosition: number
+  containerRef: React.RefObject<HTMLDivElement>
   children?: React.ReactNode
 }
 
-export function Header({ scrollPosition, children }: HeaderProps) {
+export function Header({ containerRef, children }: HeaderProps) {
+  const scrollPosition = useScrollPosition(containerRef)
   // Calculate styles based on scroll position
   const isScrolled = scrollPosition > 50
 

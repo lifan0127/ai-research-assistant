@@ -1,26 +1,21 @@
-import { useState, useEffect, useMemo, useReducer } from "react"
 import {
-  MessageInput,
   UserMessageInput,
   BotMessageInput,
-} from "../typings/messages"
-import { MessageStepInput, StepInput } from "../typings/steps"
-import { generateMessageId, generateStepId, generateActionId } from "../utils/identifiers"
-import { generateTimestamp } from "../utils/datetime"
-import { Action } from "../typings/actions"
-import { useAssistant } from "./useAssistant"
-import { ResearchAssistant } from "../models/assistant"
+  MessageStore
+} from "../../typings/messages"
+import { MessageStepInput, StepInput } from "../../typings/steps"
+import { MessageInput } from "../../typings/messages"
+import { generateActionId } from "../../utils/identifiers"
+import { Action } from "../../typings/actions"
+import { ResearchAssistant } from "../../models/assistant"
 
-interface MessagesState {
-  id: string
-  metadata: {
-    title?: string
-    description?: string
+export function log(...messages: any) {
+  if (__env__ === "development") {
+    ztoolkit.log("[aria/message store]", ...messages)
   }
-  messages: MessageInput[]
 }
 
-type MessagesAction =
+export type MessagesAction =
   | {
     type: "ADD_USER_MESSAGE"
     payload: UserMessageInput
@@ -52,24 +47,27 @@ type MessagesAction =
       updates: Partial<Action>
     }
   }
-  | { type: "LOAD_MESSAGES"; payload: string }
+  | { type: "LOAD_MESSAGES"; payload: MessageInput[] }
   | { type: "CLEAR_MESSAGES" }
+  | { type: "CLEAR_PENDING" }
 
-function messagesReducer(
-  state: MessagesState,
+export function messagesReducer(
+  state: MessageStore,
   action: MessagesAction,
   assistant: ResearchAssistant,
-): MessagesState {
-  const messageStore = addon.data.popup.messageStore
+): MessageStore {
   switch (action.type) {
     case "ADD_USER_MESSAGE": {
+      log("Add user message", action.payload)
       return {
         ...state,
         messages: [...state.messages, action.payload],
+        pendingUpdate: state.pendingUpdate.includes(action.payload.id) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.id],
       }
     }
 
     case "ADD_BOT_MESSAGE": {
+      log("Add bot message", action.payload)
       return {
         ...state,
         messages: [
@@ -78,10 +76,12 @@ function messagesReducer(
             ? action.payload
             : { ...action.payload, steps: [] },
         ],
+        pendingUpdate: state.pendingUpdate.includes(action.payload.id) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.id],
       }
     }
 
     case "UPDATE_USER_MESSAGE": {
+      log("Update user message", action.payload)
       const messageIndex = state.messages.findIndex(
         (message) => message.id === action.payload.id,
       )
@@ -95,10 +95,12 @@ function messagesReducer(
       return {
         ...state,
         messages: updatedMessages,
+        pendingUpdate: state.pendingUpdate.includes(action.payload.id) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.id],
       }
     }
 
     case "ADD_BOT_STEP": {
+      log("Add bot step", action.payload)
       return {
         ...state,
         messages: state.messages.map((message) =>
@@ -107,6 +109,7 @@ function messagesReducer(
             ? { ...message, steps: [...message.steps, action.payload.step] }
             : message,
         ),
+        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
       }
     }
 
@@ -162,10 +165,12 @@ function messagesReducer(
             }
             : message,
         ),
+        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
       }
     }
 
     case "ADD_BOT_ACTIONS": {
+      log("Add bot actions", action.payload)
       return {
         ...state,
         messages: state.messages.map((message) =>
@@ -187,10 +192,12 @@ function messagesReducer(
             }
             : message,
         ),
+        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
       }
     }
 
     case "UPDATE_BOT_ACTION": {
+      log("Update bot action", action.payload)
       return {
         ...state,
         messages: state.messages.map((message) =>
@@ -225,14 +232,15 @@ function messagesReducer(
             }
             : message,
         ),
+        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
       }
     }
 
     case "LOAD_MESSAGES": {
-      const messages = messageStore.loadMessages(action.payload)
+      log(`Load ${action.payload.length} message(s) from persistence`)
       return {
         ...state,
-        messages: messages,
+        messages: action.payload,
       }
     }
 
@@ -240,6 +248,21 @@ function messagesReducer(
       return {
         ...state,
         messages: [],
+        pendingDelete: state.messages.map((message) => message.id),
+      }
+    }
+
+    case "CLEAR_PENDING": {
+      if (state.pendingUpdate.length > 0) {
+        log("Clear pending", state.pendingUpdate)
+      }
+      if (state.pendingDelete.length > 0) {
+        log("Clear pending delete", state.pendingDelete)
+      }
+      return {
+        ...state,
+        pendingUpdate: [],
+        pendingDelete: [],
       }
     }
 
@@ -248,157 +271,3 @@ function messagesReducer(
     }
   }
 }
-
-export function useMessages(id: string) {
-  const { assistant } = useAssistant()
-  const [state, dispatch] = useReducer(
-    (state: MessagesState, action: MessagesAction) =>
-      messagesReducer(state, action, assistant),
-    {
-      id,
-      metadata: {},
-      messages: [],
-    },
-  )
-
-  // Load messages from persistence on mount
-  useEffect(() => {
-    dispatch({ type: "LOAD_MESSAGES", payload: id })
-  }, [id])
-
-  function getMesssage(messageId: string, offset: number = 0) {
-    const messageIndex = state.messages.findIndex(
-      (message) => message.id === messageId,
-    )
-    return state.messages[messageIndex + offset]
-  }
-
-  function addUserMessage(
-    message: Omit<UserMessageInput, "type" | "id" | "timestamp">,
-  ) {
-    const messageId = generateMessageId()
-    const timestamp = generateTimestamp()
-    dispatch({
-      type: "ADD_USER_MESSAGE",
-      payload: { ...message, type: "USER_MESSAGE", id: messageId, timestamp },
-    })
-    return messageId
-  }
-
-  function addBotMessage(
-    message: Omit<BotMessageInput, "type" | "id" | "timestamp">,
-  ) {
-    const messageId = generateMessageId()
-    const timestamp = generateTimestamp()
-    dispatch({
-      type: "ADD_BOT_MESSAGE",
-      payload: { ...message, type: "BOT_MESSAGE", id: messageId, timestamp },
-    })
-    return messageId
-  }
-
-  function updateUserMessage(
-    messageId: string,
-    partialMessage: Partial<
-      Omit<UserMessageInput, "type" | "id" | "timestamp">
-    >,
-  ) {
-    dispatch({
-      type: "UPDATE_USER_MESSAGE",
-      payload: { id: messageId, updates: partialMessage },
-    })
-  }
-
-  function addBotStep(
-    messageId: string,
-    step: Omit<StepInput, "id" | "messageId" | "timestamp">,
-  ) {
-    const stepId = generateStepId()
-    const timestamp = generateTimestamp()
-    dispatch({
-      type: "ADD_BOT_STEP",
-      payload: {
-        messageId,
-        step: { id: stepId, messageId, timestamp, ...step } as StepInput,
-      },
-    })
-    return stepId
-  }
-
-  function updateBotStep(
-    messageId: string,
-    stepId: string,
-    partialStep: Partial<Omit<StepInput, "id">> & { type: StepInput["type"] },
-  ) {
-    dispatch({
-      type: "UPDATE_BOT_STEP",
-      payload: { messageId, stepId, updates: partialStep },
-    })
-  }
-
-  function addBotAction(
-    messageId: string,
-    stepId: string,
-    action: Omit<Action, "id" | "timestamp">,
-  ) {
-    const actionId = generateStepId()
-    const timestamp = generateTimestamp()
-    dispatch({
-      type: "ADD_BOT_ACTION",
-      payload: {
-        messageId,
-        stepId,
-        action: { id: actionId, timestamp, ...action } as Action,
-      },
-    })
-    return actionId
-  }
-
-  function updateBotAction(
-    messageId: string,
-    stepId: string,
-    actionId: string,
-    updates: Partial<Action>,
-  ) {
-    dispatch({
-      type: "UPDATE_BOT_ACTION",
-      payload: { messageId, stepId, actionId, updates },
-    })
-  }
-
-  function clearMessages() {
-    dispatch({ type: "CLEAR_MESSAGES" })
-  }
-
-  function findLastUserMessage(id: string) {
-    const messageIndex = state.messages.findIndex(
-      (message) => message.id === id,
-    )
-    if (messageIndex === -1) {
-      return null
-    }
-    for (let i = messageIndex - 1; i >= 0; i--) {
-      if (state.messages[i].type === "USER_MESSAGE") {
-        return state.messages[i] as UserMessageInput
-      }
-    }
-    return null
-  }
-
-  return {
-    metadata: state.metadata,
-    messages: state.messages,
-    getMesssage,
-    addUserMessage,
-    addBotMessage,
-    updateUserMessage,
-    addBotStep,
-    updateBotStep,
-    addBotAction,
-    updateBotAction,
-    clearMessages,
-    findLastUserMessage,
-  }
-}
-
-export type UseMessages = ReturnType<typeof useMessages>

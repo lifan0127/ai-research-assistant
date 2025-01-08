@@ -2,7 +2,7 @@ import { z } from "zod"
 import { RouteSchema } from "../models/schemas/routing"
 import { Text } from "openai/resources/beta/threads/messages"
 import { serializeError } from "serialize-error"
-import { useMessages } from "../hooks/useMessages"
+import { useMessages } from "../hooks/useMessages/hook"
 
 type StepStatus = "IN_PROGRESS" | "COMPLETED"
 

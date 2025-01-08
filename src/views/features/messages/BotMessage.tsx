@@ -30,7 +30,7 @@ import { Run } from "openai/resources/beta/threads/runs/runs"
 import { AssistantStreamEvent } from "openai/resources/beta/assistants"
 import { generateMessageId } from "../../../utils/identifiers"
 import { BotMessageInput, UserMessageInput } from "../../../typings/messages"
-import { UseMessages } from "../../../hooks/useMessages"
+import { UseMessages } from "../../../hooks/useMessages/hook"
 import {
   MessageStepInput,
   ToolStepInput,
@@ -108,8 +108,8 @@ export function BotMessage({
 
   useEffect(() => {
     if (stream?.on) {
-      const handleMessageCreated = (message: OpenAIMessage) => {
-        addBotStep(id, {
+      const handleMessageCreated = async (message: OpenAIMessage) => {
+        await addBotStep(id, {
           type: "MESSAGE_STEP",
           messages: [],
           status: "IN_PROGRESS",
@@ -127,12 +127,12 @@ export function BotMessage({
         // setSteps(_steps)
       }
 
-      const handleMessageDelta = (
+      const handleMessageDelta = async (
         _delta: MessageDelta,
         snapshot: OpenAIMessage,
       ) => {
         const currentStep = stepsRef.current.at(-1) as MessageStepInput
-        updateBotStep(id, currentStep.id, {
+        await updateBotStep(id, currentStep.id, {
           messages: snapshot.content.map((message) => {
             switch (message.type) {
               case "text": {
@@ -176,9 +176,9 @@ export function BotMessage({
         // setSteps(_steps)
       }
 
-      const handleMessageDone = () => {
+      const handleMessageDone = async () => {
         const currentStep = stepsRef.current.at(-1) as MessageStepInput
-        updateBotStep(id, currentStep.id, {
+        await updateBotStep(id, currentStep.id, {
           messages: currentStep.messages.map((message) => {
             switch (message.type) {
               case "TEXT": {
@@ -207,7 +207,7 @@ export function BotMessage({
         console.log("imageFileDone", content)
       }
 
-      const handleToolCallDone = (toolCall: ToolCall) => {
+      const handleToolCallDone = async (toolCall: ToolCall) => {
         toolCallCountRef.current += 1
         if (toolCallCountRef.current > 5) {
           throw new Error("Too many tool calls")
@@ -217,7 +217,7 @@ export function BotMessage({
           case "function": {
             const { name, arguments: parameters } =
               toolCall.function as FunctionToolCall["function"]
-            addBotStep(id, {
+            await addBotStep(id, {
               type: "TOOL_STEP",
               tool: {
                 id: toolCall.id,
@@ -235,10 +235,10 @@ export function BotMessage({
         }
       }
 
-      const handleEvent = ({ event, data }: AssistantStreamEvent) => {
+      const handleEvent = async ({ event, data }: AssistantStreamEvent) => {
         switch (event) {
           case "thread.run.failed": {
-            addBotStep(id, {
+            await addBotStep(id, {
               type: "ERROR_STEP",
               error: {
                 message: "Thread run failed",
@@ -403,7 +403,6 @@ export function BotMessage({
   }
 
   if (steps.length === 0) {
-    console.log({ id, stream, steps })
     return (
       <div className="p-[15px]">
         <div className="dot-flashing "></div>

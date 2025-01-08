@@ -18,6 +18,12 @@ import { RunStep } from "openai/resources/beta/threads/runs/steps"
 import { FilePurpose } from "openai/resources"
 import { Uploadable, FileLike, BlobLike } from "openai/uploads"
 
+export function log(...messages: any) {
+  if (__env__ === "development") {
+    ztoolkit.log("[aria/assistant]", ...messages)
+  }
+}
+
 interface AssistantIds {
   routing: string
   file: string
@@ -37,7 +43,7 @@ interface ResearchAssistantFields {
 export class ResearchAssistant {
   assistants: AssistantIds
   models: ModelSet
-  currentThread: string
+  currentThread?: string
   currentRun?: string
   openai: OpenAI
   streams: AssistantStream[] = []
@@ -45,7 +51,6 @@ export class ResearchAssistant {
   constructor({ assistants, models }: ResearchAssistantFields) {
     this.assistants = assistants
     this.models = models
-    this.currentThread = getPref("CURRENT_THREAD") as string
     this.openai = new OpenAI({
       apiKey: getPref("OPENAI_API_KEY") as string,
     })
@@ -56,6 +61,7 @@ export class ResearchAssistant {
   }
 
   streamMessage(content: string, states: States) {
+    log("Streaming message")
     this.openai.beta.threads.messages.create(this.currentThread, {
       role: "user",
       content,
@@ -74,6 +80,7 @@ export class ResearchAssistant {
   }
 
   streamTools(toolOutputs: RunSubmitToolOutputsParams.ToolOutput[]) {
+    log("Streaming tool response")
     const stream = this.openai.beta.threads.runs.submitToolOutputsStream(
       this.currentThread,
       this.currentRun as string,
@@ -84,6 +91,7 @@ export class ResearchAssistant {
   }
 
   streamQa(question: string) {
+    log("Streaming QA output")
     this.openai.beta.threads.messages.create(this.currentThread, {
       role: "user",
       content: question,

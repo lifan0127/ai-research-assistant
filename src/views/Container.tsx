@@ -44,6 +44,12 @@ import { useFunctionCalls } from "../hooks/useFunctionCalls"
 import { nestedSearch } from "../apis/zotero/search"
 import { SearchStrategy } from "./components/visuals/SearchStrategy"
 
+export function log(...messages: any) {
+  if (__env__ === "development") {
+    ztoolkit.log("[aria/ui container]", ...messages)
+  }
+}
+
 interface UserInput {
   content: MentionValue
   states: States
@@ -102,7 +108,6 @@ export function Container() {
 
   useEffect(() => {
     if (functionCallsFulfilled()) {
-      console.log("tool stream begin")
       const stream = assistant.streamTools(functionCalls)
       clearFunctionCalls()
       addBotMessage({

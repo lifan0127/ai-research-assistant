@@ -161,7 +161,6 @@ export function MessageStep({
           case "TEXT": {
             const { raw, ...structuredMessage } = item.text
             if (structuredMessage.message) {
-              console.log("render structured message", structuredMessage)
               return renderTextMessage(messageId, id, structuredMessage)
             }
             if (raw) {

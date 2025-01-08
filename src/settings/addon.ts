@@ -11,9 +11,11 @@ import {
   KeyboardManager,
   ProgressWindowHelper,
   ExtraFieldTool,
+  MessageHelper,
 } from "zotero-plugin-toolkit"
 import { ReactRootManager } from "../views/root"
 import { MessageStore, FileMessageStore } from "../utils/messageStore"
+import { handlers } from "../workers/dbWorkers"
 
 export class Addon {
   public data: {
@@ -32,6 +34,10 @@ export class Addon {
       window: Window
       messageStore: MessageStore
     }
+    db: {
+      worker?: Worker,
+      server?: MessageHelper<typeof handlers>
+    }
   }
   // Lifecycle hooks
   public hooks: typeof hooks
@@ -48,6 +54,7 @@ export class Addon {
         window: Zotero.getMainWindow(),
         messageStore: new FileMessageStore(),
       },
+      db: {},
     }
     this.hooks = hooks
     this.api = {}

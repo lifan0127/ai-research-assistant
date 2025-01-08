@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { SearchActionSchema, QAActionSchema } from "../models/schemas/routing"
 import { QuerySchema } from "../models/schemas/routing"
-import { useMessages } from "../hooks/useMessages"
+import { useMessages } from "../hooks/useMessages/hook"
 
 const BaseAction = {
   id: z.string(),

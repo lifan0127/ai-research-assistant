@@ -3,6 +3,7 @@ import { StepInput } from "./steps"
 
 interface BaseMessageInput {
   id: string
+  conversationId: string
   timestamp: string
 }
 
@@ -19,3 +20,16 @@ export interface BotMessageInput extends BaseMessageInput {
 }
 
 export type MessageInput = UserMessageInput | BotMessageInput
+
+export interface MessageStore {
+  id: string
+  title?: string
+  description?: string
+  metadata: {
+    vendor: "openai"
+    threadId: string
+  }
+  messages: MessageInput[]
+  pendingUpdate: string[]
+  pendingDelete: string[]
+}

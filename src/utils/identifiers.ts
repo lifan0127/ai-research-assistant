@@ -1,5 +1,6 @@
-const MESSAGE_ID_LENGTH = 16
-const STEP_ID_LENGTH = 16
+const CONVERSATION_ID_LENGTH = 24
+const MESSAGE_ID_LENGTH = 24
+const STEP_ID_LENGTH = 24
 
 export function generateMessageId() {
   return "message_" + Zotero.Utilities.randomString(MESSAGE_ID_LENGTH)
