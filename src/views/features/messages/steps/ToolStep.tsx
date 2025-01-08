@@ -35,9 +35,11 @@ export function ToolStep({ input, control }: ToolStepProps) {
         tool: { name, parameters, output },
       } as Omit<ToolStepInput, "id" | "messageId">)
       addFunctionCallOutput(toolCallId, output)
-      scrollToEnd()
+      // scrollToEnd()
     }
-    runTool()
+    if (!output) {
+      runTool()
+    }
   }, [name, parameters])
 
   const handleClick = (event: React.MouseEvent) => {

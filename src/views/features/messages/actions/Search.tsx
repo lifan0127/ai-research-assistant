@@ -56,10 +56,8 @@ export interface Props {
 export function Component({
   input: { messageId, stepId, id, output, ...input },
   context: { query },
-  control,
+  control: { scrollToEnd, updateBotAction },
 }: Props) {
-  console.log({ searchActionid: id, output })
-  const { scrollToEnd, updateBotAction } = control
   // const [output, setOutput] =
   //   useState<Awaited<ReturnType<typeof nestedSearch>>>()
   const ref = useRef<HTMLButtonElement>(null)
@@ -73,7 +71,9 @@ export function Component({
       }
       return null
     }
-    searchZotero(query as Query)
+    if (!output) {
+      searchZotero(query as Query)
+    }
   }, [query])
 
   // async function openInAdvancedSearchWindow(event: React.MouseEvent) {
