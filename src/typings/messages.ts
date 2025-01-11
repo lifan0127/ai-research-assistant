@@ -1,25 +1,25 @@
 import { AssistantStream } from "openai/lib/AssistantStream"
-import { StepInput } from "./steps"
+import { StepContent } from "./steps"
 
-interface BaseMessageInput {
+interface BaseMessageContent {
   id: string
   conversationId: string
   timestamp: string
 }
 
-export interface UserMessageInput extends BaseMessageInput {
+export interface UserMessageContent extends BaseMessageContent {
   type: "USER_MESSAGE"
   content: any
   states: any
 }
 
-export interface BotMessageInput extends BaseMessageInput {
+export interface BotMessageContent extends BaseMessageContent {
   type: "BOT_MESSAGE"
   stream?: AssistantStream
-  steps: StepInput[]
+  steps: StepContent[]
 }
 
-export type MessageInput = UserMessageInput | BotMessageInput
+export type MessageContent = UserMessageContent | BotMessageContent
 
 export interface MessageStore {
   id: string
@@ -29,7 +29,7 @@ export interface MessageStore {
     vendor: "openai"
     threadId: string
   }
-  messages: MessageInput[]
+  messages: MessageContent[]
   pendingUpdate: string[]
   pendingDelete: string[]
 }

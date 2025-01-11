@@ -17,6 +17,7 @@ import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/r
 import { RunStep } from "openai/resources/beta/threads/runs/steps"
 import { FilePurpose } from "openai/resources"
 import { Uploadable, FileLike, BlobLike } from "openai/uploads"
+import { Text } from "openai/resources/beta/threads/messages"
 
 export function log(...messages: any) {
   if (__env__ === "development") {
@@ -45,6 +46,7 @@ export class ResearchAssistant {
   models: ModelSet
   currentThread?: string
   currentRun?: string
+  currentVectorStore?: string
   openai: OpenAI
   streams: AssistantStream[] = []
 
@@ -58,6 +60,10 @@ export class ResearchAssistant {
 
   setThread(threadId: string) {
     this.currentThread = threadId
+  }
+
+  setVectorStore(vectorStoreId: string) {
+    this.currentVectorStore = vectorStoreId
   }
 
   streamMessage(content: string, states: States) {
@@ -90,7 +96,7 @@ export class ResearchAssistant {
     return stream
   }
 
-  streamQa(question: string) {
+  streamQA(question: string) {
     log("Streaming QA output")
     this.openai.beta.threads.messages.create(this.currentThread, {
       role: "user",
@@ -103,6 +109,11 @@ export class ResearchAssistant {
     })
     this.streams.push(stream)
     return stream
+  }
+
+  async getFileMetadata(fileId: string) {
+    const metadata = await this.openai.files.retrieve(fileId)
+    return metadata
   }
 
   async uploadFile(
@@ -119,6 +130,7 @@ export class ResearchAssistant {
     const file = new File([fileContent], attachment.attachmentFilename, {
       type: attachment.attachmentContentType,
     })
+
     const response = await this.openai.files.create({ file, purpose })
     const newFileId = `${purpose}/${response.id}`
     ztoolkit.ExtraField.setExtraField(item, "aria.file.id", newFileId)
@@ -148,6 +160,61 @@ export class ResearchAssistant {
 
   abortAll() {
     this.streams.forEach((stream) => stream.abort())
+  }
+
+  async parseAnnotatedText(
+    { value = "", annotations = [] }: Partial<Text>
+  ) {
+    const citationMap = new Map()
+    let citationCounter = 1
+    let lastIndex = 0
+    const parts = []
+    const citations = []
+
+    // Filter and sort annotations by start_index
+    const fileCitations = annotations
+      .filter((annotation) => annotation.type === "file_citation")
+      .sort((a, b) => a.start_index - b.start_index)
+
+    for (const annotation of fileCitations) {
+      const { start_index, end_index, file_citation } = annotation
+      const beforeText = value.slice(lastIndex, start_index)
+      const citationText = value.slice(start_index, end_index)
+      const fileId = file_citation.file_id
+
+      // Add preceding text
+      if (beforeText) {
+        parts.push(beforeText)
+      }
+
+      // Check if the fileId is already in the map
+      let citationNumber
+      if (citationMap.has(fileId)) {
+        citationNumber = citationMap.get(fileId)
+      } else {
+        citationNumber = citationCounter++
+        citationMap.set(fileId, citationNumber)
+
+        // Fetch metadata
+        const metadata = await this.getFileMetadata(fileId)
+        citations.push({ number: citationNumber, ...metadata })
+      }
+
+      // Add citation reference
+      parts.push(`${citationText} [${citationNumber}]`)
+
+      lastIndex = end_index
+    }
+
+    // Add any remaining text after the last annotation
+    if (lastIndex < value.length) {
+      parts.push(value.slice(lastIndex))
+    }
+
+    // Combine parts into the final Markdown text
+    const text = parts.join("")
+
+    return { text, citations }
   }
 
   async resetMemory() {

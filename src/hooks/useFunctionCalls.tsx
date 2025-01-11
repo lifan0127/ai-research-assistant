@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs"
+import { tool as log } from "../utils/loggers"
 
 export function useFunctionCalls() {
   const [functionCalls, setFunctionCalls] = useState<
@@ -7,35 +8,37 @@ export function useFunctionCalls() {
   >([])
   const [functionCallsCount, setFunctionCallsCount] = useState<number>(0)
 
-  function addFunctionCallOutput(tool_call_id: string, output: string) {
-    console.log("add function call output from step")
-    console.log({ functionCalls, tool_call_id, output })
-    const functionCall = functionCalls.find(
-      (fc) => fc.tool_call_id === tool_call_id,
-    )
-    if (functionCall) {
-      functionCall.output = output
-      functionCalls.map(() => [...functionCalls])
-    } else {
-      setFunctionCalls((functionCalls) => [
-        ...functionCalls,
-        { tool_call_id, output },
-      ])
-    }
-  }
+  const addFunctionCallOutput = useCallback(
+    (tool_call_id: string, output: string) => {
+      log("Add function call output", { functionCalls, tool_call_id, output })
+      const functionCall = functionCalls.find(
+        (fc) => fc.tool_call_id === tool_call_id,
+      )
+      if (functionCall) {
+        functionCall.output = output
+        functionCalls.map(() => [...functionCalls])
+      } else {
+        setFunctionCalls((functionCalls) => [
+          ...functionCalls,
+          { tool_call_id, output },
+        ])
+      }
+    },
+    [functionCalls, setFunctionCalls],
+  )
 
-  function clearFunctionCalls() {
+  const clearFunctionCalls = useCallback(() => {
     setFunctionCalls([])
     setFunctionCallsCount(0)
-  }
+  }, [setFunctionCalls, setFunctionCallsCount])
 
-  function functionCallsFulfilled() {
+  const functionCallsFulfilled = useCallback(() => {
     return (
       functionCalls.length > 0 &&
       functionCalls.length === functionCallsCount &&
       functionCalls.every((functionCall) => functionCall.output)
     )
-  }
+  }, [functionCalls, functionCallsCount])
 
   return {
     functionCalls,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import * as Markdown from "./Markdown"
 import { marked } from "marked"
 import { DocumentIcon } from "@heroicons/react/24/outline"
@@ -7,9 +7,9 @@ import {
   MessageDelta,
   MessageContent,
 } from "openai/resources/beta/threads/messages"
-import { MessageStep, MessageStepInput } from "../steps/MessageStep"
-import { ToolStep, ToolStepInput } from "../steps/ToolStep"
-import { ErrorStep, ErrorStepInput } from "../steps/ErrorStep"
+import { MessageStep, MessageStepContent } from "../steps/MessageStep"
+import { ToolStep, ToolStepContent } from "../steps/ToolStep"
+import { ErrorStep, ErrorStepContent } from "../steps/ErrorStep"
 import { createCitations } from "../../../../apis/zotero/citation"
 import { ItemButton } from "../../../components/buttons/ItemButton"
 import { createCollection } from "../../../../apis/zotero/collection"
@@ -20,62 +20,78 @@ import {
   copyButtonDef,
   noteButtonDef,
 } from "../../../components/buttons/types"
-import { Control } from "../../../components/types"
-import { NestedQuery } from "../../../../apis/zotero/search"
+import { QAActionControl, Query } from "../../../../typings/actions"
+import { NestedQuery, nestedSearch } from "../../../../apis/zotero/search"
 import stringify from "json-stringify-pretty-compact"
-import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
+import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import { useAssistant } from "../../../../hooks/useAssistant"
 import { BotMessageStatus } from "../../../../typings/legacyMessages"
+import { AnnotatedText } from "../../../components/annotations/AnnotatedText"
 
-type StepInput = MessageStepInput | ToolStepInput | ErrorStepInput
+type StepContent = MessageStepContent | ToolStepContent | ErrorStepContent
 
-export interface Input {
-  question: string
-  answer?: any
+export interface Content {
   status: "COMPLETED" | "IN_PROGRESS"
+  id: string
+  messageId: string
+  stepId: string
+  question: string
+  fulltext: boolean
+  output?: any
 }
 
 export interface Props {
-  input: Input
+  content: Content
   context: { query: NestedQuery }
-  control: Control
+  control: QAActionControl
 }
 
 export function Component({
-  input: { question, answer },
+  content: { messageId, stepId, id, question, fulltext, output },
   context: { query },
-  control,
+  control: { scrollToEnd, updateBotAction },
 }: Props) {
-  const { save, scrollToEnd } = control
   const [showDevOutput, setShowDevOutput] = useState(false)
   const { assistant } = useAssistant()
-  const [status, setStatus] = useState<BotMessageStatus>("begin")
-  const [message, setMessage] = useState<MessageContent[]>(answer || [])
+  const [fulltextReady, setFullTextReady] = useState(false)
+  const [searchResults, setSearchResults] =
+    useState<Awaited<ReturnType<typeof nestedSearch>>>()
+  const [useFulltext, setUseFulltext] = useState(fulltext)
 
   useEffect(() => {
-    if (answer) {
+    async function searchZotero(query: Query | undefined) {
+      if (query) {
+        setSearchResults(await nestedSearch(query, "qa"))
+      }
+    }
+    if (!output) {
+      searchZotero(query as Query)
+    }
+  }, [query])
+
+  useEffect(() => {
+    if (output) {
       return
     }
-    let _messageContent: any[] = []
-    const stream = assistant.streamQa(question)
+
+    const stream = assistant.streamQA(question)
 
     const handleMessageCreated = (message: OpenAIMessage) => {
-      setMessage([])
-      setStatus("streaming")
+      // setStatus("streaming")
     }
 
     const handleMessageDelta = (
       _delta: MessageDelta,
       snapshot: OpenAIMessage,
     ) => {
+      updateBotAction(messageId, stepId, id, { output: snapshot.content })
       // console.log(stringify(snapshot.content))
-      _messageContent = snapshot.content
-      setMessage(_messageContent)
+      // _messageContent = snapshot.content
+      // setMessage(_messageContent)
     }
 
     const handleMessageDone = () => {
-      save(_messageContent)
-      setStatus("done")
+      // setStatus("done")
     }
 
     stream
@@ -89,7 +105,15 @@ export function Component({
         .off("messageDelta", handleMessageDelta)
         .off("messageDone", handleMessageDone)
     }
-  }, [question, answer])
+  }, [question, output, useFulltext])
+
+  if (!output) {
+    return (
+      <div className="p-[15px]">
+        <div className="dot-flashing "></div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -111,37 +135,23 @@ export function Component({
           ) : null}
         </div>
       ) : null}
-      <div>QA Widget: {question}</div>
-      <div>Status: {status}</div>
-      <div>Message:</div>
       <CodeHighlighter
-        code={stringify(message)}
+        code={stringify(output)}
         language="json"
         className="text-sm"
       />
-    </div>
-  )
-  return (
-    <div>
-      <Markdown.Component input={{ content: answer }} control={control} />
-      {sources.length > 0 ? (
-        <div className="text-lg">
-          <h4 className="p-0 m-0 !mt-4 mb-1 text-tomato">References</h4>
-          <ol className="list-none p-0 m-0">
-            {sources.map(({ item, attachment, bib }) => {
-              return (
-                <li key={item.id} className="mb-2 last:mb-0">
-                  {bib}
-                  <ItemButton item={item} mode="item" />
-                  {attachment ? (
-                    <ItemButton item={attachment} mode="attachment" />
-                  ) : null}
-                </li>
-              )
-            })}
-          </ol>
-        </div>
-      ) : null}
+      <div>
+        {output.map((item, index) => {
+          switch (item.type) {
+            case "text": {
+              return <AnnotatedText key={index} textContent={item.text} />
+            }
+            default: {
+              new Error(`Unsupported message type: ${item.type}`)
+            }
+          }
+        })}
+      </div>
     </div>
   )
 }

@@ -11,7 +11,7 @@ import Highlighter from "react-highlight-words"
 import { isEqual } from "lodash"
 import * as zot from "../../../apis/zotero"
 import { States, selectionConfig } from "../../../models/utils/states"
-import { useStates } from "../../../hooks/useStates"
+import { useStates } from "../../hooks/useStates"
 import {
   escapeTitle,
   StateName,

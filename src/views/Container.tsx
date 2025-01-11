@@ -7,7 +7,7 @@ import React, {
   useContext,
   useCallback,
 } from "react"
-import { useMessages, ConversationInfo } from "../hooks/useMessages/hook"
+import { useMessages, ConversationInfo } from "../hooks/useMessages"
 import { useDragging } from "../hooks/useDragging"
 import { TestMenu } from "./features/menus/TestMenu"
 import { ResearchAssistant } from "../models/assistant"
@@ -42,7 +42,7 @@ import { useScroll } from "../hooks/useScroll"
 import { AssistantStream } from "openai/lib/AssistantStream"
 import { useFunctionCalls } from "../hooks/useFunctionCalls"
 import { nestedSearch } from "../apis/zotero/search"
-import { SearchStrategy } from "./components/visuals/SearchStrategy"
+import { SearchStrategy } from "./components/search/SearchStrategy"
 
 export function log(...messages: any) {
   if (__env__ === "development") {
@@ -65,13 +65,12 @@ export function Container() {
   const { isDragging, setIsDragging } = useDragging()
   const {
     messages,
-    getMesssage,
     addUserMessage,
     addBotMessage,
     updateUserMessage,
     addBotStep,
     updateBotStep,
-    addBotAction,
+    completeBotMessageStep,
     updateBotAction,
     clearMessages,
     findLastUserMessage,
@@ -111,6 +110,7 @@ export function Container() {
       const stream = assistant.streamTools(functionCalls)
       clearFunctionCalls()
       addBotMessage({
+        conversationId: currentConversation.id,
         stream: stream,
         steps: [],
       })
@@ -187,130 +187,150 @@ export function Container() {
   //   }
   // }, [userInput])
 
-  async function handleSubmit(
-    input: { content: MentionValue; states: States },
-    id?: string,
-  ) {
-    const { content, states } = input
-    if (id) {
-      const updatedUserMessage = {
-        type: "USER_MESSAGE" as const,
-        id,
-        content,
-        states,
+  const handleSubmit = useCallback(
+    async (input: { content: MentionValue; states: States }, id?: string) => {
+      const { content, states } = input
+      if (id) {
+        const updatedUserMessage = {
+          type: "USER_MESSAGE" as const,
+          id,
+          content,
+          states,
+        }
+        // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
+        setUserInput({ content, states })
+      } else {
+        const newUserMessage = {
+          conversationId: currentConversation.id,
+          content,
+          states,
+        }
+        await addUserMessage(newUserMessage)
       }
-      // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
-      setUserInput({ content, states })
-    } else {
-      const newUserMessage = {
-        content,
-        states,
-      }
-      await addUserMessage(newUserMessage)
-    }
 
-    const stream = assistant.streamMessage(content.newValue, states)
+      const stream = assistant.streamMessage(content.newValue, states)
 
-    addBotMessage({
-      stream: stream,
-      steps: [],
-    })
-    // scrollToEnd()
-    // if (id) {
-    //   const updatedUserMessage = {
-    //     type: "USER_MESSAGE" as const,
-    //     id,
-    //     content,
-    //     states,
-    //   }
-    //   // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
-    //   setUserInput({ content, states })
-    // } else {
-    //   const newUserMessage = {
-    //     type: "USER_MESSAGE" as const,
-    //     content,
-    //     states,
-    //   }
+      addBotMessage({
+        conversationId: currentConversation.id,
+        stream: stream,
+        steps: [],
+      })
+      // scrollToEnd()
+      // if (id) {
+      //   const updatedUserMessage = {
+      //     type: "USER_MESSAGE" as const,
+      //     id,
+      //     content,
+      //     states,
+      //   }
+      //   // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
+      //   setUserInput({ content, states })
+      // } else {
+      //   const newUserMessage = {
+      //     type: "USER_MESSAGE" as const,
+      //     content,
+      //     states,
+      //   }
 
-    //   addMessage(newUserMessage)
+      //   addMessage(newUserMessage)
 
-    //   if (isLoading) {
-    //     // If either the older or the newer message has empty states (and therefore mentions), their text contents are merged and the non-empty states/mentions are kept. Otherwise the older message is discarded.
-    //     if (!userInput?.states || areStatesEmpty(userInput.states)) {
-    //       const previousValue = userInput?.content
-    //         ? userInput.content.newValue + "\n"
-    //         : ""
-    //       const previousPlainTextValue = userInput?.content
-    //         ? userInput.content.newPlainTextValue + "\n"
-    //         : ""
-    //       const mergedContent = {
-    //         newValue: previousValue + content.newValue,
-    //         newPlainTextValue:
-    //           previousPlainTextValue + content.newPlainTextValue,
-    //         mentions: content.mentions.map((mention) => ({
-    //           ...mention,
-    //           index: mention.index + previousValue.length + 1,
-    //           plainTextIndex:
-    //             mention.plainTextIndex + previousPlainTextValue.length + 1,
-    //         })),
-    //       }
-    //       setUserInput({ content: mergedContent, states })
-    //     } else if (areStatesEmpty(states)) {
-    //       const mergedContent = {
-    //         newValue: userInput.content.newValue + "\n" + content.newValue,
-    //         newPlainTextValue:
-    //           userInput.content.newPlainTextValue +
-    //           "\n" +
-    //           content.newPlainTextValue,
-    //         mentions: userInput.content.mentions,
-    //       }
-    //       setUserInput({ content: mergedContent, states: userInput.states })
-    //     } else {
-    //       setUserInput({ content, states })
-    //     }
-    //   } else {
-    //     setUserInput({ content, states })
-    //   }
-    // }
-  }
+      //   if (isLoading) {
+      //     // If either the older or the newer message has empty states (and therefore mentions), their text contents are merged and the non-empty states/mentions are kept. Otherwise the older message is discarded.
+      //     if (!userInput?.states || areStatesEmpty(userInput.states)) {
+      //       const previousValue = userInput?.content
+      //         ? userInput.content.newValue + "\n"
+      //         : ""
+      //       const previousPlainTextValue = userInput?.content
+      //         ? userInput.content.newPlainTextValue + "\n"
+      //         : ""
+      //       const mergedContent = {
+      //         newValue: previousValue + content.newValue,
+      //         newPlainTextValue:
+      //           previousPlainTextValue + content.newPlainTextValue,
+      //         mentions: content.mentions.map((mention) => ({
+      //           ...mention,
+      //           index: mention.index + previousValue.length + 1,
+      //           plainTextIndex:
+      //             mention.plainTextIndex + previousPlainTextValue.length + 1,
+      //         })),
+      //       }
+      //       setUserInput({ content: mergedContent, states })
+      //     } else if (areStatesEmpty(states)) {
+      //       const mergedContent = {
+      //         newValue: userInput.content.newValue + "\n" + content.newValue,
+      //         newPlainTextValue:
+      //           userInput.content.newPlainTextValue +
+      //           "\n" +
+      //           content.newPlainTextValue,
+      //         mentions: userInput.content.mentions,
+      //       }
+      //       setUserInput({ content: mergedContent, states: userInput.states })
+      //     } else {
+      //       setUserInput({ content, states })
+      //     }
+      //   } else {
+      //     setUserInput({ content, states })
+      //   }
+      // }
+    },
+    [addUserMessage, addBotMessage, assistant, setUserInput],
+  )
 
   async function handleTest() {
-    // const vectorStoreId = "vs_laVIcRUhlhqe7acRHsgIenL8"
-    // console.log({ form: new FormData(), type: typeof FormData })
-    // const item = await Zotero.Items.getAsync(120)
-    // console.log("item", item.getDisplayTitle())
+    const vectorStoreId = getPref("CURRENT_VECTORSTORE")
+    console.log({ form: new FormData(), type: typeof FormData })
+    const item = await Zotero.Items.getAsync(120)
+    console.log("item", item.getDisplayTitle())
     // const attachment = (await item.getBestAttachment()) as Zotero.Item
     // console.log("attachment file name", attachment.attachmentFilename)
     // const fileId = await assistant.uploadFile(item, attachment, "assistants")
     // await assistant.indexFile(item, fileId, vectorStoreId)
     // console.log("item", ztoolkit.ExtraField.getExtraFields(item))
-    const stream = assistant.streamQa("How to use LLM for taxonomy building?")
-    stream.on("messageDelta", (_delta: any, snapshot: any) => {
-      console.log("messageDelta", snapshot.content[0].text)
-    })
+    // const stream = assistant.streamQA("How to use LLM for taxonomy building?")
+    // stream.on("messageDelta", (_delta: any, snapshot: any) => {
+    //   console.log("messageDelta", snapshot.content[0].text)
+    // })
   }
 
   const userMessageControl: Omit<UserMessageControl, "isCopied" | "isEditing"> =
-    {
-      setCopyId,
-      setEditId,
-      setPromptTemplate,
-      onSubmit: handleSubmit,
-    }
+    useMemo(
+      () => ({
+        setCopyId,
+        setEditId,
+        setPromptTemplate,
+        onSubmit: handleSubmit,
+      }),
+      [setCopyId, setEditId, setPromptTemplate, handleSubmit],
+    )
 
-  const botMessageControl: Omit<BotMessageControl, "isCopied"> = {
-    setCopyId,
-    setFunctionCallsCount,
-    addFunctionCallOutput,
-    scrollToEnd,
-    pauseScroll,
-    resumeScroll,
-    addBotStep,
-    updateBotStep,
-    addBotAction,
-    updateBotAction,
-    findLastUserMessage,
-  }
+  const botMessageControl: Omit<BotMessageControl, "isCopied"> = useMemo(
+    () => ({
+      setCopyId,
+      setFunctionCallsCount,
+      addFunctionCallOutput,
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      addBotStep,
+      updateBotStep,
+      completeBotMessageStep,
+      updateBotAction,
+      findLastUserMessage,
+    }),
+    [
+      setCopyId,
+      setFunctionCallsCount,
+      addFunctionCallOutput,
+      // scrollToEnd,
+      // pauseScroll,
+      // resumeScroll,
+      // addBotStep,
+      // updateBotStep,
+      // completeBotMessageStep,
+      // updateBotAction,
+      // findLastUserMessage,
+    ],
+  )
 
   return (
     <div
@@ -345,7 +365,7 @@ export function Container() {
             "linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 100%)",
         }}
       >
-        {/* <button onClick={handleTest}>Test File Search</button> */}
+        <button onClick={handleTest}>Test File Search</button>
         <InfoPanel
           promptLibrary={
             <PromptLibrary setPromptTemplate={setPromptTemplate} />
@@ -358,12 +378,10 @@ export function Container() {
               return (
                 <UserMessage
                   key={message.id}
-                  input={message}
-                  control={{
-                    ...userMessageControl,
-                    isCopied: copyId === message.id,
-                    isEditing: editId === message.id,
-                  }}
+                  content={message}
+                  control={userMessageControl}
+                  isCopied={copyId === message.id}
+                  isEditing={editId === message.id}
                 />
               )
             }
@@ -372,11 +390,9 @@ export function Container() {
               return (
                 <BotMessage
                   key={message.id}
-                  input={message}
-                  control={{
-                    ...botMessageControl,
-                    isCopied: copyId === message.id,
-                  }}
+                  content={message}
+                  control={botMessageControl}
+                  isCopied={copyId === message.id}
                 />
               )
             }

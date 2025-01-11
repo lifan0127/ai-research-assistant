@@ -1,25 +1,25 @@
 import React, { useEffect, useRef, useState } from "react"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
 import stringify from "json-stringify-pretty-compact"
-import { ToolStepInput, ToolStepControl } from "../../../../typings/steps"
+import { ToolStepContent, ToolStepControl } from "../../../../typings/steps"
 import { ZoteroIcon } from "../../../icons/zotero"
 import { runFunctionTool } from "../../../../models/tools"
-import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
+import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import { tools } from "../../../../models/tools"
 import { CSSTransition } from "react-transition-group"
 
 export interface ToolStepProps {
-  input: ToolStepInput
+  content: ToolStepContent
   control: ToolStepControl
 }
 
-export function ToolStep({ input, control }: ToolStepProps) {
+export function ToolStep({ content, control }: ToolStepProps) {
   const {
     id,
     messageId,
     status,
     tool: { id: toolCallId, name, parameters, output },
-  } = input
+  } = content
   const [expanded, setExpanded] = useState(false)
   const ref = useRef(null)
   const toolInfo =
@@ -33,7 +33,7 @@ export function ToolStep({ input, control }: ToolStepProps) {
       updateBotStep(messageId, id, {
         status: "COMPLETED",
         tool: { name, parameters, output },
-      } as Omit<ToolStepInput, "id" | "messageId">)
+      } as Omit<ToolStepContent, "id" | "messageId">)
       addFunctionCallOutput(toolCallId, output)
       // scrollToEnd()
     }

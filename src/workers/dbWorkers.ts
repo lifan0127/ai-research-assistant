@@ -1,6 +1,5 @@
-import Dexie from "dexie"
 import { MessageHelper } from "zotero-plugin-toolkit"
-import { db, ConversationDBSchema, MessageDBSchema } from "../db/db"
+import { db, ConversationDBSchema, MessageDBSchema, FileDBSchema } from "../db/db"
 
 // "handlers" define all the methods for message management in the database.
 export const handlers = {
@@ -69,6 +68,31 @@ export const handlers = {
       .delete()
   },
 
+  /* Upsert file metadata */
+  async upsertFile(file: FileDBSchema) {
+    await db.files.put(file)
+  },
+
+  /* Get file metadata */
+  async getFile(fileId: string) {
+    const result = await db.files.get(fileId)
+    return result
+  },
+
+  /* Delete file metadata */
+  async deleteFile(fileId: string) {
+    await db.files.delete(fileId)
+  },
+
+  /* Remove expired file metadata older than a threashold */
+  async purgeFiles(maxAge: number) {
+    const expirationDate = new Date()
+    expirationDate.setDate(expirationDate.getDate() - maxAge)
+    await db.files
+      .where("timestamp")
+      .below(expirationDate.toISOString())
+      .delete()
+  },
 
 }
 

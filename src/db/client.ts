@@ -1,12 +1,9 @@
 import { MessageHelper } from "zotero-plugin-toolkit"
 import type { handlers } from "../workers/dbWorkers"
 import { config } from "../../package.json"
-import { generateTimestamp } from "../utils/datetime"
-import { MessageStore, MessageInput } from "../typings/messages"
-
-function log(...messages: any) {
-  ztoolkit.log("[aria/db client]", ...messages)
-}
+import { MessageStore, MessageContent } from "../typings/messages"
+import { FileDBSchema } from "../db/db"
+import { db as log } from "../utils/loggers"
 
 function closeDBServer() {
   if (addon.data.db.server) {
@@ -51,13 +48,13 @@ export async function upsertConversation(conversation: Omit<MessageStore, "messa
   log("Upsert conversation", conversation)
 }
 
-export async function upsertMessage(message: Omit<MessageInput, "stream">) {
+export async function upsertMessage(message: Omit<MessageContent, "stream">) {
   const server = await getDBServer()
   await server.proxy.upsertMessage(message)
   log("Upsert message", message)
 }
 
-export async function upsertMessages(messages: Omit<MessageInput, "stream">[]) {
+export async function upsertMessages(messages: Omit<MessageContent, "stream">[]) {
   const server = await getDBServer()
   await server.proxy.upsertMessages(messages)
   log(`Upsert ${messages.length} message(s)`, messages)
@@ -80,4 +77,28 @@ export async function clearAllMessages() {
   const server = await getDBServer()
   log("Clear all messages")
   return server.proxy.clearAllMessages()
+}
+
+export async function upsertFile(file: FileDBSchema) {
+  const server = await getDBServer()
+  log("Upsert file", file)
+  return server.proxy.upsertFile(file)
+}
+
+export async function getFile(id: string) {
+  const server = await getDBServer()
+  log("Get file", id)
+  return server.proxy.getFile(id)
+}
+
+export async function deleteFile(id: string) {
+  const server = await getDBServer()
+  log("Delete file", id)
+  return server.proxy.deleteFile(id)
+}
+
+export async function purgeFiles(maxAge: number) {
+  const server = await getDBServer()
+  log("Purge files older than", maxAge)
+  return server.proxy.purgeFiles(maxAge)
 }

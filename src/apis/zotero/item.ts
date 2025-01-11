@@ -1,4 +1,8 @@
-import { ItemMode } from './types'
+function log(...messages: any) {
+  ztoolkit.log("[aria/zotero api]", ...messages)
+}
+
+export type ItemMode = 'search' | 'preview' | 'qa' | 'citation'
 
 export interface ItemInfo {
   id: number
@@ -114,18 +118,19 @@ export async function getItemsAndBestAttachments(itemIds: number[], mode: ItemMo
   const items = await Zotero.Items.getAsync(itemIds)
   return Promise.all(items.map(async item => {
     const itemInfo = compileItemInfo(item, mode)
+    const attachment = await item.getBestAttachment()
+    const attachmentInfo: AttachmentInfo | undefined = attachment ? compileAttachmentInfo(attachment) : undefined
     switch (mode) {
-      case 'preview': {
+      case "preview": {
         try {
-          const attachment = await item.getBestAttachment()
-          const attachmentInfo: AttachmentInfo | undefined = attachment ? compileAttachmentInfo(attachment) : undefined
           return transformPreviewResult(itemInfo, attachmentInfo)
-        } catch {
+        } catch (error) {
           // Ref: https://github.com/zotero/zotero/blob/17daf9fe8dc792b1554a2a17e153fb90290617b3/chrome/content/zotero/itemTree.jsx#L3777
+          log("Failed to generate search item preview", error)
           return { item: itemInfo }
         }
       }
-      case 'search':
+      case "qa":
       default: {
         return { item: itemInfo }
       }

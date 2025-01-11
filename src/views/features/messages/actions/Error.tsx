@@ -8,8 +8,9 @@ import { FilePickerHelper } from "zotero-plugin-toolkit"
 import { copyButtonDef } from "../../../components/buttons/types"
 import { Link } from "../../../components/buttons/Link"
 import { Control } from "../../../components/types"
-import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
+import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
+import { ErrorActionControl } from "../../../../typings/actions"
 
 interface ContainerProps {
   error: Error
@@ -52,17 +53,17 @@ function Container({ error, children }: ContainerProps) {
   )
 }
 
-export interface Input {
+export interface Content {
   status: "COMPLETED" | "IN_PROGRESS"
   error: any
 }
 
 export interface Props {
-  input: Input
-  control: Control
+  content: Content
+  control: ErrorActionControl
 }
 
-export function Component({ input: { error }, control }: Props) {
+export function Component({ content: { error }, control }: Props) {
   const { scrollToEnd } = control
   const OPENAI_MODEL =
     (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || "gpt-4o"
@@ -79,11 +80,11 @@ export function Component({ input: { error }, control }: Props) {
       file.split("/").pop(),
     ).open()
     if (filename) {
-      const content = (await Zotero.File.getContentsAsync(
+      const fileContent = (await Zotero.File.getContentsAsync(
         file,
         "utf-8",
       )) as string
-      await Zotero.File.putContentsAsync(filename, content)
+      await Zotero.File.putContentsAsync(filename, fileContent)
     }
   }
 
@@ -203,8 +204,9 @@ export function Component({ input: { error }, control }: Props) {
   return (
     <Container error={error}>
       <Markdown.Component
-        input={{
-          content: `Apologies for the inconvenience. Something has gone wrong within ${config.addonName}. Please check the error stack for detailed
+        content={{
+          status: "COMPLETED",
+          text: `Apologies for the inconvenience. Something has gone wrong within ${config.addonName}. Please check the error stack for detailed
         information about the issue.`,
         }}
         control={control}

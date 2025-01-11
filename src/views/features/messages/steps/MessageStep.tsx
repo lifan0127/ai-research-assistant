@@ -1,48 +1,43 @@
 import React, { useState, useEffect, useRef } from "react"
 import {
-  MessageStepInput,
+  MessageStepContent,
   MessageStepControl,
-  StructuredMessage,
 } from "../../../../typings/steps"
 import { Message as OpenAIMessage } from "openai/resources/beta/threads/messages"
 import MarkdownReact from "marked-react"
 import { parsePartialJson } from "../../../../utils/parsers"
 import { Control } from "../../../components/types"
-import { Widget, WidgetProps } from "../actions/Widget"
 import { customMarkdownRenderer } from "../../../utils/markdown"
-import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
+import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
 import * as Markdown from "../actions/Markdown"
 import * as Search from "../actions/Search"
 import * as QA from "../actions/QA"
 import * as Error from "../actions/Error"
+import { step as log } from "../../../../utils/loggers"
+import { Action } from "../../../../typings/actions"
+import { TextMessageContent } from "../../../../typings/steps"
 
 export interface MessageStepProps {
-  input: MessageStepInput
+  content: MessageStepContent
   control: MessageStepControl
 }
 
 export function MessageStep({
-  input: { id, messageId, status, messages = [] },
-  control: { save, updateBotAction, ...restControl },
+  content: { id, messageId, status, messages = [] },
+  control: { updateBotAction, ...restControl },
 }: MessageStepProps) {
+  log("Render message step", { id, messageId, status, messages })
   // Ref to store the last successfully parsed values for each item in the array
   const lastValidMessagesRef = useRef<
-    Map<number, { message: string; context?: object; actions?: object[] }>
+    Map<number, { message: string; context?: object; actions?: Action[] }>
   >(new Map())
   const [output, setOutput] = useState<any>([])
-
-  function saveStepWidget(widgetContent: any) {
-    console.log({ widgetContent })
-    const updatedOutput = [...output, widgetContent]
-    setOutput((output: any) => updatedOutput)
-    save({ content: updatedOutput })
-  }
 
   function renderTextMessage(
     messageId: string,
     stepId: string,
-    { message = "", context = {}, actions = [] }: Partial<StructuredMessage>,
+    { message = "", context = {}, actions = [] }: TextMessageContent["text"],
   ) {
     return (
       <>
@@ -54,87 +49,103 @@ export function MessageStep({
         {status === "COMPLETED" && (actions.length || context) ? (
           <div className="px-2">
             {
-              actions.map((action: any) => {
+              actions.map((action: Action) => {
+                // return (
+                //   <CodeHighlighter language="json" code={stringify(action)} />
+                // )
                 switch (action.widget) {
-                  case "markdown": {
-                    return (
-                      <Markdown.Component
-                        input={
-                          {
-                            status: "IN_PROGRESS",
-                            ...action.input,
-                          } as Markdown.Input
-                        }
-                        control={{
-                          ...restControl,
-                          save: saveStepWidget,
-                        }}
-                      />
-                    )
-                  }
+                  // case "markdown": {
+                  //   return (
+                  //     <Markdown.Component
+                  //       content={
+                  //         {
+                  //           status: "IN_PROGRESS",
+                  //           ...action.content,
+                  //         } as Markdown.Content
+                  //       }
+                  //       control={restControl}
+                  //     />
+                  //   )
+                  // }
                   case "search": {
-                    console.log({ searchAction: action })
                     return (
+                      // <CodeHighlighter
+                      //   language="json"
+                      //   code={stringify({ action, context })}
+                      // />
                       <Search.Component
-                        input={
+                        content={
                           {
-                            id: action.id,
                             messageId,
                             stepId,
-                            status: "IN_PROGRESS",
-                            ...action,
-                          } as Search.Input
+                            id: action.id,
+                            status: action.status,
+                            output: action.output,
+                          } as Search.Content
                         }
                         context={context}
                         control={{
                           ...restControl,
                           updateBotAction,
-                          save: saveStepWidget,
-                        }}
-                      />
-                    )
-                  }
-                  case "error": {
-                    return (
-                      <Error.Component
-                        input={
-                          {
-                            status: "IN_PROGRESS",
-                            ...action.input,
-                          } as Error.Input
-                        }
-                        control={{
-                          ...restControl,
-                          save: saveStepWidget,
                         }}
                       />
                     )
                   }
                   case "qa": {
+                    log("Invoke QA action", { action, context })
                     return (
+                      // <CodeHighlighter
+                      //   language="json"
+                      //   code={stringify(action)}
+                      // />
                       <QA.Component
-                        input={
-                          { status: "IN_PROGRESS", ...action.input } as QA.Input
+                        content={
+                          {
+                            id: action.id,
+                            messageId,
+                            stepId,
+                            status: "IN_PROGRESS",
+                            ...action.content,
+                          } as QA.Content
                         }
                         context={context}
                         control={{
                           ...restControl,
                           updateBotAction,
-                          save: saveStepWidget,
                         }}
                       />
                     )
                   }
-                  default: {
-                    return (
-                      <Markdown.Component
-                        input={{
-                          content: `Unknown widget: ${widget}. Input: ${JSON.stringify(input)}`,
-                        }}
-                        control={control}
-                      />
-                    )
-                  }
+                  // case "error": {
+                  //   return (
+                  //     <Error.Component
+                  //       input={
+                  //         {
+                  //           status: "IN_PROGRESS",
+                  //           ...action.content,
+                  //         } as Error.Content
+                  //       }
+                  //       control={{
+                  //         ...restControl,
+                  //       }}
+                  //     />
+                  //   )
+                  // }
+                  // default: {
+                  //     return (
+                  //       <Error.Component
+                  //         input={
+                  //           {
+                  //             status: "COMPLETED",
+                  //             error: new Error(`Invalid widget: ${action.widget}`),
+                  //           } as Error.Content
+                  //         }
+                  //         control={{
+                  //           ...restControl,
+                  //         }}
+                  //       />
+                  //     )
+                  // }
                 }
               })
               // <Widget

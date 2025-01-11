@@ -94,6 +94,7 @@ export const QAActionSchema = z
           .describe(
             "The specific question that can be answered using the Zotero library entries.",
           ),
+        fulltext: z.boolean().describe("Whether fulltext is needed to answer the question or metadata is sufficient."),
       })
       .strict(),
   })
@@ -101,17 +102,20 @@ export const QAActionSchema = z
 
 const ActionSchema = z.union([SearchActionSchema, QAActionSchema])
 
+const MessageSchema = z
+  .string()
+  .describe(
+    "Either a direct response to user request or a brief explanation of the prescribed actions. The actions will be executed and presented to the user following this message.")
+
+const ContextSchema = z
+  .object({
+    query: QuerySchema.optional(),
+  })
+  .strict()
+
 export const RouteSchema = z.object({
-  message: z
-    .string()
-    .describe(
-      "Either a direct response to user request or a brief explanation of the prescribed actions. The actions will be executed and presented to the user following this message.",
-    ),
-  context: z
-    .object({
-      query: QuerySchema.optional(),
-    })
-    .strict(),
+  message: MessageSchema,
+  context: ContextSchema,
   actions: z
     .array(ActionSchema)
     .describe(
@@ -120,3 +124,7 @@ export const RouteSchema = z.object({
 })
 
 export const routingFormat = zodResponseFormat(RouteSchema, "response")
+
+export type RoutingOutput = z.infer<typeof RouteSchema>
+
+export type RoutingOutputAction = z.infer<typeof ActionSchema>

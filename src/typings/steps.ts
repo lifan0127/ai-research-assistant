@@ -1,27 +1,26 @@
 import { z } from "zod"
-import { RouteSchema } from "../models/schemas/routing"
+import { RoutingOutput } from "../models/schemas/routing"
 import { Text } from "openai/resources/beta/threads/messages"
 import { serializeError } from "serialize-error"
-import { useMessages } from "../hooks/useMessages/hook"
+import { useMessages } from "../hooks/useMessages"
+import type { Action } from "./actions"
 
 type StepStatus = "IN_PROGRESS" | "COMPLETED"
 
-interface BaseStepInput {
+interface BaseStepContent {
   id: string
   messageId: string
   timestamp: string
   status: StepStatus
 }
 
-export type StructuredMessage = z.infer<typeof RouteSchema>
-
 export interface TextMessageContent {
   type: "TEXT"
   text: {
     raw?: Text
-    message?: StructuredMessage["message"]
-    context?: StructuredMessage["context"]
-    actions?: StructuredMessage["actions"] & { id: string }
+    message?: RoutingOutput["message"]
+    context?: RoutingOutput["context"]
+    actions?: Action[]
   }
 }
 
@@ -30,12 +29,12 @@ export interface ImageMessageContent {
   image: string
 }
 
-export interface MessageStepInput extends BaseStepInput {
+export interface MessageStepContent extends BaseStepContent {
   type: "MESSAGE_STEP"
   messages: (TextMessageContent | ImageMessageContent)[]
 }
 
-export interface ToolStepInput extends BaseStepInput {
+export interface ToolStepContent extends BaseStepContent {
   type: "TOOL_STEP"
   tool: {
     id: string // OpenAI tool call ID
@@ -45,7 +44,7 @@ export interface ToolStepInput extends BaseStepInput {
   }
 }
 
-export interface ErrorStepInput extends BaseStepInput {
+export interface ErrorStepContent extends BaseStepContent {
   type: "ERROR_STEP"
   error: {
     message: string
@@ -53,7 +52,7 @@ export interface ErrorStepInput extends BaseStepInput {
   }
 }
 
-export type StepInput = MessageStepInput | ToolStepInput | ErrorStepInput
+export type StepContent = MessageStepContent | ToolStepContent | ErrorStepContent
 
 interface BaseStepControl {
   scrollToEnd: () => void
@@ -62,7 +61,6 @@ interface BaseStepControl {
 }
 
 export interface MessageStepControl extends BaseStepControl {
-  save: (content: any) => void
   updateBotAction: ReturnType<typeof useMessages>["updateBotAction"]
 }
 
@@ -70,3 +68,5 @@ export interface ToolStepControl extends BaseStepControl {
   addFunctionCallOutput: (tool_call_id: string, output: string) => void
   updateBotStep: ReturnType<typeof useMessages>["updateBotStep"]
 }
+
+export type ErrorStepControl = BaseStepControl

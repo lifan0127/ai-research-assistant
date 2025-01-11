@@ -21,8 +21,12 @@ import { DEFAULT_BIB_STYLE } from "../../../../utils/constants"
 import { SearchActionResponse } from "../../../../models/utils/actions"
 import * as zot from "../../../../apis/zotero"
 import { isEmpty, cloneDeep, set } from "lodash"
-import { SearchActionControl, Query } from "../../../../typings/actions"
-import { CodeHighlighter } from "../../../components/visuals/CodeHighlighter"
+import {
+  SearchActionControl,
+  Query,
+  ActionStatus,
+} from "../../../../typings/actions"
+import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
 import {
   SearchCondition,
@@ -31,71 +35,52 @@ import {
 } from "../../../../apis/zotero/search"
 import { openAdvancedSearch } from "../../../../apis/zotero/controls/search"
 import { transformPreviewResult } from "../../../../apis/zotero/item"
-import { SearchStrategy } from "../../../components/visuals/SearchStrategy"
-import { StructuredMessage } from "../../../../typings/steps"
+import { SearchStrategy } from "../../../components/search/SearchStrategy"
+import { RoutingOutput } from "../../../../models/schemas/routing"
+import { SearchResultTable } from "../../../components/search/SearchResultTable"
+import { action as log } from "../../../../utils/loggers"
 
 const columnHelper =
   createColumnHelper<ReturnType<typeof transformPreviewResult>>()
 
-export interface Input {
-  status: "COMPLETED" | "IN_PROGRESS"
+export interface Content {
+  status: ActionStatus
   id: string
   messageId: string
   stepId: string
+  output: any
 }
 export interface Context {
   query: Query
 }
 
 export interface Props {
-  input: Input
-  context: StructuredMessage["context"]
+  content: Content
+  context: RoutingOutput["context"]
   control: SearchActionControl
 }
 
 export function Component({
-  input: { messageId, stepId, id, output, ...input },
+  content: { messageId, stepId, id, output, status },
   context: { query },
   control: { scrollToEnd, updateBotAction },
 }: Props) {
-  // const [output, setOutput] =
-  //   useState<Awaited<ReturnType<typeof nestedSearch>>>()
-  const ref = useRef<HTMLButtonElement>(null)
-  const [showSearchOutput, setShowSearchOutput] = useState(false)
-
+  log("Render search action", { status, output })
   useEffect(() => {
     async function searchZotero(query: Query | undefined) {
       if (query) {
-        const output = await nestedSearch(query)
-        updateBotAction(messageId, stepId, id, { output })
+        const results = await nestedSearch(query, "preview")
+        log("Search Zotero", { query, results })
+        updateBotAction(messageId, stepId, id, {
+          output: results,
+          status: "COMPLETED",
+        })
       }
-      return null
     }
     if (!output) {
       searchZotero(query as Query)
     }
   }, [query])
-
-  // async function openInAdvancedSearchWindow(event: React.MouseEvent) {
-  //   event.preventDefault()
-  //   await openAdvancedSearch(input)
-  // }
-
-  // return (
-  //   <div>
-  //     <div>Search Widget</div>
-  //     <CodeHighlighter
-  //       code={stringify(input)}
-  //       language="json"
-  //       className="text-sm"
-  //     />
-  //     <CodeHighlighter
-  //       code={stringify(results)}
-  //       language="json"
-  //       className="text-sm"
-  //     />
-  //   </div>
-  // )
 
   useEffect(() => {
     scrollToEnd()
@@ -161,177 +146,39 @@ export function Component({
     )
   }
 
-  function renderResults(output: Awaited<ReturnType<typeof nestedSearch>>) {
-    const { count, results } = output
-    return (
-      <div>
-        {__env__ === "development" ? (
-          <div>
-            <DocumentIcon
-              title={JSON.stringify({ input }, null, 2)}
-              className="h-6 w-6 text-gray-200 absolute right-2"
-              onClick={() => setShowSearchOutput(!showSearchOutput)}
-            />
-            {showSearchOutput ? (
-              <div className="bg-slate-50 z-10 text-xs absolute right-10">
-                <CodeHighlighter
-                  code={stringify({ input, results })}
-                  language="json"
-                  className="text-sm"
-                />
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        <h4 className="p-0 m-0 pt-4 mb-1 text-tomato text-lg">
-          Results{" "}
-          <small>
-            ({count > 10 ? `${count}, limited to the first 10` : count})
-          </small>
-        </h4>
-        {results && results.length > 0 ? (
-          <div>
-            <table className="w-full border-collapse border-spacing-0">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id} className="bg-slate-200">
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        className="text-left py-1 whitespace-nowrap"
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </th>
-                    ))}
-                    <th></th>
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.map((row, i) => (
-                  <tr
-                    key={row.id}
-                    className={i % 2 === 1 ? "bg-slate-100" : ""}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="py-1">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
-                    <td>{createLinks(row)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                {table.getFooterGroups().map((footerGroup) => (
-                  <tr key={footerGroup.id} className="py-1">
-                    {footerGroup.headers.map((header) => (
-                      <th key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.footer,
-                              header.getContext(),
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </tfoot>
-            </table>
-            {/* <div className="w-full my-4">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-yellow-50">
-                <span className="flex items-center gap-1">
-                  {count > 1 ? `View all ${count} results or m` : "M"}odify
-                  search using Advanced Search
-                </span>
-                <div className="flex-grow"></div>
-                <a
-                  href="#"
-                  className="px-6 py-1 bg-tomato text-white font-bold no-underline rounded-md"
-                  onClick={openInAdvancedSearchWindow}
-                >
-                  Open
-                </a>
-              </div>
-            </div> */}
-            {/* <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
-              </span>
-              <div className="flex-grow"></div>
-              <button
-                className="px-0 py-0 mr-1"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                {"<"}
-              </button>
-              <button
-                className="px-0 py-0"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                {">"}
-              </button>
-            </div> */}
-          </div>
-        ) : (
-          <div>
-            I couldn't find any result. If this is not what you have
-            anticipated, please try modifying your search query or choosing
-            another topic.
-          </div>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div className="text-base">
       <div className="mb-2">
         <h4 className="p-0 m-0 mb-1 text-tomato text-lg">Search Strategy</h4>
         {query ? <SearchStrategy query={query} /> : null}
-        {/* <div>
-          {qtexts.length > 0 ? (
-            <div>
-              <span className="font-bold">Query Text:</span>{" "}
-              {qtexts.map((qtext, i) => (
-                <>
-                  <span className="bg-orange-100 rounded-md px-2 pb-1">
-                    {qtext}
-                  </span>
-                  {i < qtexts.length - 1 ? " OR " : null}
-                </>
-              ))}
-            </div>
-          ) : null}
-          {creators.length > 0 ? (
-            <div>
-              <span className="font-bold">Creators:</span> {creators.join(", ")}
-            </div>
-          ) : null}
-          {tags.length > 0 ? (
-            <div>
-              <span className="font-bold">Tags:</span> {tags.join(", ")}
-            </div>
-          ) : null}
-          <div>
-            <span className="font-bold">Date Range:</span> {years?.from} -{" "}
-            {years?.to}
-          </div>
-        </div> */}
       </div>
-      {output ? renderResults(output) : null}
+      {output ? (
+        <div>
+          <h4 className="p-0 m-0 pt-4 mb-1 text-tomato text-lg">
+            Results{" "}
+            <small>
+              (
+              {output.count > 10
+                ? `${output.count}, limited to the first 10`
+                : output.count}
+              )
+            </small>
+          </h4>
+          {output.results && output.results.length > 0 ? (
+            <SearchResultTable count={output.count} results={output.results} />
+          ) : (
+            <div>
+              I couldn't find any result. If this is not what you have
+              anticipated, please try modifying your search query or choosing
+              another topic.
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="p-[15px]">
+          <div className="dot-flashing "></div>
+        </div>
+      )}
     </div>
   )
 }

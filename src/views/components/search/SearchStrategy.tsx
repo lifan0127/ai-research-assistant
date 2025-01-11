@@ -1,12 +1,9 @@
 import React, { useMemo, useState, useRef } from "react"
 import { CSSTransition } from "react-transition-group"
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline"
-import {
-  Query,
-  NestedQuery,
-  SearchParameters,
-} from "../../../apis/zotero/search"
+import { SearchParameters } from "../../../apis/zotero/search"
 import { openAdvancedSearch } from "../../../apis/zotero/controls/search"
+import { Query } from "../../../typings/actions"
 
 interface SearchParametersBlockProps {
   query: SearchParameters
@@ -119,7 +116,11 @@ export function SearchStrategy({ query, internal }: SearchStrategyProps) {
         {subqueries.map((subquery, i) => {
           return (
             <>
-              <SearchStrategy key={i} query={subquery} internal={true} />
+              <SearchStrategy
+                key={i}
+                query={subquery as Query}
+                internal={true}
+              />
               {i < subqueries.length - 1 ? (
                 boolean === "AND" ? (
                   <div className="text-green-600 font-semibold my-2">

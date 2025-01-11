@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, memo } from "react"
 import {
   Square2StackIcon,
   PencilSquareIcon,
@@ -17,7 +17,8 @@ import {
   areStatesEmpty,
 } from "../../../models/utils/states"
 import { TextField } from "../input/TextField"
-import { UserMessageInput } from "../../../typings/messages"
+import { UserMessageContent } from "../../../typings/messages"
+import { message as log } from "../../../utils/loggers"
 
 interface SelectionToggleProps {
   name: StateName
@@ -146,33 +147,29 @@ function Gallery({ images }: GalleryProps) {
 }
 
 export interface UserMessageControl {
-  isCopied: boolean
   setCopyId: (id?: string) => void
-  isEditing: boolean
   setEditId: (id?: string) => void
   setPromptTemplate: (prompt?: { template: string }) => void
   onSubmit: (
-    input: Pick<UserMessageInput, "content" | "states">,
+    content: Pick<UserMessageContent, "content" | "states">,
     id?: string,
   ) => void
 }
 
 interface UserMessageProps {
-  input: UserMessageInput
+  content: UserMessageContent
   control: UserMessageControl
+  isCopied: boolean
+  isEditing: boolean
 }
 
-export function UserMessage({
-  input: { id, content, states },
-  control: {
-    setCopyId,
-    isCopied,
-    setEditId,
-    isEditing,
-    setPromptTemplate,
-    onSubmit,
-  },
+export const UserMessage = memo(function UserMessageContent({
+  content: { id, content, states },
+  control: { setCopyId, setEditId, setPromptTemplate, onSubmit },
+  isCopied,
+  isEditing,
 }: UserMessageProps) {
+  log("Render user message", id)
   // const [displayMenu, setDisplayMenu] = useState(false)
   const { setDropArea } = useDragging()
   const [isEdit, setIsEdit] = useState(false)
@@ -283,27 +280,6 @@ export function UserMessage({
                     <span className="ml-2 text-sm text-white">Edit</span>
                   </button>
                 </div>
-                {/* 
-                <div className="bg-white mb-3 rounded border border-neutral-500 shadow-md text-black">
-                  <span className="inline-flex rounded-md shadow-sm">
-                    <button
-                      type="button"
-                      className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
-                      aria-label="Edit"
-                      onClick={handleEdit}
-                    >
-                      <PencilSquareIcon className="w-5 h-5 text-black" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      className="relative inline-flex items-center bg-white hover:bg-gray-200 focus:z-10 border-none px-2 py-1"
-                      aria-label="Copy"
-                      onClick={handleCopy}
-                    >
-                      <Square2StackIcon className="w-5 h-5 text-black" aria-hidden="true" />
-                    </button>
-                  </span>
-                </div> */}
               </div>
             </div>
           </div>
@@ -313,4 +289,4 @@ export function UserMessage({
       )}
     </div>
   )
-}
+})

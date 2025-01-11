@@ -1,37 +1,32 @@
 import {
-  UserMessageInput,
-  BotMessageInput,
+  UserMessageContent,
+  BotMessageContent,
   MessageStore
-} from "../../typings/messages"
-import { MessageStepInput, StepInput } from "../../typings/steps"
-import { MessageInput } from "../../typings/messages"
-import { generateActionId } from "../../utils/identifiers"
-import { Action } from "../../typings/actions"
-import { ResearchAssistant } from "../../models/assistant"
-
-export function log(...messages: any) {
-  if (__env__ === "development") {
-    ztoolkit.log("[aria/message store]", ...messages)
-  }
-}
+} from "../typings/messages"
+import { MessageStepContent, StepContent, TextMessageContent } from "../typings/steps"
+import { MessageContent } from "../typings/messages"
+import { generateActionId } from "../utils/identifiers"
+import { Action } from "../typings/actions"
+import { ResearchAssistant } from "../models/assistant"
+import { store as log } from "../utils/loggers"
 
 export type MessagesAction =
   | {
     type: "ADD_USER_MESSAGE"
-    payload: UserMessageInput
+    payload: UserMessageContent
   }
-  | { type: "ADD_BOT_MESSAGE"; payload: BotMessageInput }
+  | { type: "ADD_BOT_MESSAGE"; payload: BotMessageContent }
   | {
     type: "UPDATE_USER_MESSAGE"
-    payload: { id: string; updates: Partial<UserMessageInput> }
+    payload: { id: string; updates: Partial<UserMessageContent> }
   }
-  | { type: "ADD_BOT_STEP"; payload: { messageId: string; step: StepInput } }
+  | { type: "ADD_BOT_STEP"; payload: { messageId: string; step: StepContent } }
   | {
     type: "UPDATE_BOT_STEP"
     payload: {
       messageId: string
       stepId: string
-      updates: Partial<StepInput>
+      updates: Partial<StepContent>
     }
   }
   | {
@@ -47,7 +42,7 @@ export type MessagesAction =
       updates: Partial<Action>
     }
   }
-  | { type: "LOAD_MESSAGES"; payload: MessageInput[] }
+  | { type: "LOAD_MESSAGES"; payload: MessageContent[] }
   | { type: "CLEAR_MESSAGES" }
   | { type: "CLEAR_PENDING" }
 
@@ -88,7 +83,7 @@ export function messagesReducer(
       const updatedMessages = [
         ...state.messages.slice(0, messageIndex),
         {
-          ...(state.messages[messageIndex] as UserMessageInput),
+          ...(state.messages[messageIndex] as UserMessageContent),
           ...action.payload.updates,
         },
       ]
@@ -115,6 +110,7 @@ export function messagesReducer(
 
     // Update message step only
     case "UPDATE_BOT_STEP": {
+      log("Update bot step", action.payload)
       return {
         ...state,
         messages: state.messages.map((message) =>
@@ -129,7 +125,7 @@ export function messagesReducer(
                 }
                 // For message step, need additional handling for adding actions
                 if (step.type === "MESSAGE_STEP") {
-                  const messageUpdate = action.payload.updates as Partial<MessageStepInput>
+                  const messageUpdate = action.payload.updates as Partial<MessageStepContent>
                   // If messages is part of the update, look for TEXT message type
                   if (messageUpdate?.messages) {
                     return {
@@ -151,44 +147,17 @@ export function messagesReducer(
                         // For other message types, return message as-is
                         return message
                       }),
-                    } as MessageStepInput
+                    } as MessageStepContent
                   }
                   // Update the step as-is, if messages is not part of the update
                   return {
                     ...step,
                     ...action.payload.updates,
-                  } as MessageStepInput
+                  } as MessageStepContent
                 }
                 // Update other types of step as-is
-                return { ...step, ...action.payload.updates } as StepInput
+                return { ...step, ...action.payload.updates } as StepContent
               })
-            }
-            : message,
-        ),
-        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
-      }
-    }
-
-    case "ADD_BOT_ACTIONS": {
-      log("Add bot actions", action.payload)
-      return {
-        ...state,
-        messages: state.messages.map((message) =>
-          message.type === "BOT_MESSAGE" &&
-            message.id === action.payload.messageId
-            ? {
-              ...message,
-              steps: message.steps.map((step) =>
-                step.type === "MESSAGE_STEP" &&
-                  step.id === action.payload.stepId
-                  ? {
-                    ...step,
-                    actions: step.message.actions
-                      ? [...step.message.actions, action.payload.action]
-                      : [action.payload.action],
-                  }
-                  : step,
-              ),
             }
             : message,
         ),
@@ -224,7 +193,7 @@ export function messagesReducer(
                               : act,
                           ),
                         },
-                      }
+                      } as TextMessageContent
                     }),
                   }
                   : step,

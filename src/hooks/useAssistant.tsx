@@ -1,6 +1,6 @@
 import React, { useMemo, createContext, useContext } from "react"
 import { ResearchAssistant } from "../models/assistant"
-import { ConversationInfo } from "./useMessages/hook"
+import { ConversationInfo } from "./useMessages"
 import { getPref } from "../utils/prefs"
 
 interface AssistantContextType {

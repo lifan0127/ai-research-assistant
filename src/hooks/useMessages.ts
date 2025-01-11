@@ -1,22 +1,23 @@
 import { useEffect, useCallback, useMemo, useReducer, useRef } from "react"
 import {
-  MessageInput,
-  UserMessageInput,
-  BotMessageInput,
+  MessageContent,
+  UserMessageContent,
+  BotMessageContent,
   MessageStore
-} from "../../typings/messages"
-import { StepInput } from "../../typings/steps"
-import { generateMessageId, generateStepId } from "../../utils/identifiers"
-import { generateTimestamp } from "../../utils/datetime"
-import { Action } from "../../typings/actions"
-import { useAssistant } from "../useAssistant"
-import * as db from "../../db/client"
+} from "../typings/messages"
+import { StepContent, MessageStepContent } from "../typings/steps"
+import { generateMessageId, generateStepId, generateActionId } from "../utils/identifiers"
+import { generateTimestamp } from "../utils/datetime"
+import { Action } from "../typings/actions"
+import { useAssistant } from "./useAssistant"
+import * as db from "../db/client"
 import { debounce } from "lodash"
-import { messagesReducer, MessagesAction, log } from "./store"
+import { messagesReducer, MessagesAction } from "../db/store"
+import { store as log } from "../utils/loggers"
 
 export type ConversationInfo = Pick<MessageStore, "id" | "title" | "description" | "metadata">
 
-function isBotMessageCompleted(message: BotMessageInput) {
+function isBotMessageCompleted(message: BotMessageContent) {
   log("Checking bot message completeness", message)
   if (message.steps.length === 0) {
     return false
@@ -28,9 +29,8 @@ function isBotMessageCompleted(message: BotMessageInput) {
           if (message.type !== "TEXT") {
             return true
           }
-          // TODO: Check if all actions are completed (such as QA)
-          // return message.text.actions?.every((action) => action.status === "COMPLETED")
-          return true
+          // Check if all actions are completed (such as QA)
+          return message.text.actions?.every((action) => action.status === "COMPLETED")
         })
       }
       default: {
@@ -62,12 +62,12 @@ export function useMessages(currentConversation: ConversationInfo) {
     // db.clearAllMessages()
 
     db.getAllMessages(currentConversation.id).then((messages) => {
-      dispatch({ type: "LOAD_MESSAGES", payload: messages as MessageInput[] })
+      dispatch({ type: "LOAD_MESSAGES", payload: messages as MessageContent[] })
     })
   }, [currentConversation.id])
 
   // Ref to hold the latest messages
-  const messagesRef = useRef<MessageInput[]>(state.messages)
+  const messagesRef = useRef<MessageContent[]>(state.messages)
 
   // Update the ref whenever state.messages changes
   useEffect(() => {
@@ -97,7 +97,7 @@ export function useMessages(currentConversation: ConversationInfo) {
 
     // Gather updated messages
     const updatedMessages = pendingUpdate.reduce(
-      (acc: Omit<MessageInput, "stream">[], messageId: string) => {
+      (acc: Omit<MessageContent, "stream">[], messageId: string) => {
         const message = messagesRef.current.find((m) => m.id === messageId)
         if (!message) {
           log("Missing message in store", messageId, message)
@@ -151,6 +151,7 @@ export function useMessages(currentConversation: ConversationInfo) {
     if (!state.pendingUpdate.length && !state.pendingDelete.length) {
       return
     }
+    log("Triggering debounced persistence", state.pendingUpdate, state.pendingDelete)
     debouncedPersistChangesRef.current()
     // No cleanup here to prevent flushing on every state change
   }, [state.pendingUpdate, state.pendingDelete])
@@ -203,16 +204,16 @@ export function useMessages(currentConversation: ConversationInfo) {
   //   }
   // }, [state.pendingUpdate, state.pendingDelete])
 
-  function getMessage(messageId: string, offset: number = 0) {
+  const getMessage = useCallback((messageId: string, offset: number = 0) => {
     const messageIndex = state.messages.findIndex(
       (message) => message.id === messageId,
     )
-    return state.messages[messageIndex + offset] as MessageInput
-  }
+    return state.messages[messageIndex + offset] as MessageContent
+  }, [state.messages])
 
-  async function addUserMessage(
-    message: Omit<UserMessageInput, "type" | "id" | "timestamp">,
-  ) {
+  const addUserMessage = useCallback((
+    message: Omit<UserMessageContent, "type" | "id" | "timestamp">,
+  ) => {
     const messageId = generateMessageId()
     const timestamp = generateTimestamp()
     dispatch({
@@ -220,11 +221,11 @@ export function useMessages(currentConversation: ConversationInfo) {
       payload: { ...message, type: "USER_MESSAGE", id: messageId, timestamp, conversationId: currentConversation.id },
     })
     return messageId
-  }
+  }, [currentConversation.id])
 
-  function addBotMessage(
-    message: Omit<BotMessageInput, "type" | "id" | "timestamp">,
-  ) {
+  const addBotMessage = useCallback((
+    message: Omit<BotMessageContent, "type" | "id" | "timestamp">,
+  ) => {
     const messageId = generateMessageId()
     const timestamp = generateTimestamp()
     dispatch({
@@ -232,82 +233,100 @@ export function useMessages(currentConversation: ConversationInfo) {
       payload: { ...message, type: "BOT_MESSAGE", id: messageId, timestamp, conversationId: currentConversation.id },
     })
     return messageId
-  }
+  }, [currentConversation.id])
 
-  function updateUserMessage(
+  const updateUserMessage = useCallback((
     messageId: string,
     partialMessage: Partial<
-      Omit<UserMessageInput, "type" | "id" | "timestamp">
+      Omit<UserMessageContent, "type" | "id" | "timestamp">
     >,
-  ) {
+  ) => {
     dispatch({
       type: "UPDATE_USER_MESSAGE",
       payload: { id: messageId, updates: partialMessage },
     })
-  }
+  }, [])
 
-  async function addBotStep(
+  const addBotStep = useCallback((
     messageId: string,
-    step: Omit<StepInput, "id" | "messageId" | "timestamp">,
-  ) {
+    step: Omit<StepContent, "id" | "messageId" | "timestamp">,
+  ) => {
     const stepId = generateStepId()
     const timestamp = generateTimestamp()
     dispatch({
       type: "ADD_BOT_STEP",
       payload: {
         messageId,
-        step: { id: stepId, messageId, timestamp, ...step } as StepInput,
+        step: { id: stepId, messageId, timestamp, ...step } as StepContent,
       },
     })
     return stepId
-  }
+  }, [])
 
-  async function updateBotStep(
+  const updateBotStep = useCallback((
     messageId: string,
     stepId: string,
-    partialStep: Partial<Omit<StepInput, "id">> & { type: StepInput["type"] },
-  ) {
+    partialStep: Partial<Omit<StepContent, "id">> & Pick<StepContent, "type">,
+  ) => {
+
     dispatch({
       type: "UPDATE_BOT_STEP",
       payload: { messageId, stepId, updates: partialStep },
     })
-  }
+  }, [])
 
-  function addBotAction(
+  const completeBotMessageStep = useCallback((
     messageId: string,
     stepId: string,
-    action: Omit<Action, "id" | "timestamp">,
-  ) {
-    const actionId = generateStepId()
-    const timestamp = generateTimestamp()
+    partialStep: Partial<Omit<MessageStepContent, "id">> & Pick<MessageStepContent, "messages">,
+  ) => {
+    const { messages, ...rest } = partialStep
     dispatch({
-      type: "ADD_BOT_ACTION",
+      type: "UPDATE_BOT_STEP",
       payload: {
         messageId,
         stepId,
-        action: { id: actionId, timestamp, ...action } as Action,
+        updates: {
+          ...rest,
+          status: "COMPLETED",
+          messages: messages.map((message) => {
+            if (message.type === "TEXT") {
+              return {
+                ...message,
+                text: {
+                  ...message.text,
+                  actions: (message.text.actions || []).map((action) => ({
+                    ...action,
+                    status: "IN_PROGRESS",
+                    id: generateActionId()
+                  }))
+                }
+              }
+            }
+            return message
+          }),
+        },
       },
     })
-    return actionId
-  }
+  }, [])
 
-  function updateBotAction(
+  const updateBotAction = useCallback((
     messageId: string,
     stepId: string,
     actionId: string,
     updates: Partial<Action>,
-  ) {
+  ) => {
     dispatch({
       type: "UPDATE_BOT_ACTION",
       payload: { messageId, stepId, actionId, updates },
     })
-  }
+  }, [])
 
-  function clearMessages() {
+  const clearMessages = useCallback(() => {
     dispatch({ type: "CLEAR_MESSAGES" })
-  }
+  }, [])
 
-  function findLastUserMessage(id: string) {
+  const findLastUserMessage = useCallback((id: string) => {
     const messageIndex = state.messages.findIndex(
       (message) => message.id === id,
     )
@@ -316,11 +335,11 @@ export function useMessages(currentConversation: ConversationInfo) {
     }
     for (let i = messageIndex - 1; i >= 0; i--) {
       if (state.messages[i].type === "USER_MESSAGE") {
-        return state.messages[i] as UserMessageInput
+        return state.messages[i] as UserMessageContent
       }
     }
     return null
-  }
+  }, [state.messages])
 
   return {
     messages: state.messages,
@@ -330,7 +349,7 @@ export function useMessages(currentConversation: ConversationInfo) {
     updateUserMessage,
     addBotStep,
     updateBotStep,
-    addBotAction,
+    completeBotMessageStep,
     updateBotAction,
     clearMessages,
     findLastUserMessage,

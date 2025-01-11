@@ -10,33 +10,27 @@ import {
 import { customMarkdownRenderer } from "../../../utils/markdown"
 import { Control } from "../../../components/types"
 
-export interface Input {
+export interface Content {
   status: "COMPLETED" | "IN_PROGRESS"
-  content: string
+  text: string
 }
 
 export interface Props {
-  input: Input
+  content: Content
   control: Control
 }
 
 export function Component({
-  input: { status, content },
-  control: { save, scrollToEnd },
+  content: { status, text },
+  control: { scrollToEnd },
 }: Props) {
   useEffect(() => {
     scrollToEnd()
-  }, [content])
-
-  useEffect(() => {
-    if (status === "COMPLETED") {
-      save(content)
-    }
-  }, [status])
+  }, [text])
 
   return (
     <div className="[&>*]:mx-2 [&_*]:mt-0 [&_*]:leading-7 [&_*]:pb-2 text-lg [&_ul]:ml-[12px] [&_ol]:ml-[12px] [&_ul]:pl-[8px] [&_ol]:pl-[8px] [&_table]:border-solid [&_table]:border-t-2 [&_table]:border-l-0 [&_table]:border-b-2 [&_table]:border-r-0 [&_table]:border-gray-200 [&_table]:mb-4">
-      <MarkdownReact renderer={customMarkdownRenderer}>{content}</MarkdownReact>
+      <MarkdownReact renderer={customMarkdownRenderer}>{text}</MarkdownReact>
     </div>
   )
 }

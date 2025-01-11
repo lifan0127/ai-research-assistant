@@ -1,5 +1,5 @@
 import { Input as MarkdownInput } from "../views/features/messages/actions/Markdown"
-import { Input as SearchResultsInput } from "../views/features/messages/actions/Search"
+import { Content as SearchResultsInput } from "../views/features/messages/actions/Search"
 import { Input as QAResponseInput } from "../views/features/messages/actions/QA"
 import { Input as ErrorInput } from "../views/features/messages/actions/Error"
 import { InputProps } from "../views/features/input/Input"
@@ -80,8 +80,5 @@ export interface UserMessageProps extends InputProps {
 export type Message = UserMessageProps | BotMessageProps
 
 export type BotMessageStatus =
-  | "begin"
-  | "streaming"
-  | "done"
-  | "aborted"
-  | "error"
+  | "IN_PROGRESS"
+  | "COMPLETED"

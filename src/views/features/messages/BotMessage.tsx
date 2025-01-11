@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react"
+import React, { useState, useEffect, useRef, useMemo, memo } from "react"
 import {
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline,
@@ -21,7 +21,6 @@ import {
 import { OpenAIError } from "openai/error"
 import { anonymizeError } from "../../../models/utils/error"
 import { StopRespondingButton } from "../../components/buttons/StopRespondingButton"
-import { WidgetProps, Widget } from "./actions/Widget"
 import { MessageControl } from "./MessageControl"
 import { MessageStep } from "./steps/MessageStep"
 import { ToolStep } from "./steps/ToolStep"
@@ -29,20 +28,27 @@ import { ErrorStep } from "./steps/ErrorStep"
 import { Run } from "openai/resources/beta/threads/runs/runs"
 import { AssistantStreamEvent } from "openai/resources/beta/assistants"
 import { generateMessageId } from "../../../utils/identifiers"
-import { BotMessageInput, UserMessageInput } from "../../../typings/messages"
-import { UseMessages } from "../../../hooks/useMessages/hook"
 import {
-  MessageStepInput,
-  ToolStepInput,
-  ErrorStepInput,
+  BotMessageContent,
+  UserMessageContent,
+} from "../../../typings/messages"
+import { UseMessages } from "../../../hooks/useMessages"
+import {
+  MessageStepContent,
+  ToolStepContent,
+  ErrorStepContent,
   TextMessageContent,
 } from "../../../typings/steps"
 import { serializeError } from "serialize-error"
+import { CodeHighlighter } from "../../components/code/CodeHighlighter"
+import { message as log } from "../../../utils/loggers"
+import { update } from "lodash"
+import { RoutingOutputAction } from "../../../models/schemas/routing"
+import { Action } from "../../../typings/actions"
 
-type StepInput = MessageStepInput | ToolStepInput | ErrorStepInput
+type StepInput = MessageStepContent | ToolStepContent | ErrorStepContent
 
 export interface BotMessageControl {
-  isCopied: boolean
   setCopyId: (id?: string) => void
   setFunctionCallsCount: (count: number) => void
   addFunctionCallOutput: (tool_call_id: string, output: string) => void
@@ -51,21 +57,21 @@ export interface BotMessageControl {
   resumeScroll: () => void
   addBotStep: UseMessages["addBotStep"]
   updateBotStep: UseMessages["updateBotStep"]
-  addBotAction: UseMessages["addBotAction"]
+  completeBotMessageStep: UseMessages["completeBotMessageStep"]
   updateBotAction: UseMessages["updateBotAction"]
   findLastUserMessage: UseMessages["findLastUserMessage"]
 }
 
 interface BotMessageProps {
-  input: BotMessageInput
+  content: BotMessageContent
   control: BotMessageControl
+  isCopied: boolean
 }
 
-export function BotMessage({
-  input: { id, stream, steps },
+export const BotMessage = memo(function BotMessageContent({
+  content: { id, stream, steps },
   control: {
     setCopyId,
-    isCopied,
     setFunctionCallsCount,
     addFunctionCallOutput,
     scrollToEnd,
@@ -73,22 +79,23 @@ export function BotMessage({
     resumeScroll,
     addBotStep,
     updateBotStep,
-    addBotAction,
+    completeBotMessageStep,
     updateBotAction,
     findLastUserMessage,
   },
+  isCopied,
 }: BotMessageProps) {
+  log("Render bot message", id, { stream, steps })
   // const [vote, setVote] = useState(message.vote)
   const stepsRef = useRef(steps)
   const toolCallCountRef = useRef(0)
   const [error, setError] = useState(false)
   const [text, setText] = useState("")
-  const [action, setAction] = useState<Omit<WidgetProps, "control">>()
   const [messageId, setMessageId] = useState<string>()
   const [messageTimestamp, setMessageTimestamp] = useState<string>()
   const ref = useRef<HTMLDivElement>(null)
   // const [steps, setSteps] = useState<StepInput[]>(message.steps || [])
-
+  const [unresponsive, setUnresponsive] = useState(false)
   const lastUserMessage = findLastUserMessage(id)
   const states = lastUserMessage?.states
 
@@ -113,26 +120,15 @@ export function BotMessage({
           type: "MESSAGE_STEP",
           messages: [],
           status: "IN_PROGRESS",
-        } as Omit<MessageStepInput, "id" | "messageId" | "timestamp">)
-        // _steps = [
-        //   {
-        //     id: message.id,
-        //     type: "MESSAGE_STEP",
-        //     timestamp: new Date(message.created_at * 1000).toISOString(),
-        //     content: [],
-        //     status: "IN_PROGRESS",
-        //   },
-        // ]
-        // _toolCallCount = 0
-        // setSteps(_steps)
+        } as Omit<MessageStepContent, "id" | "messageId" | "timestamp">)
       }
 
-      const handleMessageDelta = async (
+      const handleMessageDelta = (
         _delta: MessageDelta,
         snapshot: OpenAIMessage,
       ) => {
-        const currentStep = stepsRef.current.at(-1) as MessageStepInput
-        await updateBotStep(id, currentStep.id, {
+        const currentStep = stepsRef.current.at(-1) as MessageStepContent
+        updateBotStep(id, currentStep.id, {
           messages: snapshot.content.map((message) => {
             switch (message.type) {
               case "text": {
@@ -148,37 +144,12 @@ export function BotMessage({
               }
             }
           }),
-        })
-        // if (_steps.length === 1) {
-        //   _steps = [
-        //     {
-        //       id: snapshot.id,
-        //       type: "MESSAGE_STEP",
-        //       timestamp: new Date(snapshot.created_at * 1000).toISOString(),
-        //       content: snapshot.content,
-        //       status: "IN_PROGRESS",
-        //     },
-        //   ]
-        // } else {
-        //   const previousStep = _steps.at(-2) as MessageStepInput | ToolStepInput
-        //   _steps = [
-        //     ..._steps.slice(0, -2),
-        //     { ...previousStep, status: "COMPLETED" },
-        //     {
-        //       id: snapshot.id,
-        //       type: "MESSAGE_STEP",
-        //       timestamp: new Date(snapshot.created_at * 1000).toISOString(),
-        //       content: snapshot.content,
-        //       status: "IN_PROGRESS",
-        //     },
-        //   ]
-        // }
-        // setSteps(_steps)
+        } as Partial<MessageStepContent> & Pick<MessageStepContent, "type">)
       }
 
-      const handleMessageDone = async () => {
-        const currentStep = stepsRef.current.at(-1) as MessageStepInput
-        await updateBotStep(id, currentStep.id, {
+      const handleMessageDone = () => {
+        const currentStep = stepsRef.current.at(-1) as MessageStepContent
+        completeBotMessageStep(id, currentStep.id, {
           messages: currentStep.messages.map((message) => {
             switch (message.type) {
               case "TEXT": {
@@ -198,7 +169,7 @@ export function BotMessage({
             }
           }),
           status: "COMPLETED",
-        } as Partial<MessageStepInput> & Pick<MessageStepInput, "type">)
+        })
       }
 
       const handleTextDone = async (content: Text) => {}
@@ -225,7 +196,7 @@ export function BotMessage({
                 parameters: JSON.parse(parameters),
               },
               status: "IN_PROGRESS",
-            } as Omit<ToolStepInput, "id" | "timestamp">)
+            } as Omit<ToolStepContent, "id" | "timestamp">)
             // setSteps(_steps)
             break
           }
@@ -245,7 +216,7 @@ export function BotMessage({
                 stack: serializeError(data),
               },
               status: "COMPLETED",
-            } as Omit<ErrorStepInput, "id" | "timestamp">)
+            } as Omit<ErrorStepContent, "id" | "timestamp">)
             toolCallCountRef.current = 0
             console.log("thread.run.failed", { event, data })
             break
@@ -326,6 +297,16 @@ export function BotMessage({
     }
   }, [stream])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (steps.length === 0) {
+        setUnresponsive(true)
+      }
+    }, 10000)
+
+    return () => clearTimeout(timer)
+  }, [steps])
+
   function saveMessageStep(stepContent: any) {
     console.log({ stepContent })
     const { stream, messageSlice, ...messageContent } = message
@@ -402,39 +383,61 @@ export function BotMessage({
     stream?.abort()
   }
 
+  const messageStepControl = useMemo(
+    () => ({
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      updateBotAction,
+    }),
+    [scrollToEnd, pauseScroll, resumeScroll, updateBotAction],
+  )
+
+  const toolStepControl = useMemo(
+    () => ({
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      updateBotStep,
+      addFunctionCallOutput,
+    }),
+    [
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      updateBotStep,
+      addFunctionCallOutput,
+    ],
+  )
+
+  const errorStepControl = useMemo(
+    () => ({
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+    }),
+    [scrollToEnd, pauseScroll, resumeScroll],
+  )
+
   if (steps.length === 0) {
     return (
       <div className="p-[15px]">
-        <div className="dot-flashing "></div>
+        {unresponsive ? (
+          <div>
+            I'm sorry, I'm experiencing some connectivity issue. Please try
+            again later.
+          </div>
+        ) : (
+          <div className="dot-flashing "></div>
+        )}
       </div>
     )
-  }
-
-  const control = {
-    scrollToEnd,
-    pauseScroll,
-    resumeScroll,
-  }
-
-  const messageStepControl = {
-    ...control,
-    save: saveMessageStep,
-    updateBotAction,
-  }
-
-  const toolStepControl = {
-    ...control,
-    updateBotStep,
-    addFunctionCallOutput,
-  }
-
-  const errorStepControl = {
-    ...control,
   }
 
   return (
     <div className="relative self-start w-auto max-w-full sm:max-w-[85%] my-2 pb-2">
       {steps.map((step) => {
+        // return <CodeHighlighter code={JSON.stringify(step)} language="json" />
         switch (step.type) {
           case "MESSAGE_STEP": {
             return (
@@ -442,7 +445,7 @@ export function BotMessage({
                 ref={ref}
                 className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words"
               >
-                <MessageStep input={step} control={messageStepControl} />
+                <MessageStep content={step} control={messageStepControl} />
                 <div className="flex pt-3">
                   {step.status === "IN_PROGRESS" ? (
                     <div className="flex-none flex space-x-2">
@@ -515,7 +518,7 @@ export function BotMessage({
             )
           }
           case "TOOL_STEP": {
-            return <ToolStep input={step} control={toolStepControl} />
+            return <ToolStep content={step} control={toolStepControl} />
           }
           case "ERROR_STEP": {
             return (
@@ -523,7 +526,7 @@ export function BotMessage({
                 ref={ref}
                 className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words"
               >
-                <ErrorStep input={step} control={control} />
+                <ErrorStep content={step} control={errorStepControl} />
               </div>
             )
           }
@@ -531,4 +534,4 @@ export function BotMessage({
       })}
     </div>
   )
-}
+})

@@ -2,7 +2,7 @@ import { uniq, cloneDeep, flatten } from "lodash"
 import { getItemAndBestAttachment } from "./item"
 import retry, { Options } from "async-retry"
 import { compileItemInfo, ItemInfo, getItemsAndBestAttachments } from "./item"
-import { ItemMode } from "./types"
+import { ItemMode } from "./item"
 import { Query } from "../../typings/actions"
 
 export interface SearchCondition {
@@ -124,9 +124,9 @@ async function recursiveSearch(query: Query): Promise<number[]> {
   }
 }
 
-export async function nestedSearch(query: Query) {
+export async function nestedSearch(query: Query, mode: ItemMode) {
   const itemIds: number[] = await recursiveSearch(query)
-  const results = await getItemsAndBestAttachments(itemIds, "preview")
+  const results = await getItemsAndBestAttachments(itemIds, mode)
 
   return { count: itemIds.length, results }
 }

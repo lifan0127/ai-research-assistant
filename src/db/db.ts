@@ -1,13 +1,24 @@
 import Dexie, { Table } from "dexie"
-import { MessageStore, MessageInput } from "../typings/messages"
+import { FileObject } from "openai/resources"
+import { MessageStore, MessageContent } from "../typings/messages"
 
 export type ConversationDBSchema = Omit<MessageStore, "messages" | "pendingUpdate" | "pendingDelete">
 
-export type MessageDBSchema = Omit<MessageInput, "stream">
+export type MessageDBSchema = Omit<MessageContent, "stream">
+
+export type FileDBSchema = {
+  id: string
+  vectorStoreIds: string[]
+  itemId: string
+  parentItemId: string
+  bib: string
+  timestamp: string
+}
 
 class Database extends Dexie {
   public conversations!: Table<ConversationDBSchema, string>
   public messages!: Table<MessageDBSchema, string>
+  public files!: Table<FileDBSchema, string>
 
   constructor() {
     super("aria-database")
@@ -16,6 +27,7 @@ class Database extends Dexie {
       conversations: "id",
       // The first field is the primary key. Additional fields are indexes.
       messages: "id, conversationId, timestamp",
+      files: "id, vectorStoreIds, timestamp",
     })
   }
 }
