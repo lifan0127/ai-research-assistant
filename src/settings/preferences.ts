@@ -1,7 +1,28 @@
 import { config, homepage } from "../../package.json"
 import { getString } from "../utils/locale"
+import React from "react"
+import ReactDOM from "react-dom"
+import LocalAIModelSelection from "../LocalAIModelSelection"
 
-export function registerPrefs() {
+interface AddonPreferences {
+  window: Window | null
+  llmProvider: "openai" | "localai"
+  localAISettings: {
+    LocalAIBasePath?: string
+    LocalAIApiKey?: string
+    LocalAISelectedModel?: string
+  }
+}
+
+// Declare global addon object
+declare const addon: {
+  data: {
+    prefs: AddonPreferences
+  }
+}
+
+// Register the preferences pane with Zotero
+export function registerPrefs(): void {
   Zotero.PreferencePanes.register({
     pluginID: config.addonID,
     src: rootURI + "chrome/content/preferences.xhtml",
@@ -11,189 +32,122 @@ export function registerPrefs() {
   })
 }
 
-export function registerPrefsScripts(_window: Window) {
-  // This function is called when the prefs window is opened
-  // See addon/chrome/content/preferences.xul onpaneload
+// Initialize the preferences pane when opened
+export function registerPrefsScripts(_window: Window): void {
   if (!addon.data.prefs) {
     addon.data.prefs = {
       window: _window,
+      llmProvider: "openai", // Default to OpenAI
+      localAISettings: {
+        LocalAIBasePath: "",
+        LocalAIApiKey: "",
+        LocalAISelectedModel: "",
+      },
     }
   } else {
     addon.data.prefs.window = _window
   }
+
   updatePrefsUI()
   bindPrefEvents()
 }
 
-async function updatePrefsUI() {
-  // You can initialize some UI elements on prefs window
-  // with addon.data.prefs.window.document
-  // Or bind some events to the elements
-  const renderLock = ztoolkit.getGlobal("Zotero").Promise.defer()
-  // const tableHelper = new ztoolkit.VirtualizedTable(addon.data.prefs?.window!)
-  //   .setContainerId(`${config.addonRef}-table-container`)
-  //   .setProp({
-  //     id: `${config.addonRef}-prefs-table`,
-  //     // Do not use setLocale, as it modifies the Zotero.Intl.strings
-  //     // Set locales directly to columns
-  //     columns: addon.data.prefs?.columns.map(column =>
-  //       Object.assign(column, {
-  //         label: getString(column.label) || column.label,
-  //       })
-  //     ),
-  //     showHeader: true,
-  //     multiSelect: true,
-  //     staticColumns: true,
-  //     disableFontSizeScaling: true,
-  //   })
-  //   .setProp('getRowCount', () => addon.data.prefs?.rows.length || 0)
-  //   .setProp(
-  //     'getRowData',
-  //     index =>
-  //       addon.data.prefs?.rows[index] || {
-  //         title: 'no data',
-  //         detail: 'no data',
-  //       }
-  //   )
-  //   // Show a progress window when selection changes
-  //   .setProp('onSelectionChange', selection => {
-  //     new ztoolkit.ProgressWindow(config.addonName)
-  //       .createLine({
-  //         text: `Selected line: ${addon.data.prefs?.rows
-  //           .filter((v, i) => selection.isSelected(i))
-  //           .map(row => row.title)
-  //           .join(',')}`,
-  //         progress: 100,
-  //       })
-  //       .show()
-  //   })
-  //   // When pressing delete, delete selected line and refresh table.
-  //   // Returning false to prevent default event.
-  //   .setProp('onKeyDown', (event: KeyboardEvent) => {
-  //     if (event.key == 'Delete' || (Zotero.isMac && event.key == 'Backspace')) {
-  //       addon.data.prefs!.rows =
-  //         addon.data.prefs?.rows.filter((v, i) => !tableHelper.treeInstance.selection.isSelected(i)) || []
-  //       tableHelper.render()
-  //       return false
-  //     }
-  //     return true
-  //   })
-  //   // For find-as-you-type
-  //   .setProp('getRowString', index => addon.data.prefs?.rows[index].title || '')
-  //   // Render the table.
-  //   .render(-1, () => {
-  //     renderLock.resolve()
-  //   })
-  await renderLock.promise
-  ztoolkit.log("Preference table rendered!")
+// Render the preferences pane UI
+async function updatePrefsUI(): Promise<void> {
+  const prefsWindow = addon.data.prefs.window
+  if (!prefsWindow) {
+    console.error("Preferences window is not available.")
+    return
+  }
+
+  // Get the container element for the preferences pane
+  const container = prefsWindow.document.querySelector(
+    `#zotero-prefpane-${config.addonRef}-container`
+  )
+  if (!container) {
+    console.error("Preferences container not found!")
+    return
+  }
+
+  // Render the React UI
+  ReactDOM.render(
+    <div className="flex flex-col gap-4">
+      {/* LLM Provider Selection */}
+      <h3>{getString("prefs-llm-provider-title")}</h3>
+      <label htmlFor="llm-provider">{getString("prefs-llm-provider-label")}</label>
+      <select
+        id="llm-provider"
+        value={addon.data.prefs.llmProvider}
+        onChange={(e) => {
+          const selectedProvider = e.target.value as "openai" | "localai"
+          addon.data.prefs.llmProvider = selectedProvider
+          updateLocalAIVisibility(selectedProvider === "localai")
+        }}
+        className="border border-gray-300 rounded-lg p-2"
+      >
+        <option value="openai">{getString("prefs-llm-provider-openai")}</option>
+        <option value="localai">{getString("prefs-llm-provider-localai")}</option>
+      </select>
+
+      {/* LocalAI Settings */}
+      <div
+        id="localai-settings"
+        style={{ display: addon.data.prefs.llmProvider === "localai" ? "block" : "none" }}
+      >
+        <LocalAIModelSelection
+          settings={addon.data.prefs.localAISettings}
+          onUpdateSettings={(updatedSettings) => {
+            addon.data.prefs.localAISettings = {
+              ...addon.data.prefs.localAISettings,
+              ...updatedSettings,
+            }
+          }}
+        />
+      </div>
+    </div>,
+    container
+  )
 }
 
-function bindPrefEvents() {
-  // addon.data
-  //   .prefs!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
-  //   ?.addEventListener('command', e => {
-  //     ztoolkit.log(e)
-  //     addon.data.prefs!.window.alert(`Successfully changed to ${(e.target as XUL.Checkbox).checked}!`)
-  //   })
-  // addon.data
-  //   .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-input`)
-  //   ?.addEventListener('change', e => {
-  //     ztoolkit.log(e)
-  //     addon.data.prefs!.window.alert(`Successfully changed to ${(e.target as HTMLInputElement).value}!`)
-  //   })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-0`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI Model to take effect.`,
+// Toggle the visibility of the LocalAI-specific settings
+function updateLocalAIVisibility(isLocalAI: boolean): void {
+  const prefsWindow = addon.data.prefs.window
+  if (!prefsWindow) {
+    console.error("Preferences window is not available.")
+    return
+  }
+
+  const localAISettingsDiv = prefsWindow.document.querySelector("#localai-settings")
+  if (localAISettingsDiv) {
+    localAISettingsDiv.style.display = isLocalAI ? "block" : "none"
+  }
+}
+
+// Bind events for non-React elements
+function bindPrefEvents(): void {
+  const prefsWindow = addon.data.prefs.window
+  if (!prefsWindow) {
+    console.error("Preferences window is not available.")
+    return
+  }
+
+  // Example event binding for OpenAI settings
+  prefsWindow.document
+    .querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_API_KEY`)
+    ?.addEventListener("change", (e: Event) => {
+      const target = e.target as HTMLInputElement
+      addon.data.prefs.window?.alert(
+        `Please restart Zotero for your new OpenAI API Key (${target.value}) to take effect.`
       )
     })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-1`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI Model to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-2`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI Model to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-3`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI Model to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_BASE_URL`,
-    )
-    ?.addEventListener("change", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI Base URL to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-shift`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new shortcut combo to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-ctrl-shift`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new shortcut combo to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-SHORTCUT_MODIFIER-alt-shift`,
-    )
-    ?.addEventListener("command", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new shortcut combo to take effect.`,
-      )
-    })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-SHORTCUT_KEY`,
-    )
-    ?.addEventListener("change", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new shortcut combo to take effect.`,
-      )
-    })
-  // addon.data
-  //   .prefs!!.window.document.querySelector(`#zotero-prefpane-${config.addonRef}-OPENAI_MODEL-2`)
-  //   ?.addEventListener('command', e => {
-  //     addon.data.prefs!.window.alert(`Please restart Zotero for your new OPENAI Model to take effect.`)
-  //   })
-  addon.data
-    .prefs!!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-OPENAI_API_KEY`,
-    )
-    ?.addEventListener("change", (e) => {
-      addon.data.prefs!.window.alert(
-        `Please restart Zotero for your new OPENAI API Key to take effect.`,
+
+  // Example event binding for LocalAI settings
+  prefsWindow.document
+    .querySelector(`#zotero-prefpane-${config.addonRef}-LocalAI_BASE_URL`)
+    ?.addEventListener("change", (e: Event) => {
+      const target = e.target as HTMLInputElement
+      addon.data.prefs.window?.alert(
+        `Please restart Zotero for your new LocalAI Base URL (${target.value}) to take effect.`
       )
     })
 }
