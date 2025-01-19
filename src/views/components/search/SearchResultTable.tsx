@@ -7,7 +7,7 @@ import {
   useReactTable,
   Row,
 } from "@tanstack/react-table"
-import { nestedSearch } from "../../../apis/zotero/search"
+import { recursiveSearchAndCompileResults } from "../../../apis/zotero/search"
 import { ItemButton } from "../buttons/ItemButton"
 import type { transformPreviewResult } from "../../../apis/zotero/item"
 
@@ -28,6 +28,23 @@ const columns = [
     header: "Year",
     cell: ({ cell }) => cell.getValue() || "–",
   }),
+  // Note: The following doesn't work as useRef becomes null in ItemButtons
+  // columnHelper.accessor('links', {
+  //   header: '',
+  //   cell: props => {
+  //     const { item, attachment } = props.getValue()
+  //     const ref = useRef<HTMLButtonElement>(null)
+  //     return (
+  //       <div className="whitespace-nowrap">
+  //         <button ref={ref} onClick={() => console.log({ ref })}>
+  //           Test
+  //         </button>
+  //         <ItemButton item={item} mode="item" />
+  //         {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
+  //       </div>
+  //     )
+  //   },
+  // }),
 ]
 
 function createLinks(row: Row<ReturnType<typeof transformPreviewResult>>) {
@@ -43,7 +60,9 @@ function createLinks(row: Row<ReturnType<typeof transformPreviewResult>>) {
   )
 }
 
-type SearchResultTableProps = Awaited<ReturnType<typeof nestedSearch>>
+type SearchResultTableProps = Awaited<
+  ReturnType<typeof recursiveSearchAndCompileResults>
+>
 
 export function SearchResultTable({ count, results }: SearchResultTableProps) {
   const table = useReactTable({

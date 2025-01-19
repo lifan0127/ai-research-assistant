@@ -1,8 +1,8 @@
 import { marked } from "marked"
 import * as Markdown from "../features/messages/actions/Markdown"
-import * as SearchResults from "../features/messages/actions/Search"
-import * as QAResponse from "../features/messages/actions/QA"
-import * as Error from "../features/messages/actions/Error"
+import * as SearchResults from "../features/messages/actions/SearchAction"
+import * as QAResponse from "../features/messages/actions/QAAction"
+import * as Error from "../features/messages/actions/ErrorAction"
 import { Message } from "../../typings/legacyMessages"
 import { config } from "../../../package.json"
 import { createCollection } from "../../apis/zotero/collection"
@@ -93,7 +93,7 @@ export async function chatHistoryToNote(messages: Message[]) {
               }
               case "SEARCH_RESULTS": {
                 const { htmlContent } = await SearchResults.compileContent(
-                  input as SearchResults.Props,
+                  input as SearchResults.SearchActionProps,
                 )
                 return (
                   "<div><h3>" +
@@ -105,7 +105,7 @@ export async function chatHistoryToNote(messages: Message[]) {
               }
               case "QA_RESPONSE": {
                 const { htmlContent } = QAResponse.compileContent(
-                  input as QAResponse.Props,
+                  input as QAResponse.QAActionProps,
                 )
                 return (
                   "<div><h3>" +
@@ -117,7 +117,7 @@ export async function chatHistoryToNote(messages: Message[]) {
               }
               case "ERROR": {
                 const { htmlContent } = Error.compileContent(
-                  input as Error.Props,
+                  input as Error.ErrorActionProps,
                 )
                 return (
                   "<div><h3>" +

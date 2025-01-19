@@ -3,3 +3,4 @@ export const FEEDBACK_URL = 'https://zhy554vpjozvn75xcu7pz6fx2a0eeopz.lambda-url
 export const ARIA_LIBRARY = 'Aria AI Research Assistant'
 export const DEFAULT_BIB_STYLE = 'http://www.zotero.org/styles/american-chemical-society'
 export const INPUT_CHARACTER_LIMIT = 4000
+export const FILE_UPLOAD_CONCURRENCY = 5

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
-import * as Markdown from "./Markdown"
+import React, { useState, useEffect, useMemo, useRef, memo } from "react"
 import { marked } from "marked"
 import { DocumentIcon } from "@heroicons/react/24/outline"
 import {
@@ -21,47 +20,71 @@ import {
   noteButtonDef,
 } from "../../../components/buttons/types"
 import { QAActionControl, Query } from "../../../../typings/actions"
-import { NestedQuery, nestedSearch } from "../../../../apis/zotero/search"
 import stringify from "json-stringify-pretty-compact"
 import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import { useAssistant } from "../../../../hooks/useAssistant"
 import { BotMessageStatus } from "../../../../typings/legacyMessages"
-import { AnnotatedText } from "../../../components/annotations/AnnotatedText"
+import {
+  AnnotatedText,
+  Markdown,
+} from "../../../components/annotations/AnnotatedText"
+import { action as log } from "../../../../utils/loggers"
+import { recursiveSearch } from "../../../../apis/zotero/search"
+import { getItemsAndIndexAttachments } from "../../../../apis/zotero/item"
+import type {
+  FileForIndexing,
+  FilePreparationStatus,
+} from "../../../../typings/files"
+import { FileUploadIcon, FileIndexIcon } from "../../../icons/file"
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
+import { FileStatus } from "../../../components/files/FileStatus"
+import { FilePreparation } from "../../../components/files/FirePreparation"
 
 type StepContent = MessageStepContent | ToolStepContent | ErrorStepContent
 
-export interface Content {
+export interface QAActionContent {
   status: "COMPLETED" | "IN_PROGRESS"
   id: string
   messageId: string
   stepId: string
-  question: string
-  fulltext: boolean
+  input: {
+    question: string
+    fulltext: boolean
+  }
   output?: any
 }
 
-export interface Props {
-  content: Content
-  context: { query: NestedQuery }
+export interface QAActionProps {
+  content: QAActionContent
+  context: { query: Query }
   control: QAActionControl
 }
 
-export function Component({
-  content: { messageId, stepId, id, question, fulltext, output },
+export const QAAction = memo(function QAActionComponent({
+  content: {
+    messageId,
+    stepId,
+    id,
+    input: { question, fulltext },
+    output,
+  },
   context: { query },
-  control: { scrollToEnd, updateBotAction },
-}: Props) {
-  const [showDevOutput, setShowDevOutput] = useState(false)
+  control: { scrollToEnd, updateBotAction, pauseScroll },
+}: QAActionProps) {
   const { assistant } = useAssistant()
   const [fulltextReady, setFullTextReady] = useState(false)
-  const [searchResults, setSearchResults] =
-    useState<Awaited<ReturnType<typeof nestedSearch>>>()
   const [useFulltext, setUseFulltext] = useState(fulltext)
+  const [files, setFiles] = useState<FileForIndexing[]>()
 
   useEffect(() => {
     async function searchZotero(query: Query | undefined) {
       if (query) {
-        setSearchResults(await nestedSearch(query, "qa"))
+        const itemIds = await recursiveSearch(query)
+        const results = await getItemsAndIndexAttachments(
+          itemIds,
+          assistant.currentVectorStore!,
+        )
+        setFiles(results)
       }
     }
     if (!output) {
@@ -74,6 +97,10 @@ export function Component({
       return
     }
 
+    if (fulltext && !fulltextReady) {
+      return
+    }
+    log("create QA stream")
     const stream = assistant.streamQA(question)
 
     const handleMessageCreated = (message: OpenAIMessage) => {
@@ -84,14 +111,17 @@ export function Component({
       _delta: MessageDelta,
       snapshot: OpenAIMessage,
     ) => {
-      updateBotAction(messageId, stepId, id, { output: snapshot.content })
-      // console.log(stringify(snapshot.content))
+      updateBotAction(messageId, stepId, id, {
+        output: snapshot.content,
+      })
+      log(stringify({ messageId, stepId, id, output: snapshot.content }))
       // _messageContent = snapshot.content
       // setMessage(_messageContent)
     }
 
     const handleMessageDone = () => {
       // setStatus("done")
+      log("QA stream done")
     }
 
     stream
@@ -100,63 +130,69 @@ export function Component({
       .on("messageDone", handleMessageDone)
 
     return () => {
+      log("unmount")
       stream
         .off("messageCreated", handleMessageCreated)
         .off("messageDelta", handleMessageDelta)
         .off("messageDone", handleMessageDone)
     }
-  }, [question, output, useFulltext])
+  }, [question, fulltext, fulltextReady])
 
-  if (!output) {
-    return (
-      <div className="p-[15px]">
-        <div className="dot-flashing "></div>
-      </div>
-    )
+  function handleFullTextComplete() {
+    setFullTextReady(true)
   }
 
+  // if (!searchResults) {
+  //   return (
+  //     <div className="p-[15px]">
+  //       <div className="dot-flashing "></div>
+  //       <div>Searching your Zotero libraries ...</div>
+  //     </div>
+  //   )
+  // }
+  // log("Search results", searchResults)
+
+  if (fulltext && Array.isArray(files) && files.length === 0) {
+    return <Markdown content={"No available files to answer this question."} />
+  }
+
+  // log("QA output", output)
+  // return <pre>{JSON.stringify(output)}</pre>
   return (
     <div>
-      {__env__ === "development" ? (
-        <div>
-          <DocumentIcon
-            title={JSON.stringify({ question, query }, null, 2)}
-            className="h-6 w-6 text-gray-200 absolute right-2"
-            onClick={() => setShowDevOutput(!showDevOutput)}
-          />
-          {showDevOutput ? (
-            <div className="bg-slate-50 z-10 text-xs absolute right-10">
-              <CodeHighlighter
-                code={stringify({ question, query })}
-                language="json"
-                className="text-sm"
-              />
-            </div>
-          ) : null}
-        </div>
+      {fulltext && !fulltextReady && files ? (
+        <FilePreparation
+          files={files}
+          onComplete={handleFullTextComplete}
+          pauseScroll={pauseScroll}
+        />
       ) : null}
-      <CodeHighlighter
-        code={stringify(output)}
+      {/* <CodeHighlighter
+        code={stringify({ ...output })}
         language="json"
         className="text-sm"
-      />
-      <div>
-        {output.map((item, index) => {
-          switch (item.type) {
-            case "text": {
-              return <AnnotatedText key={index} textContent={item.text} />
+      /> */}
+      {output ? (
+        <div>
+          {output.map((item: MessageContent, index: number) => {
+            switch (item.type) {
+              case "text": {
+                return <AnnotatedText key={index} textContent={item.text} />
+              }
+              default: {
+                new Error(`Unsupported message type: ${item.type}`)
+              }
             }
-            default: {
-              new Error(`Unsupported message type: ${item.type}`)
-            }
-          }
-        })}
-      </div>
+          })}
+        </div>
+      ) : null}
     </div>
   )
-}
+})
 
-export function compileContent({ input: { answer, sources = [] } }: Props) {
+export function compileContent({
+  input: { answer, sources = [] },
+}: QAActionProps) {
   const textContent =
     sources.length === 0
       ? answer
@@ -171,7 +207,7 @@ ${sources.map(({ bib }) => bib).join("\n")}
   return { textContent, htmlContent }
 }
 
-function copy(props: Props) {
+function copy(props: QAActionProps) {
   const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard()
     .addText(textContent, "text/unicode")
@@ -179,7 +215,7 @@ function copy(props: Props) {
     .copy()
 }
 
-async function createNote({ input: { answer, sources } }: Props) {
+async function createNote({ input: { answer, sources } }: QAActionProps) {
   const sourceIds = sources.map(({ item }) => item.id)
   const sourceItems = await Zotero.Items.getAsync(sourceIds)
   const citations = sourceItems.map((item) => ({

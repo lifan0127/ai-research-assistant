@@ -28,6 +28,7 @@ export interface MessageStore {
   metadata: {
     vendor: "openai"
     threadId: string
+    vectorStoreId: string
   }
   messages: MessageContent[]
   pendingUpdate: string[]

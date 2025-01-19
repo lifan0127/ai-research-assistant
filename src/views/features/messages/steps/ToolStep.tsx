@@ -71,8 +71,8 @@ export function ToolStep({ content, control }: ToolStepProps) {
       <CSSTransition
         nodeRef={ref}
         in={expanded}
-        timeout={200}
-        classNames="penal-24"
+        timeout={300}
+        classNames="collapsible-panel"
         unmountOnExit
       >
         <div ref={ref} className="px-6 py-4 rounded-md bg-white text-base my-1">

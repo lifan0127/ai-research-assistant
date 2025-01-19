@@ -1,13 +1,12 @@
-function log(...messages: any) {
-  ztoolkit.log("[aria/zotero api]", ...messages)
-}
+import { zotero as log } from "../../utils/loggers"
+import { FileForIndexing } from "../../typings/files"
 
 export type ItemMode = 'search' | 'preview' | 'qa' | 'citation'
 
 export interface ItemInfo {
   id: number
   url: string
-  type: Zotero.Item.ItemType
+  type: string
   title?: string
   creators?: string
   year?: number
@@ -114,11 +113,31 @@ export function transformPreviewResult(item: ItemInfo, attachment?: AttachmentIn
   }
 }
 
+export async function getItemsAndIndexAttachments(itemIds: number[], vectorStoreId: string): Promise<FileForIndexing[]> {
+  const items = await Zotero.Items.getAsync(itemIds)
+  const results = await Promise.all(items.map(async item => {
+    // Check if the item attachment has already been indexed
+    const fileInfo = ztoolkit.ExtraField.getExtraField(item, "aria.file")
+    if (fileInfo) {
+      const [attachmentId, fileId, vectorStoreStr] = fileInfo.split(";")
+      const attachment = await Zotero.Items.getAsync(parseInt(attachmentId))
+      if (fileId) {
+        return { item, attachment, file: fileId, index: vectorStoreStr ? (vectorStoreStr.includes(vectorStoreId) ? vectorStoreId : undefined) : undefined }
+      }
+      return { item, attachment, file: undefined, index: undefined }
+    }
+    const attachment = await item.getBestAttachment()
+    return { item, attachment: attachment || undefined, file: undefined, index: undefined }
+  }))
+  // Skip items without attachments
+  return results.filter(({ attachment }) => attachment)
+}
+
 export async function getItemsAndBestAttachments(itemIds: number[], mode: ItemMode) {
   const items = await Zotero.Items.getAsync(itemIds)
   return Promise.all(items.map(async item => {
-    const itemInfo = compileItemInfo(item, mode)
     const attachment = await item.getBestAttachment()
+    const itemInfo = compileItemInfo(item, mode)
     const attachmentInfo: AttachmentInfo | undefined = attachment ? compileAttachmentInfo(attachment) : undefined
     switch (mode) {
       case "preview": {
@@ -130,7 +149,6 @@ export async function getItemsAndBestAttachments(itemIds: number[], mode: ItemMo
           return { item: itemInfo }
         }
       }
-      case "qa":
       default: {
         return { item: itemInfo }
       }

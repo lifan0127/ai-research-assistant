@@ -41,8 +41,13 @@ import { useAssistant } from "../hooks/useAssistant"
 import { useScroll } from "../hooks/useScroll"
 import { AssistantStream } from "openai/lib/AssistantStream"
 import { useFunctionCalls } from "../hooks/useFunctionCalls"
-import { nestedSearch } from "../apis/zotero/search"
+import { recursiveSearchAndCompileResults } from "../apis/zotero/search"
 import { SearchStrategy } from "./components/search/SearchStrategy"
+import { FilePreparation } from "./components/files/FirePreparation"
+import { getItemsAndIndexAttachments } from "../apis/zotero/item"
+import { FileUploader } from "./components/files/FileUploader"
+import { FileIndexer } from "./components/files/FileIndexer"
+import { FileRetriever } from "./components/files/FileRetriever"
 
 export function log(...messages: any) {
   if (__env__ === "development") {
@@ -103,6 +108,7 @@ export function Container() {
 
   useEffect(() => {
     assistant.setThread(currentConversation.metadata.threadId)
+    assistant.setVectorStore(currentConversation.metadata.vectorStoreId)
   }, [currentConversation])
 
   useEffect(() => {
@@ -276,11 +282,13 @@ export function Container() {
     [addUserMessage, addBotMessage, assistant, setUserInput],
   )
 
+  const [testData, setTestData] = useState<any>()
+
   async function handleTest() {
-    const vectorStoreId = getPref("CURRENT_VECTORSTORE")
-    console.log({ form: new FormData(), type: typeof FormData })
-    const item = await Zotero.Items.getAsync(120)
-    console.log("item", item.getDisplayTitle())
+    // const vectorStoreId = getPref("CURRENT_VECTORSTORE")
+    // console.log({ form: new FormData(), type: typeof FormData })
+    // const item = await Zotero.Items.getAsync(120)
+    // console.log("item", item.getDisplayTitle())
     // const attachment = (await item.getBestAttachment()) as Zotero.Item
     // console.log("attachment file name", attachment.attachmentFilename)
     // const fileId = await assistant.uploadFile(item, attachment, "assistants")
@@ -290,6 +298,58 @@ export function Container() {
     // stream.on("messageDelta", (_delta: any, snapshot: any) => {
     //   console.log("messageDelta", snapshot.content[0].text)
     // })
+    // const itemIds = [703, 709, 783, 786, 981, 1017, 1202]
+    // itemIds.forEach((id) => {
+    //   const item = Zotero.Items.get(id)
+    //   const updatedFields = new Map()
+    //   Object.entries(ztoolkit.ExtraField.getExtraFields(item)).forEach(
+    //     ([key, value]) => {
+    //       if (key !== "aria.file") {
+    //         updatedFields.set(key, value)
+    //       }
+    //     },
+    //   )
+    //   ztoolkit.ExtraField.replaceExtraFields(item, updatedFields)
+    // })
+    // const results = await getItemsAndIndexAttachments(
+    //   itemIds,
+    //   assistant.currentVectorStore!,
+    // )
+    // setTestData(results)
+    setTestData({
+      itemIds: [703, 709, 783, 786, 981, 1017, 1202],
+      query: {
+        boolean: "OR",
+        subqueries: [
+          {
+            conditions: [
+              {
+                condition: "creator",
+                operator: "contains",
+                value: "Andrew White",
+              },
+            ],
+            match: "all",
+            title: "Papers by Andrew White",
+          },
+          {
+            conditions: [
+              {
+                condition: "creator",
+                operator: "contains",
+                value: "Andrew D. White",
+              },
+            ],
+            match: "all",
+            title: "Papers by Andrew D. White",
+          },
+        ],
+      },
+    })
+    // const uploadFiles = results.filter(({ file }) => !file)
+    // const indexFiles = results.filter(({ file, index }) => !!file && !index)
+    // setTestData({ uploadFile: uploadFiles, indexFile: indexFiles })
+    // console.log({ uploadFile: uploadFiles, indexFile: indexFiles })
   }
 
   const userMessageControl: Omit<UserMessageControl, "isCopied" | "isEditing"> =
@@ -365,13 +425,38 @@ export function Container() {
             "linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 100%)",
         }}
       >
-        <button onClick={handleTest}>Test File Search</button>
         <InfoPanel
           promptLibrary={
             <PromptLibrary setPromptTemplate={setPromptTemplate} />
           }
           faq={<FAQ />}
         />
+        <button onClick={handleTest}>Test File Indexer</button>
+        <div className="relative self-start w-full sm:max-w-[85%] my-2 pb-2">
+          {testData ? (
+            // <FileUploader
+            //   onUpdate={(status) => log("File uploading status", status)}
+            //   onComplete={(files) => log("File uploading complete", files)}
+            //   files={testData?.uploadFile}
+            // />
+            // <FileIndexer
+            //   onComplete={(files) => log("File indexing complete", files)}
+            //   files={testData?.indexFile}
+            // />
+            // <FilePreparation
+            //   files={testData}
+            //   onComplete={() => log("File preparation complete")}
+            //   pauseScroll={pauseScroll}
+            // />
+            <FileRetriever
+              itemIds={testData.itemIds}
+              query={testData.query}
+              onComplete={(files) =>
+                console.log("File retrieval complete", files)
+              }
+            />
+          ) : null}
+        </div>
         {messages.map((message, index) => {
           switch (message.type) {
             case "USER_MESSAGE": {

@@ -11,9 +11,9 @@ import { customMarkdownRenderer } from "../../../utils/markdown"
 import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
 import * as Markdown from "../actions/Markdown"
-import * as Search from "../actions/Search"
-import * as QA from "../actions/QA"
-import * as Error from "../actions/Error"
+import { SearchAction } from "../actions/SearchAction"
+import { QAAction, QAActionContent } from "../actions/QAAction"
+import { ErrorAction } from "../actions/ErrorAction"
 import { step as log } from "../../../../utils/loggers"
 import { Action } from "../../../../typings/actions"
 import { TextMessageContent } from "../../../../typings/steps"
@@ -73,7 +73,7 @@ export function MessageStep({
                       //   language="json"
                       //   code={stringify({ action, context })}
                       // />
-                      <Search.Component
+                      <SearchAction
                         content={
                           {
                             messageId,
@@ -98,15 +98,16 @@ export function MessageStep({
                       //   language="json"
                       //   code={stringify(action)}
                       // />
-                      <QA.Component
+                      <QAAction
                         content={
                           {
                             id: action.id,
                             messageId,
                             stepId,
                             status: "IN_PROGRESS",
-                            ...action.content,
-                          } as QA.Content
+                            input: action.input,
+                            output: action.output,
+                          } as QAActionContent
                         }
                         context={context}
                         control={{
@@ -118,7 +119,7 @@ export function MessageStep({
                   }
                   // case "error": {
                   //   return (
-                  //     <Error.Component
+                  //     <ErrorAction
                   //       input={
                   //         {
                   //           status: "IN_PROGRESS",
@@ -133,7 +134,7 @@ export function MessageStep({
                   // }
                   // default: {
                   //     return (
-                  //       <Error.Component
+                  //       <ErrorAction
                   //         input={
                   //           {
                   //             status: "COMPLETED",

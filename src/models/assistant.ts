@@ -18,12 +18,7 @@ import { RunStep } from "openai/resources/beta/threads/runs/steps"
 import { FilePurpose } from "openai/resources"
 import { Uploadable, FileLike, BlobLike } from "openai/uploads"
 import { Text } from "openai/resources/beta/threads/messages"
-
-export function log(...messages: any) {
-  if (__env__ === "development") {
-    ztoolkit.log("[aria/assistant]", ...messages)
-  }
-}
+import { assistant as log } from "../utils/loggers"
 
 interface AssistantIds {
   routing: string
@@ -121,10 +116,6 @@ export class ResearchAssistant {
     attachment: Zotero.Item,
     purpose: FilePurpose,
   ) {
-    const fileId = ztoolkit.ExtraField.getExtraField(item, "aria.file.id")
-    if (fileId) {
-      return fileId
-    }
     const filePath = (await attachment.getFilePathAsync()) as string
     const fileContent = await IOUtils.read(filePath)
     const file = new File([fileContent], attachment.attachmentFilename, {
@@ -133,29 +124,45 @@ export class ResearchAssistant {
 
     const response = await this.openai.files.create({ file, purpose })
     const newFileId = `${purpose}/${response.id}`
-    ztoolkit.ExtraField.setExtraField(item, "aria.file.id", newFileId)
     return newFileId
   }
 
-  async indexFile(item: Zotero.Item, fileId: string, vectorStoreId: string) {
-    const vectorStoreIds = JSON.parse(
-      ztoolkit.ExtraField.getExtraField(item, "aria.vectorStore.ids") || "[]",
+  registerUploadedFile(item: Zotero.Item, attachment: Zotero.Item, fileId: string) {
+    ztoolkit.ExtraField.setExtraField(
+      item,
+      "aria.file",
+      `${attachment.id};${fileId}`,
     )
-    if (vectorStoreIds.includes(vectorStoreId)) {
-      return
-    }
+  }
+
+  async indexFile(fileId: string) {
     const response = await this.openai.beta.vectorStores.files.createAndPoll(
-      vectorStoreId,
+      this.currentVectorStore as string,
       {
         file_id: fileId.split("/")[1],
       },
     )
+    if (response.status !== "completed") {
+      log(`File indexing failed for ${fileId} in ${this.currentVectorStore}.`)
+    }
+    return response
+  }
+
+  registerIndexedFile(item: Zotero.Item) {
+    const fileInfo = ztoolkit.ExtraField.getExtraField(item, "aria.file")
+    if (!fileInfo) {
+      throw new Error(`The item ${item.id} does not have an aria.file record.`)
+    }
+    const [attachmentId, fileId, vectorStoreStr] = fileInfo.split(";")
+    const vectorStores = vectorStoreStr ? vectorStoreStr.split(",") : []
+    if (!vectorStores.includes(this.currentVectorStore as string)) {
+      vectorStores.push(this.currentVectorStore as string)
+    }
     ztoolkit.ExtraField.setExtraField(
       item,
-      "aria.vectorStore.ids",
-      JSON.stringify([...vectorStoreIds, response.vector_store_id]),
+      "aria.file",
+      `${attachmentId};${fileId};${vectorStores.join(",")}`,
     )
-    return response
   }
 
   abortAll() {

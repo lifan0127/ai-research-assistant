@@ -59,8 +59,8 @@ function SearchParametersBlock({ query }: SearchParametersBlockProps) {
       <CSSTransition
         nodeRef={ref}
         in={open}
-        timeout={200}
-        classNames="panel"
+        timeout={300}
+        classNames="collapsible-panel"
         unmountOnExit
       >
         <div ref={ref} className="bg-blue-50 p-2">

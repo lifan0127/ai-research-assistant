@@ -31,7 +31,7 @@ import stringify from "json-stringify-pretty-compact"
 import {
   SearchCondition,
   SearchParameters,
-  nestedSearch,
+  recursiveSearchAndCompileResults,
 } from "../../../../apis/zotero/search"
 import { openAdvancedSearch } from "../../../../apis/zotero/controls/search"
 import { transformPreviewResult } from "../../../../apis/zotero/item"
@@ -43,7 +43,7 @@ import { action as log } from "../../../../utils/loggers"
 const columnHelper =
   createColumnHelper<ReturnType<typeof transformPreviewResult>>()
 
-export interface Content {
+export interface SearchActionContent {
   status: ActionStatus
   id: string
   messageId: string
@@ -54,22 +54,22 @@ export interface Context {
   query: Query
 }
 
-export interface Props {
-  content: Content
+export interface SearchActionProps {
+  content: SearchActionContent
   context: RoutingOutput["context"]
   control: SearchActionControl
 }
 
-export function Component({
+export function SearchAction({
   content: { messageId, stepId, id, output, status },
   context: { query },
   control: { scrollToEnd, updateBotAction },
-}: Props) {
+}: SearchActionProps) {
   log("Render search action", { status, output })
   useEffect(() => {
     async function searchZotero(query: Query | undefined) {
       if (query) {
-        const results = await nestedSearch(query, "preview")
+        const results = await recursiveSearchAndCompileResults(query, "preview")
         log("Search Zotero", { query, results })
         updateBotAction(messageId, stepId, id, {
           output: results,
@@ -85,66 +85,6 @@ export function Component({
   useEffect(() => {
     scrollToEnd()
   }, [output])
-
-  const columns = [
-    columnHelper.accessor("title", {
-      header: "Title",
-    }),
-    columnHelper.accessor("creators", {
-      header: "Creators",
-    }),
-    columnHelper.accessor("itemType", {
-      header: "Item Type",
-    }),
-    columnHelper.accessor("year", {
-      header: "Year",
-      cell: ({ cell }) => cell.getValue() || "–",
-    }),
-    // Note: The following doesn't work as useRef becomes null in ItemButtons
-    // columnHelper.accessor('links', {
-    //   header: '',
-    //   cell: props => {
-    //     const { item, attachment } = props.getValue()
-    //     const ref = useRef<HTMLButtonElement>(null)
-    //     return (
-    //       <div className="whitespace-nowrap">
-    //         <button ref={ref} onClick={() => console.log({ ref })}>
-    //           Test
-    //         </button>
-    //         <ItemButton item={item} mode="item" />
-    //         {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
-    //       </div>
-    //     )
-    //   },
-    // }),
-  ]
-
-  // Must be wrapped in useMemo or pagination won't work
-
-  const table = useReactTable({
-    data: (output?.results as any) || [],
-    columns,
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  })
-
-  function createLinks(row: Row<ReturnType<typeof transformPreviewResult>>) {
-    if (!row.original || !row.original.links) {
-      return null
-    }
-    const { item, attachment } = row.original.links
-    return (
-      <div className="whitespace-nowrap">
-        <ItemButton item={item} mode="item" />
-        {attachment ? <ItemButton item={attachment} mode="attachment" /> : null}
-      </div>
-    )
-  }
 
   return (
     <div className="text-base">
@@ -227,7 +167,7 @@ ${tablemark(data, { columns: ["Title", "Creators", "Item Type", "Year"] })}
   return { textContent, htmlContent }
 }
 
-function copy(props: Props) {
+function copy(props: SearchActionProps) {
   const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard()
     .addText(textContent, "text/unicode")

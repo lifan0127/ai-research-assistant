@@ -17,7 +17,7 @@ interface ContainerProps {
   children: React.ReactNode
 }
 
-function Container({ error, children }: ContainerProps) {
+function ErrorActionContainer({ error, children }: ContainerProps) {
   const [showError, setShowError] = useState(false)
   if (
     __env__ === "production" &&
@@ -58,12 +58,12 @@ export interface Content {
   error: any
 }
 
-export interface Props {
+export interface ErrorActionProps {
   content: Content
   control: ErrorActionControl
 }
 
-export function Component({ content: { error }, control }: Props) {
+export function ErrorAction({ content: { error }, control }: ErrorActionProps) {
   const { scrollToEnd } = control
   const OPENAI_MODEL =
     (Zotero.Prefs.get(`${config.addonRef}.OPENAI_MODEL`) as string) || "gpt-4o"
@@ -93,7 +93,7 @@ export function Component({ content: { error }, control }: Props) {
     switch (error.name) {
       case "InsufficientQuotaError": {
         return (
-          <Container error={error}>
+          <ErrorActionContainer error={error}>
             <div>
               <h4 className="pb-2">
                 You exceeded your current quota with OpenAI APIs.
@@ -113,7 +113,7 @@ export function Component({ content: { error }, control }: Props) {
                 for more details.
               </p>
             </div>
-          </Container>
+          </ErrorActionContainer>
         )
       }
     }
@@ -122,7 +122,7 @@ export function Component({ content: { error }, control }: Props) {
     switch (error.code) {
       case "invalid_api_key": {
         return (
-          <Container error={error}>
+          <ErrorActionContainer error={error}>
             <div>
               <h4 className="pb-2">
                 Valid OpenAI API key is required to use Aria
@@ -146,14 +146,14 @@ export function Component({ content: { error }, control }: Props) {
                 </li>
               </ul>
             </div>
-          </Container>
+          </ErrorActionContainer>
         )
       }
       case "model_not_found": {
         const supportArticleUrl =
           "https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4"
         return (
-          <Container error={error}>
+          <ErrorActionContainer error={error}>
             <div>
               <h4 className="pb-2">Model '{OPENAI_MODEL}' is not available</h4>
               <ul className="list-none p-0">
@@ -170,12 +170,12 @@ export function Component({ content: { error }, control }: Props) {
                 </li>
               </ul>
             </div>
-          </Container>
+          </ErrorActionContainer>
         )
       }
       case "load_message_history_error": {
         return (
-          <Container error={error}>
+          <ErrorActionContainer error={error}>
             <div>
               <h4 className="pb-2">Unable to parse your message history</h4>
               <ul className="list-none p-0">
@@ -196,13 +196,13 @@ export function Component({ content: { error }, control }: Props) {
                 </li>
               </ul>
             </div>
-          </Container>
+          </ErrorActionContainer>
         )
       }
     }
   }
   return (
-    <Container error={error}>
+    <ErrorActionContainer error={error}>
       <Markdown.Component
         content={{
           status: "COMPLETED",
@@ -211,18 +211,18 @@ export function Component({ content: { error }, control }: Props) {
         }}
         control={control}
       />
-    </Container>
+    </ErrorActionContainer>
   )
 }
 
-export function compileContent({ input: { error } }: Props) {
+export function compileContent({ input: { error } }: ErrorActionProps) {
   const textContent =
     "<pre>" + JSON.stringify(serializeError(error), null, 2) + "</pre>"
   const htmlContent = marked(textContent)
   return { textContent, htmlContent }
 }
 
-function copy(props: Props) {
+function copy(props: ErrorActionProps) {
   const { textContent, htmlContent } = compileContent(props)
   return new ztoolkit.Clipboard()
     .addText(textContent, "text/unicode")

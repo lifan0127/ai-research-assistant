@@ -67,13 +67,25 @@
   }
 }
 
-.panel-enter {
+.collapsible-panel-appear {
+  display: none;
+  opacity: 0;
+}
+.collapsible-panel-appear-active {
+  opacity: 1;
+  transition: opacity 200ms;
+}
+.collapsible-panel-appear-done {
+  opacity: 1;
+}
+.collapsible-panel-enter {
+  display: none;
   opacity: 0;
   display: grid;
   grid-template-rows: 0fr;
 }
 
-.panel-enter-active {
+.collapsible-panel-enter-active {
   opacity: 1;
   display: grid;
   grid-template-rows: 1fr;
@@ -82,17 +94,21 @@
     grid-template-rows 200ms;
 }
 
-.panel-exit {
+.collapsible-panel-exit {
   opacity: 1;
   display: grid;
   grid-template-rows: 1fr;
 }
 
-.panel-exit-active {
+.collapsible-panel-exit-active {
   opacity: 0;
   display: grid;
   grid-template-rows: 0fr;
   transition:
     opacity 200ms,
     grid-template-rows 200ms;
+}
+
+.collapsible-panel-exit-done {
+  display: none;
 }

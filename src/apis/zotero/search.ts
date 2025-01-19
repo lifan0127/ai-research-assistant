@@ -85,7 +85,7 @@ export async function search(
 // export type Query = NestedQuery | SearchParameters
 
 // Function to recursively execute searches and combine results
-async function recursiveSearch(query: Query): Promise<number[]> {
+export async function recursiveSearch(query: Query): Promise<number[]> {
   if ("conditions" in query) {
     const search = createSearchInstance(query)
     return await search.search()
@@ -124,7 +124,7 @@ async function recursiveSearch(query: Query): Promise<number[]> {
   }
 }
 
-export async function nestedSearch(query: Query, mode: ItemMode) {
+export async function recursiveSearchAndCompileResults(query: Query, mode: ItemMode) {
   const itemIds: number[] = await recursiveSearch(query)
   const results = await getItemsAndBestAttachments(itemIds, mode)
 

@@ -4,20 +4,9 @@ import {
   BotMessageProps,
   UserMessageProps,
 } from "../../../typings/legacyMessages"
-import * as Markdown from "./actions/Markdown"
-import * as SearchResults from "./actions/Search"
-import * as QAResponse from "./actions/QA"
-import * as Error from "./actions/Error"
 import { CopyButton } from "../../components/buttons/CopyButton"
 import { NoteButton } from "../../components/buttons/NoteButton"
 import { AnnotateButton } from "../../components/buttons/AnnotateButton"
-
-const widgetMap = {
-  MARKDOWN: Markdown,
-  SEARCH_RESULTS: SearchResults,
-  QA_RESPONSE: QAResponse,
-  ERROR: Error,
-}
 
 function defaultCopy(input: any) {
   const textContent = "<pre>" + JSON.stringify(input, null, 2) + "</pre>"
