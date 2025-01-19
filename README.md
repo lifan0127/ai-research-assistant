@@ -16,7 +16,7 @@ Please make sure to choose the correct version based on your Zotero version:
 
 ## Quickstart
 
-The easist way to get started with Aria is to try one of the interactive prompts in the prompt library.
+The easiest way to get started with Aria is to try one of the interactive prompts in the prompt library.
 
 ![Prompt Library](assets/videos/prompt-library.gif)
 
