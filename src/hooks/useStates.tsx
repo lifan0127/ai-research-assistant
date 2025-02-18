@@ -11,8 +11,8 @@ import {
   StateSelection,
   StateSelections,
   selectionConfig,
-  MentionValue,
 } from "../models/utils/states"
+import { MentionValue } from "../typings/input"
 import * as zot from "../apis/zotero"
 import { title } from "process"
 

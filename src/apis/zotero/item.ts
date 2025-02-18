@@ -1,28 +1,6 @@
 import { zotero as log } from "../../utils/loggers"
 import { FileForIndexing } from "../../typings/files"
-
-export type ItemMode = 'search' | 'preview' | 'qa' | 'citation'
-
-export interface ItemInfo {
-  id: number
-  url: string
-  type: string
-  title?: string
-  creators?: string
-  year?: number
-  abstract?: string
-}
-
-export interface AttachmentInfo {
-  id: number
-  type:
-  | 'attachment-pdf'
-  | 'attachment-pdf-link'
-  | 'attachment-file'
-  | 'attachment-link'
-  | 'attachment-snapshot'
-  | 'attachment-web-link'
-}
+import { ItemMode, ItemInfo, AttachmentInfo } from "../../typings/zotero"
 
 export function compileItemInfo(item: Zotero.Item, mode: ItemMode): ItemInfo {
   let itemInfo: ItemInfo = {
@@ -126,8 +104,11 @@ export async function getItemsAndIndexAttachments(itemIds: number[], vectorStore
       }
       return { item, attachment, file: undefined, index: undefined }
     }
-    const attachment = await item.getBestAttachment()
-    return { item, attachment: attachment || undefined, file: undefined, index: undefined }
+    if (item.isRegularItem()) {
+      const attachment = await item.getBestAttachment()
+      return { item, attachment: attachment || undefined, file: undefined, index: undefined }
+    }
+    return { item, attachment: undefined, file: undefined, index: undefined }
   }))
   // Skip items without attachments
   return results.filter(({ attachment }) => attachment)
@@ -135,7 +116,10 @@ export async function getItemsAndIndexAttachments(itemIds: number[], vectorStore
 
 export async function getItemsAndBestAttachments(itemIds: number[], mode: ItemMode) {
   const items = await Zotero.Items.getAsync(itemIds)
-  return Promise.all(items.map(async item => {
+  const results = (await Promise.all(items.map(async item => {
+    if (!item.isRegularItem()) {
+      return
+    }
     const attachment = await item.getBestAttachment()
     const itemInfo = compileItemInfo(item, mode)
     const attachmentInfo: AttachmentInfo | undefined = attachment ? compileAttachmentInfo(attachment) : undefined
@@ -153,7 +137,8 @@ export async function getItemsAndBestAttachments(itemIds: number[], mode: ItemMo
         return { item: itemInfo }
       }
     }
-  }))
+  }))).filter(x => !!x)
+  return results
 }
 
 export async function findItemByTitle(title: string) {

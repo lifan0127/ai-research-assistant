@@ -9,6 +9,7 @@ import { chatHistoryToNote } from "../../utils/chatHistory"
 import { Message } from "../../../typings/legacyMessages"
 import { useDragging } from "../../../hooks/useDragging"
 import { useZoom } from "../../../hooks/useZoom"
+import { useAssistant } from "../../../hooks/useAssistant"
 
 interface ScaleButtonGroupProps {
   scale: number
@@ -59,6 +60,7 @@ export function MainMenu({
   hasNotification,
 }: MenuProps) {
   const dialog = useDialog()
+  const { assistant } = useAssistant()
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [confirmationMessage, setConfirmationMessage] = useState<
     React.ReactNode | undefined
@@ -121,6 +123,44 @@ export function MainMenu({
           clearMessages()
           resetMemory()
         })
+        setDropArea(undefined)
+      },
+    },
+    {
+      type: "BUTTON" as const,
+      label: "Rebuild file cache",
+      handleClick: () => {
+        setConfirmationOpen(true)
+        setConfirmationMessage(
+          <div className="py-4">
+            File cache speeds up Q&A responses. Rebuilding it can take a while.
+            Continue?
+          </div>,
+        )
+        setConfirmationCallback(
+          () => async (setProgress: (pct: number) => void) => {
+            await assistant.rebuildFileCache(setProgress)
+          },
+        )
+        setDropArea(undefined)
+      },
+    },
+    {
+      type: "BUTTON" as const,
+      label: "Clear file index",
+      handleClick: () => {
+        setConfirmationOpen(true)
+        setConfirmationMessage(
+          <div className="py-4">
+            This will delete all uploaded files and remove them from vector
+            indexes. Continue?
+          </div>,
+        )
+        setConfirmationCallback(
+          () => async (setProgress: (pct: number) => void) => {
+            await assistant.clearFileIndex(setProgress)
+          },
+        )
         setDropArea(undefined)
       },
     },

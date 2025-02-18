@@ -1,9 +1,9 @@
 import { uniq, cloneDeep, flatten } from "lodash"
 import { getItemAndBestAttachment } from "./item"
 import retry, { Options } from "async-retry"
-import { compileItemInfo, ItemInfo, getItemsAndBestAttachments } from "./item"
-import { ItemMode } from "./item"
-import { Query } from "../../typings/actions"
+import { compileItemInfo, getItemsAndBestAttachments } from "./item"
+import { ItemMode, ItemInfo } from "../../typings/zotero"
+import { QueryType } from "../../typings/actions"
 
 export interface SearchCondition {
   condition: Zotero.Search.Conditions
@@ -58,7 +58,7 @@ export function createSearchInstance({
 
 export async function search(
   searchParams: SearchParameters,
-  limit: number = 10,
+  limit: number = 25,
   mode: ItemMode = "preview",
 ) {
   const search = createSearchInstance(searchParams)
@@ -85,7 +85,7 @@ export async function search(
 // export type Query = NestedQuery | SearchParameters
 
 // Function to recursively execute searches and combine results
-export async function recursiveSearch(query: Query): Promise<number[]> {
+export async function recursiveSearch(query: QueryType): Promise<number[]> {
   if ("conditions" in query) {
     const search = createSearchInstance(query)
     return await search.search()
@@ -124,7 +124,7 @@ export async function recursiveSearch(query: Query): Promise<number[]> {
   }
 }
 
-export async function recursiveSearchAndCompileResults(query: Query, mode: ItemMode) {
+export async function recursiveSearchAndCompileResults(query: QueryType, mode: ItemMode) {
   const itemIds: number[] = await recursiveSearch(query)
   const results = await getItemsAndBestAttachments(itemIds, mode)
 

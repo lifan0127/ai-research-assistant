@@ -102,3 +102,9 @@ export async function purgeFiles(maxAge: number) {
   log("Purge files older than", maxAge)
   return server.proxy.purgeFiles(maxAge)
 }
+
+export async function clearAllFiles() {
+  const server = await getDBServer()
+  log("Clear all files")
+  return server.proxy.clearAllFiles()
+}

@@ -5,10 +5,8 @@ import { useStates } from "../../../hooks/useStates"
 import { useDragging } from "../../../hooks/useDragging"
 import { States } from "./States"
 import { DragArea } from "./DragArea"
-import {
-  States as StatesSchema,
-  MentionValue,
-} from "../../../models/utils/states"
+import { States as StatesSchema } from "../../../models/utils/states"
+import { MentionValue } from "../../../typings/input"
 import { TextField } from "./TextField"
 import { isEqual } from "lodash"
 

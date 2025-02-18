@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { Query } from "../../../typings/actions"
+import { QueryType } from "../../../typings/actions"
 import { FileForIndexing } from "../../../typings/files"
 import { recursiveSearch } from "../../../apis/zotero/search"
 import { getItemsAndIndexAttachments } from "../../../apis/zotero/item"
@@ -9,7 +9,7 @@ import { ItemIcon } from "../../icons/zotero"
 
 interface FileRetrievalProps {
   itemIds?: number[]
-  query?: Query
+  query?: QueryType
   onComplete: (results: FileForIndexing[]) => void
   files?: FileForIndexing[]
   limit?: number
@@ -27,7 +27,7 @@ export function FileRetriever({
   const [results, setResults] = useState<FileForIndexing[] | undefined>(files)
 
   useEffect(() => {
-    async function retrieve(query: Query | undefined) {
+    async function retrieve(query: QueryType | undefined) {
       const searchItemIds = query ? await recursiveSearch(query) : []
       const combinedItemIds = uniq([...itemIds, ...searchItemIds])
       const retrievedFiles = (
@@ -40,7 +40,7 @@ export function FileRetriever({
       onComplete(retrievedFiles)
     }
     if (!files && (query || itemIds.length)) {
-      retrieve(query as Query)
+      retrieve(query as QueryType)
     }
   }, [query, itemIds, files, onComplete, assistant])
 

@@ -5,10 +5,10 @@ import {
   BotMessageContent,
   MessageStore
 } from "../typings/messages"
-import { StepContent, MessageStepContent } from "../typings/steps"
+import { StepContent, MessageStepContent, ActionStepContent } from "../typings/steps"
 import { generateMessageId, generateStepId, generateActionId } from "../utils/identifiers"
 import { generateTimestamp } from "../utils/datetime"
-import { Action } from "../typings/actions"
+import { ActionType } from "../typings/actions"
 import { useAssistant } from "./useAssistant"
 import * as db from "../db/client"
 import { debounce } from "lodash"
@@ -22,22 +22,7 @@ function isBotMessageCompleted(message: BotMessageContent) {
   if (message.steps.length === 0) {
     return false
   }
-  return message.steps.every((step) => {
-    switch (step.type) {
-      case "MESSAGE_STEP": {
-        return step.status === "COMPLETED" && step.messages.every((message) => {
-          if (message.type !== "TEXT") {
-            return true
-          }
-          // Check if all actions are completed (such as QA)
-          return message.text.actions?.every((action) => action.status === "COMPLETED")
-        })
-      }
-      default: {
-        return step.status === "COMPLETED"
-      }
-    }
-  })
+  return message.steps.every((step) => step.status === "COMPLETED")
 }
 
 export function useMessages(currentConversation: ConversationInfo) {
@@ -125,10 +110,10 @@ export function useMessages(currentConversation: ConversationInfo) {
 
     // Perform DB calls
     if (updatedMessages.length > 0) {
-      db.upsertMessages(updatedMessages).catch((err) => console.error("DB upsert failed:", err))
+      db.upsertMessages(updatedMessages).catch((err) => console.error("DB upsert failed:", updatedMessages, err))
     }
     if (pendingDelete.length > 0) {
-      db.deleteMessages(pendingDelete).catch((err) => console.error("DB delete failed:", err))
+      db.deleteMessages(pendingDelete).catch((err) => console.error("DB delete failed:", pendingDelete, err))
     }
 
     // Clear pending arrays
@@ -212,7 +197,7 @@ export function useMessages(currentConversation: ConversationInfo) {
   }, [state.messages])
 
   const addUserMessage = useCallback((
-    message: Omit<UserMessageContent, "type" | "id" | "timestamp">,
+    message: Omit<UserMessageContent, "type" | "id" | "timestamp" | "conversationId">,
   ) => {
     const messageId = generateMessageId()
     const timestamp = generateTimestamp()
@@ -224,7 +209,7 @@ export function useMessages(currentConversation: ConversationInfo) {
   }, [currentConversation.id])
 
   const addBotMessage = useCallback((
-    message: Omit<BotMessageContent, "type" | "id" | "timestamp">,
+    message: Omit<BotMessageContent, "type" | "id" | "timestamp" | "conversationId">,
   ) => {
     const messageId = generateMessageId()
     const timestamp = generateTimestamp()
@@ -247,6 +232,11 @@ export function useMessages(currentConversation: ConversationInfo) {
     })
   }, [])
 
+  const getBotStep = useCallback((messageId: string, stepId: string) => {
+    const message = state.messages.find(({ id }) => messageId === id) as BotMessageContent
+    return message.steps.find((step) => step.id === stepId)
+  }, [state.messages])
+
   const addBotStep = useCallback((
     messageId: string,
     step: Omit<StepContent, "id" | "messageId" | "timestamp">,
@@ -266,9 +256,8 @@ export function useMessages(currentConversation: ConversationInfo) {
   const updateBotStep = useCallback((
     messageId: string,
     stepId: string,
-    partialStep: Partial<Omit<StepContent, "id">> & Pick<StepContent, "type">,
+    partialStep: Partial<Omit<StepContent, "id">>,
   ) => {
-
     dispatch({
       type: "UPDATE_BOT_STEP",
       payload: { messageId, stepId, updates: partialStep },
@@ -278,34 +267,12 @@ export function useMessages(currentConversation: ConversationInfo) {
   const completeBotMessageStep = useCallback((
     messageId: string,
     stepId: string,
-    partialStep: Partial<Omit<MessageStepContent, "id">> & Pick<MessageStepContent, "messages">,
   ) => {
-    const { messages, ...rest } = partialStep
     dispatch({
-      type: "UPDATE_BOT_STEP",
+      type: "COMPLETE_BOT_MESSAGE_STEP",
       payload: {
         messageId,
         stepId,
-        updates: {
-          ...rest,
-          status: "COMPLETED",
-          messages: messages.map((message) => {
-            if (message.type === "TEXT") {
-              return {
-                ...message,
-                text: {
-                  ...message.text,
-                  actions: (message.text.actions || []).map((action) => ({
-                    ...action,
-                    status: "IN_PROGRESS",
-                    id: generateActionId()
-                  }))
-                }
-              }
-            }
-            return message
-          }),
-        },
       },
     })
   }, [])
@@ -314,7 +281,7 @@ export function useMessages(currentConversation: ConversationInfo) {
     messageId: string,
     stepId: string,
     actionId: string,
-    updates: Partial<Action>,
+    updates: Partial<ActionType>,
   ) => {
     dispatch({
       type: "UPDATE_BOT_ACTION",
@@ -347,6 +314,7 @@ export function useMessages(currentConversation: ConversationInfo) {
     addUserMessage,
     addBotMessage,
     updateUserMessage,
+    getBotStep,
     addBotStep,
     updateBotStep,
     completeBotMessageStep,

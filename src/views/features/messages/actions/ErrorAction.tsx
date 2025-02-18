@@ -10,7 +10,7 @@ import { Link } from "../../../components/buttons/Link"
 import { Control } from "../../../components/types"
 import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import stringify from "json-stringify-pretty-compact"
-import { ErrorActionControl } from "../../../../typings/actions"
+import { ErrorActionStepControl } from "../../../../typings/actions"
 
 interface ContainerProps {
   error: Error
@@ -60,7 +60,7 @@ export interface Content {
 
 export interface ErrorActionProps {
   content: Content
-  control: ErrorActionControl
+  control: ErrorActionStepControl
 }
 
 export function ErrorAction({ content: { error }, control }: ErrorActionProps) {

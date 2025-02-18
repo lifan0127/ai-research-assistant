@@ -36,6 +36,7 @@ import { UseMessages } from "../../../hooks/useMessages"
 import {
   MessageStepContent,
   ToolStepContent,
+  ActionStepContent,
   ErrorStepContent,
   TextMessageContent,
 } from "../../../typings/steps"
@@ -43,10 +44,12 @@ import { serializeError } from "serialize-error"
 import { CodeHighlighter } from "../../components/code/CodeHighlighter"
 import { message as log } from "../../../utils/loggers"
 import { update } from "lodash"
-import { RoutingOutputAction } from "../../../models/schemas/routing"
-import { Action } from "../../../typings/actions"
+import { RoutingOutputWorkflow } from "../../../models/schemas/routing"
+import { ActionType } from "../../../typings/actions"
+import { ActionStep } from "./steps/ActionStep"
+import { WorkflowStep } from "./steps/WorkflowStep"
 
-type StepInput = MessageStepContent | ToolStepContent | ErrorStepContent
+// type StepInput = MessageStepContent | ToolStepContent | ErrorStepContent
 
 export interface BotMessageControl {
   setCopyId: (id?: string) => void
@@ -55,6 +58,10 @@ export interface BotMessageControl {
   scrollToEnd: () => void
   pauseScroll: () => void
   resumeScroll: () => void
+  getMessage: UseMessages["getMessage"]
+  addUserMessage: UseMessages["addUserMessage"]
+  addBotMessage: UseMessages["addBotMessage"]
+  getBotStep: UseMessages["getBotStep"]
   addBotStep: UseMessages["addBotStep"]
   updateBotStep: UseMessages["updateBotStep"]
   completeBotMessageStep: UseMessages["completeBotMessageStep"]
@@ -77,6 +84,10 @@ export const BotMessage = memo(function BotMessageContent({
     scrollToEnd,
     pauseScroll,
     resumeScroll,
+    addUserMessage,
+    addBotMessage,
+    getMessage,
+    getBotStep,
     addBotStep,
     updateBotStep,
     completeBotMessageStep,
@@ -85,9 +96,9 @@ export const BotMessage = memo(function BotMessageContent({
   },
   isCopied,
 }: BotMessageProps) {
-  log("Render bot message", id, { stream, steps })
+  log("Render bot message", id, { stream, steps }, getMessage(id))
   // const [vote, setVote] = useState(message.vote)
-  const stepsRef = useRef(steps)
+  const currentStepIdRef = useRef<string | undefined>()
   const toolCallCountRef = useRef(0)
   const [error, setError] = useState(false)
   const [text, setText] = useState("")
@@ -109,67 +120,57 @@ export const BotMessage = memo(function BotMessageContent({
   //   }
   // }, [message.content])
 
-  useEffect(() => {
-    stepsRef.current = steps
-  }, [steps])
+  // useEffect(() => {
+  //   stepsRef.current = steps
+  // }, [steps])
 
   useEffect(() => {
     if (stream?.on) {
       const handleMessageCreated = async (message: OpenAIMessage) => {
-        await addBotStep(id, {
+        log("Bot message created", id)
+        const stepId = await addBotStep(id, {
           type: "MESSAGE_STEP",
-          messages: [],
+          params: [],
           status: "IN_PROGRESS",
         } as Omit<MessageStepContent, "id" | "messageId" | "timestamp">)
+        currentStepIdRef.current = stepId
       }
 
       const handleMessageDelta = (
         _delta: MessageDelta,
         snapshot: OpenAIMessage,
       ) => {
-        const currentStep = stepsRef.current.at(-1) as MessageStepContent
-        updateBotStep(id, currentStep.id, {
-          messages: snapshot.content.map((message) => {
-            switch (message.type) {
-              case "text": {
-                return {
-                  type: "TEXT" as const,
-                  text: {
-                    raw: message.text,
-                  },
+        const currentStepId = currentStepIdRef.current as string
+        log(
+          "Bot message delta",
+          id,
+          currentStepId,
+          JSON.stringify(snapshot.content),
+        )
+        updateBotStep(id, currentStepId, {
+          params: {
+            messages: snapshot.content.map((message) => {
+              switch (message.type) {
+                case "text": {
+                  return {
+                    type: "TEXT" as const,
+                    params: {
+                      raw: message.text,
+                    },
+                  }
+                }
+                default: {
+                  throw new Error("Not implemented")
                 }
               }
-              default: {
-                throw new Error("Not implemented")
-              }
-            }
-          }),
+            }),
+          },
         } as Partial<MessageStepContent> & Pick<MessageStepContent, "type">)
       }
 
       const handleMessageDone = () => {
-        const currentStep = stepsRef.current.at(-1) as MessageStepContent
-        completeBotMessageStep(id, currentStep.id, {
-          messages: currentStep.messages.map((message) => {
-            switch (message.type) {
-              case "TEXT": {
-                const parsed = JSON.parse(message.text.raw!.value)
-                return {
-                  ...message,
-                  text: {
-                    message: parsed.message,
-                    context: parsed.context || {},
-                    actions: parsed.actions || [],
-                  },
-                }
-              }
-              default: {
-                return message
-              }
-            }
-          }),
-          status: "COMPLETED",
-        })
+        log("Bot message done", id, currentStepIdRef.current)
+        completeBotMessageStep(id, currentStepIdRef.current as string)
       }
 
       const handleTextDone = async (content: Text) => {}
@@ -190,7 +191,7 @@ export const BotMessage = memo(function BotMessageContent({
               toolCall.function as FunctionToolCall["function"]
             await addBotStep(id, {
               type: "TOOL_STEP",
-              tool: {
+              params: {
                 id: toolCall.id,
                 name,
                 parameters: JSON.parse(parameters),
@@ -211,7 +212,7 @@ export const BotMessage = memo(function BotMessageContent({
           case "thread.run.failed": {
             await addBotStep(id, {
               type: "ERROR_STEP",
-              error: {
+              params: {
                 message: "Thread run failed",
                 stack: serializeError(data),
               },
@@ -389,8 +390,9 @@ export const BotMessage = memo(function BotMessageContent({
       pauseScroll,
       resumeScroll,
       updateBotAction,
+      getBotStep,
     }),
-    [scrollToEnd, pauseScroll, resumeScroll, updateBotAction],
+    [scrollToEnd, pauseScroll, resumeScroll, updateBotAction, getBotStep],
   )
 
   const toolStepControl = useMemo(
@@ -410,6 +412,52 @@ export const BotMessage = memo(function BotMessageContent({
     ],
   )
 
+  const actionStepControl = useMemo(
+    () => ({
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      addUserMessage,
+      addBotMessage,
+      getBotStep,
+      addBotStep,
+      updateBotStep,
+      addFunctionCallOutput,
+    }),
+    [
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      addUserMessage,
+      addBotMessage,
+      getBotStep,
+      addBotStep,
+      updateBotStep,
+      addFunctionCallOutput,
+    ],
+  )
+
+  const workflowStepControl = useMemo(
+    () => ({
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      getBotStep,
+      addBotStep,
+      updateBotStep,
+      addFunctionCallOutput,
+    }),
+    [
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      getBotStep,
+      addBotStep,
+      updateBotStep,
+      addFunctionCallOutput,
+    ],
+  )
+
   const errorStepControl = useMemo(
     () => ({
       scrollToEnd,
@@ -424,18 +472,23 @@ export const BotMessage = memo(function BotMessageContent({
       <div className="p-[15px]">
         {unresponsive ? (
           <div>
-            I'm sorry, I'm experiencing some connectivity issue. Please try
-            again later.
+            <div>
+              Sorry, I am experiencing some connectivity issues. Please wait a
+              little longer or try again later.
+            </div>
+            <div className="dot-flashing "></div>
           </div>
         ) : (
-          <div className="dot-flashing "></div>
+          <div className="p-[15px]">
+            <div className="dot-flashing "></div>
+          </div>
         )}
       </div>
     )
   }
 
   return (
-    <div className="relative self-start w-auto max-w-full sm:max-w-[85%] my-2 pb-2">
+    <div className="relative self-start w-auto max-w-full sm:max-w-[85%] pb-2">
       {steps.map((step) => {
         // return <CodeHighlighter code={JSON.stringify(step)} language="json" />
         switch (step.type) {
@@ -443,7 +496,7 @@ export const BotMessage = memo(function BotMessageContent({
             return (
               <div
                 ref={ref}
-                className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words"
+                className="bg-white p-2 border border-neutral-500 rounded shadow-md text-black break-words my-2"
               >
                 <MessageStep content={step} control={messageStepControl} />
                 <div className="flex pt-3">
@@ -519,6 +572,12 @@ export const BotMessage = memo(function BotMessageContent({
           }
           case "TOOL_STEP": {
             return <ToolStep content={step} control={toolStepControl} />
+          }
+          case "WORKFLOW_STEP": {
+            return <WorkflowStep content={step} control={workflowStepControl} />
+          }
+          case "ACTION_STEP": {
+            return <ActionStep content={step} control={actionStepControl} />
           }
           case "ERROR_STEP": {
             return (

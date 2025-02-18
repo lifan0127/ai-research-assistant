@@ -9,8 +9,10 @@ export type MessageDBSchema = Omit<MessageContent, "stream">
 export type FileDBSchema = {
   id: string
   vectorStoreIds: string[]
-  itemId: string
-  parentItemId: string
+  itemId: number
+  itemType: string
+  attachmentId: number
+  attachmentType: string
   bib: string
   timestamp: string
 }
@@ -29,6 +31,7 @@ class Database extends Dexie {
       messages: "id, conversationId, timestamp",
       files: "id, vectorStoreIds, timestamp",
     })
+
   }
 }
 

@@ -68,24 +68,24 @@ export const QuerySchema: z.ZodType<Query> = z
       .strict()
       .describe("A compound query object."),
   ])
-  .describe("Zotero search query to be used in search and qa actions.")
+  .describe("Zotero search query to be used in search and qa workflows. The query should be consistent with the description of the corresponding workflow invokation.")
 
-export const SearchActionSchema = z
+export const SearchWorkflowSchema = z
   .object({
-    widget: z
+    type: z
       .literal("search")
       .describe(
-        "Action for retrieving a list of items from the Zotero library.",
+        "Workflow for retrieving a list of items from the Zotero library.",
       ),
   })
   .strict()
 
-export const QAActionSchema = z
+export const QAWorkflowSchema = z
   .object({
-    widget: z
+    type: z
       .literal("qa")
       .describe(
-        "Use this action to answer specific questions that involves retrieving and synthesizing information from the user's Zotero library entries. Do not use for general inquiries or unrelated questions.",
+        "Use this workflow to answer specific questions that involves retrieving and synthesizing information from the user's Zotero library entries. Do not use for general inquiries or unrelated questions.",
       ),
     input: z
       .object({
@@ -100,26 +100,27 @@ export const QAActionSchema = z
   })
   .strict()
 
-const ActionSchema = z.union([SearchActionSchema, QAActionSchema])
+export const WorkflowSchema = z.union([SearchWorkflowSchema, QAWorkflowSchema])
 
 const MessageSchema = z
   .string()
   .describe(
-    "Either a direct response to user request or a brief explanation of the prescribed actions. The actions will be executed and presented to the user following this message.")
+    "Either a direct response to user request or a brief explanation of the prescribed workflows. The workflows will be executed and presented to the user following this message.")
 
 const ContextSchema = z
   .object({
     query: QuerySchema.optional(),
+    itemIds: z.array(z.string()).optional(),
   })
   .strict()
 
 export const RouteSchema = z.object({
   message: MessageSchema,
   context: ContextSchema,
-  actions: z
-    .array(ActionSchema)
+  workflows: z
+    .array(WorkflowSchema)
     .describe(
-      "Prescribe optional actions based on user intent. The actions will be executed and the results presented to the user.",
+      "Prescribe optional workflows based on user intent. The workflows will be executed and the results presented to the user.",
     ),
 })
 
@@ -127,4 +128,4 @@ export const routingFormat = zodResponseFormat(RouteSchema, "response")
 
 export type RoutingOutput = z.infer<typeof RouteSchema>
 
-export type RoutingOutputAction = z.infer<typeof ActionSchema>
+export type RoutingOutputWorkflow = z.infer<typeof WorkflowSchema>

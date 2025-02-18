@@ -1,31 +1,32 @@
-// Ref: https://github.com/langchain-ai/langchainjs/blob/main/langchain-core/src/utils/json.ts#L14
-// MIT License
-export function parsePartialJson(s: string) {
-  // If the input is undefined, return null to indicate failure.
+export function parsePartialJson(s: string, parser = JSON.parse): any {
+  // If the input is undefined, return null.
   if (typeof s === "undefined") {
     return null
   }
 
-  // Attempt to parse the string as-is.
+  // First try parsing the string as-is.
   try {
     return JSON.parse(s)
   } catch (error) {
-    // Pass
+    // Fall back to our partial parsing approach.
   }
 
-  // Initialize variables.
   let new_s = ""
-  const stack = []
+  const stack: string[] = []
   let isInsideString = false
   let escaped = false
+  // validEnd will record the position where the JSON value is complete.
+  let validEnd = 0
 
-  // Process each character in the string one at a time.
-  for (let char of s) {
+  // Process each character of the string.
+  for (let i = 0; i < s.length; i++) {
+    let char = s[i]
+
     if (isInsideString) {
       if (char === '"' && !escaped) {
         isInsideString = false
       } else if (char === "\n" && !escaped) {
-        char = "\\n" // Replace the newline character with the escape sequence.
+        char = "\\n" // replace newline with escape sequence
       } else if (char === "\\") {
         escaped = !escaped
       } else {
@@ -40,35 +41,44 @@ export function parsePartialJson(s: string) {
       } else if (char === "[") {
         stack.push("]")
       } else if (char === "}" || char === "]") {
-        if (stack && stack[stack.length - 1] === char) {
+        if (stack.length > 0 && stack[stack.length - 1] === char) {
           stack.pop()
+          // If the stack is now empty, record that we have a complete JSON value.
+          if (stack.length === 0) {
+            validEnd = i + 1
+          }
         } else {
-          // Mismatched closing character; the input is malformed.
-          return null
+          // If stack is empty, treat extra closing symbols as trailing noise.
+          if (stack.length === 0) {
+            continue
+          } else {
+            // Otherwise, it's truly malformed.
+            return null
+          }
         }
       }
     }
-
-    // Append the processed character to the new string.
     new_s += char
   }
 
-  // If we're still inside a string at the end of processing,
-  // we need to close the string.
+  // If we're still inside a string, close it.
   if (isInsideString) {
     new_s += '"'
   }
 
-  // Close any remaining open structures in the reverse order that they were opened.
-  for (let i = stack.length - 1; i >= 0; i -= 1) {
-    new_s += stack[i]
+  // If we found a valid complete JSON value earlier, truncate to that part.
+  if (validEnd > 0) {
+    new_s = new_s.substring(0, validEnd)
+  } else {
+    // Otherwise, append any missing closing tokens.
+    for (let i = stack.length - 1; i >= 0; i--) {
+      new_s += stack[i]
+    }
   }
 
-  // Attempt to parse the modified string as JSON.
   try {
-    return JSON.parse(new_s)
+    return parser(new_s)
   } catch (error) {
-    // If we still can't parse the string as JSON, return null to indicate failure.
     return null
   }
 }

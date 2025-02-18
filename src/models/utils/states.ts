@@ -1,33 +1,5 @@
-import { ItemInfo, AttachmentInfo } from '../../apis/zotero/item'
-
-export type StateName = 'items' | 'collections' | 'creators' | 'tags' | 'images'
-
-export type SelectedItem = ItemInfo | (AttachmentInfo & { title: string })
-export type SelectedCollection = { id: number; type: 'collection'; title: string }
-export type SelectedCreator = { id: string; type: 'creator'; title: string }
-export type SelectedTag = { id: string; type: 'tag'; title: string }
-export type SelectedImage = { id: string; type: 'image'; title: string; image: string }
-export type StateSelection = SelectedItem | SelectedCollection | SelectedCreator | SelectedTag | SelectedImage
-export type StateSelections =
-  | SelectedItem[]
-  | SelectedCollection[]
-  | SelectedCreator[]
-  | SelectedTag[]
-  | SelectedImage[]
-export type States = {
-  items: SelectedItem[]
-  collections: SelectedCollection[]
-  creators: SelectedCreator[]
-  tags: SelectedTag[]
-  images: SelectedImage[]
-}
-export type SimplifiedStates = {
-  items?: number[]
-  collections?: number[]
-  creators?: string[]
-  tags?: string[]
-  images?: string[]
-}
+import { StateName, States, SimplifiedStates } from '../../typings/input'
+import { states as log } from '../../utils/loggers'
 
 export function simplifyStates(states: States): SimplifiedStates {
   const simplifiedStates = {
@@ -57,8 +29,7 @@ function serializeState(states: SimplifiedStates, name: StateName) {
       `${name}:\n` +
       states[name]!.map(
         (id, i) =>
-          `  ${i + 1}. ${
-            ['creators', 'tags'].includes(name) ? Zotero.Utilities.Internal.Base64.decode(id as string) : id
+          `  ${i + 1}. ${['creators', 'tags'].includes(name) ? Zotero.Utilities.Internal.Base64.decode(id as string) : id
           }`
       ).join('\n') +
       '\n'
@@ -69,16 +40,16 @@ function serializeState(states: SimplifiedStates, name: StateName) {
 
 export function serializeStates(states: SimplifiedStates) {
   if (areStatesEmpty(states)) {
-    return undefined
+    return "Application States: None\n\n"
   }
-
+  log("States", states)
   return (
     'Application States:\n' +
     serializeState(states, 'creators') +
     serializeState(states, 'tags') +
     serializeState(states, 'items') +
     serializeState(states, 'collections') +
-    serializeState(states, 'images')
+    serializeState(states, 'images') + "\n\n"
   )
 }
 
@@ -144,8 +115,4 @@ export const selectionConfig = {
   },
 }
 
-export interface MentionValue {
-  newValue: string
-  newPlainTextValue: string
-  mentions: { childIndex: number; display: string; id: string; index: number; plainTextIndex: number }[]
-}
+

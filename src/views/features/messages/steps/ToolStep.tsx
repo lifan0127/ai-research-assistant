@@ -18,7 +18,7 @@ export function ToolStep({ content, control }: ToolStepProps) {
     id,
     messageId,
     status,
-    tool: { id: toolCallId, name, parameters, output },
+    params: { id: toolCallId, name, parameters, output },
   } = content
   const [expanded, setExpanded] = useState(false)
   const ref = useRef(null)
@@ -32,7 +32,7 @@ export function ToolStep({ content, control }: ToolStepProps) {
       const output = (await runFunctionTool(name, parameters)) || "No output"
       updateBotStep(messageId, id, {
         status: "COMPLETED",
-        tool: { name, parameters, output },
+        params: { name, parameters, output },
       } as Omit<ToolStepContent, "id" | "messageId">)
       addFunctionCallOutput(toolCallId, output)
       // scrollToEnd()
@@ -49,9 +49,9 @@ export function ToolStep({ content, control }: ToolStepProps) {
   }
 
   return (
-    <div style={{ width: "fit-content" }}>
+    <div style={{ width: "fit-content" }} className="py-2">
       <span className="mr-2">
-        <ZoteroIcon pulsing={status === "IN_PROGRESS"} />
+        <ZoteroIcon isLoading={status === "IN_PROGRESS"} />
       </span>
       <a
         href="#"

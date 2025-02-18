@@ -12,11 +12,8 @@ import { isEqual } from "lodash"
 import * as zot from "../../../apis/zotero"
 import { States, selectionConfig } from "../../../models/utils/states"
 import { useStates } from "../../hooks/useStates"
-import {
-  escapeTitle,
-  StateName,
-  MentionValue,
-} from "../../../models/utils/states"
+import { escapeTitle, StateName } from "../../../models/utils/states"
+import { MentionValue } from "../../../typings/input"
 import { prefixes, parsePromptTemplate } from "../infoPanel/PromptLibrary"
 import { LinkButton } from "../../components/buttons/LinkButton"
 import { PromptList } from "../infoPanel/PromptLibrary"

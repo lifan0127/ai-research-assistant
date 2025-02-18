@@ -3,12 +3,14 @@ import {
   BotMessageContent,
   MessageStore
 } from "../typings/messages"
-import { MessageStepContent, StepContent, TextMessageContent } from "../typings/steps"
+import { MessageStepContent, StepContent, TextMessageContent, ActionStepContent, WorkflowStepContent } from "../typings/steps"
 import { MessageContent } from "../typings/messages"
-import { generateActionId } from "../utils/identifiers"
-import { Action } from "../typings/actions"
+import { generateStepId, generateActionId } from "../utils/identifiers"
+import { ActionType } from "../typings/actions"
 import { ResearchAssistant } from "../models/assistant"
 import { store as log } from "../utils/loggers"
+import { generateTimestamp } from "../utils/datetime"
+import { parsePartialJson } from "../utils/parsers"
 
 export type MessagesAction =
   | {
@@ -26,12 +28,19 @@ export type MessagesAction =
     payload: {
       messageId: string
       stepId: string
-      updates: Partial<StepContent>
+      updates: Partial<Omit<StepContent, "id">>
+    }
+  }
+  | {
+    type: "COMPLETE_BOT_MESSAGE_STEP"
+    payload: {
+      messageId: string
+      stepId: string
     }
   }
   | {
     type: "ADD_BOT_ACTIONS"
-    payload: { messageId: string; stepId: string; actions: Action[] }
+    payload: { messageId: string; stepId: string; actions: ActionType[] }
   }
   | {
     type: "UPDATE_BOT_ACTION"
@@ -39,7 +48,7 @@ export type MessagesAction =
       messageId: string
       stepId: string
       actionId: string
-      updates: Partial<Action>
+      updates: Partial<ActionType>
     }
   }
   | { type: "LOAD_MESSAGES"; payload: MessageContent[] }
@@ -123,40 +132,9 @@ export function messagesReducer(
                 if (step.id !== action.payload.stepId) {
                   return step
                 }
-                // For message step, need additional handling for adding actions
-                if (step.type === "MESSAGE_STEP") {
-                  const messageUpdate = action.payload.updates as Partial<MessageStepContent>
-                  // If messages is part of the update, look for TEXT message type
-                  if (messageUpdate?.messages) {
-                    return {
-                      ...step,
-                      ...action.payload.updates,
-                      messages: messageUpdate.messages.map((message) => {
-                        // For TEXT message type, add ID to actions
-                        if (message.type === "TEXT") {
-                          return {
-                            ...message,
-                            text: {
-                              ...message.text,
-                              actions: message.text.actions?.map((action) => {
-                                return { ...action, id: generateActionId() }
-                              }),
-                            },
-                          }
-                        }
-                        // For other message types, return message as-is
-                        return message
-                      }),
-                    } as MessageStepContent
-                  }
-                  // Update the step as-is, if messages is not part of the update
-                  return {
-                    ...step,
-                    ...action.payload.updates,
-                  } as MessageStepContent
-                }
-                // Update other types of step as-is
-                return { ...step, ...action.payload.updates } as StepContent
+                const { params, ...rest } = action.payload.updates
+                const newParams = params ? { ...step.params, ...params } : step.params
+                return { ...step, ...rest, params: newParams } as StepContent
               })
             }
             : message,
@@ -164,6 +142,73 @@ export function messagesReducer(
         pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
       }
     }
+
+    case "COMPLETE_BOT_MESSAGE_STEP": {
+      const { messageId, stepId } = action.payload
+      const currentMessage = state.messages.find(({ id }) => id === messageId) as BotMessageContent
+      const currentStep = currentMessage!.steps.find(({ id }) => id === stepId) as MessageStepContent
+      const parsedMessages = currentStep.params.messages.map((message) => {
+        switch (message.type) {
+          case "TEXT": {
+            const parsed = parsePartialJson(message.params.raw!.value)
+            return {
+              ...message,
+              params: {
+                message: parsed.message,
+                context: parsed.context || {},
+                workflows: parsed.workflows || [],
+              },
+            }
+          }
+          default: {
+            return message
+          }
+        }
+      })
+      const workflowSteps = parsedMessages.filter((message) => message.type === "TEXT" && message.params.workflows.length > 0).map((message) => {
+        const { params } = message as TextMessageContent
+        return params.workflows!.map((workflow) => {
+          return {
+            id: generateStepId(),
+            messageId,
+            timestamp: generateTimestamp(),
+            type: "WORKFLOW_STEP",
+            status: "IN_PROGRESS",
+            // status: "COMPLETED", // For now, we set the workflow to completed for development
+            params: {
+              workflow,
+              context: params.context,
+            }
+          }
+        })
+      }).flat() as WorkflowStepContent[]
+
+      return {
+        ...state,
+        messages: state.messages.map((message) =>
+          message.type === "BOT_MESSAGE" &&
+            message.id === action.payload.messageId
+            ? {
+              ...message,
+              steps: [...message.steps.map((step) => {
+                if (step.id !== action.payload.stepId) {
+                  return step
+                }
+                return {
+                  ...step,
+                  params: {
+                    messages: parsedMessages
+                  },
+                  status: "COMPLETED",
+                } as StepContent
+              }), ...workflowSteps]
+            }
+            : message,
+        ),
+        pendingUpdate: state.pendingUpdate.includes(action.payload.messageId) ? state.pendingUpdate : [...state.pendingUpdate, action.payload.messageId],
+      }
+    }
+
 
     case "UPDATE_BOT_ACTION": {
       log("Update bot action", action.payload)
@@ -179,15 +224,15 @@ export function messagesReducer(
                   step.id === action.payload.stepId
                   ? {
                     ...step,
-                    messages: step.messages.map((message) => {
+                    params: step.params.messages.map((message) => {
                       if (message.type !== "TEXT") {
                         return message
                       }
                       return {
                         ...message,
-                        text: {
-                          ...message.text,
-                          actions: message.text.actions!.map((act) =>
+                        params: {
+                          ...message.params,
+                          actions: message.params.actions!.map((act) =>
                             act.id === action.payload.actionId
                               ? { ...act, ...action.payload.updates }
                               : act,

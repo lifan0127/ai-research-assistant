@@ -6,7 +6,8 @@ import { useDialog } from "../../../hooks/useDialog"
 import { searchResultsAction } from "../../components/test/data/searchResults"
 import { qaResponseAction } from "../../components/test/data/qaResponse"
 import { urlMessageAction } from "../../components/test/data/urlMessage"
-import { States, MentionValue } from "../../../models/utils/states"
+import { States } from "../../../models/utils/states"
+import { MentionValue, UserInput } from "../../../typings/input"
 import { defaultStates } from "../../../hooks/useStates"
 
 interface TestMessage {
@@ -219,13 +220,13 @@ const testMessages = [
 ]
 
 interface TestMenuProps {
-  setUserInput: (input: { content: MentionValue; states: States }) => void
+  setInput: (input: { userInput: UserInput; id?: string }) => void
   addMessage: (message: Partial<Message>) => void
   hasNotification?: boolean
 }
 
 export function TestMenu({
-  setUserInput,
+  setInput,
   addMessage,
   hasNotification,
 }: TestMenuProps) {
@@ -237,7 +238,9 @@ export function TestMenu({
       handleClick: () => {
         addMessage(message)
         if (message.type === "USER_MESSAGE") {
-          setUserInput({ content: message.content, states: message.states })
+          setInput({
+            userInput: { content: message.content, states: message.states },
+          })
         }
       },
     })),

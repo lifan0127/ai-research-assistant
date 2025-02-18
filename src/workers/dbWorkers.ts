@@ -94,7 +94,13 @@ export const handlers = {
       .delete()
   },
 
+  /* Delete all file metadata */
+  async clearAllFiles() {
+    await db.files.clear()
+  },
 }
+
+
 
 const messageServer = new MessageHelper({
   canBeDestroyed: true,

@@ -26,7 +26,8 @@ import { MainMenu } from "./features/menus/MainMenu"
 import { Input } from "./features/input/Input"
 import { Version } from "./components/Version"
 import "./style.css"
-import { States, areStatesEmpty, MentionValue } from "../models/utils/states"
+import { areStatesEmpty, simplifyStates } from "../models/utils/states"
+import { UserInput } from "../typings/input"
 import { Feedback } from "./features/Feedback"
 import { useFeedback } from "../hooks/useFeedback"
 import { InfoPanel } from "./features/infoPanel/InfoPanel"
@@ -55,24 +56,21 @@ export function log(...messages: any) {
   }
 }
 
-interface UserInput {
-  content: MentionValue
-  states: States
-}
-
 export function Container() {
   const [currentConversation, setCurrentConversation] = useState(
     JSON.parse(getPref("CURRENT_CONVERSATION") as string) as ConversationInfo,
   )
   const zoom = useZoom()
   const { notification, hasNotification } = useNotification()
-  const [userInput, setUserInput] = useState<UserInput>()
+  const [input, setInput] = useState<{ userInput: UserInput; id?: string }>()
   const { isDragging, setIsDragging } = useDragging()
   const {
     messages,
+    getMessage,
     addUserMessage,
     addBotMessage,
     updateUserMessage,
+    getBotStep,
     addBotStep,
     updateBotStep,
     completeBotMessageStep,
@@ -193,34 +191,33 @@ export function Container() {
   //   }
   // }, [userInput])
 
-  const handleSubmit = useCallback(
-    async (input: { content: MentionValue; states: States }, id?: string) => {
-      const { content, states } = input
+  useEffect(() => {
+    if (input) {
+      const { userInput, id } = input
       if (id) {
-        const updatedUserMessage = {
-          type: "USER_MESSAGE" as const,
-          id,
-          content,
-          states,
-        }
+        // const updatedUserMessage = {
+        //   type: "USER_MESSAGE" as const,
+        //   id,
+        //   ...input,
+        // }
         // legacyAssistant.rebuildMemory(updateMessage(updatedUserMessage))
-        setUserInput({ content, states })
       } else {
-        const newUserMessage = {
-          conversationId: currentConversation.id,
-          content,
-          states,
-        }
-        await addUserMessage(newUserMessage)
+        addUserMessage(userInput)
       }
-
-      const stream = assistant.streamMessage(content.newValue, states)
-
+      const stream = assistant.streamMessage(
+        userInput.content.newValue,
+        simplifyStates(userInput.states),
+      )
       addBotMessage({
-        conversationId: currentConversation.id,
         stream: stream,
         steps: [],
       })
+    }
+  }, [addUserMessage, addBotMessage, assistant, input])
+
+  const handleSubmit = useCallback(
+    async (userInput: UserInput, id?: string) => {
+      setInput({ userInput, id })
       // scrollToEnd()
       // if (id) {
       //   const updatedUserMessage = {
@@ -279,7 +276,7 @@ export function Container() {
       //   }
       // }
     },
-    [addUserMessage, addBotMessage, assistant, setUserInput],
+    [setInput],
   )
 
   const [testData, setTestData] = useState<any>()
@@ -371,6 +368,10 @@ export function Container() {
       scrollToEnd,
       pauseScroll,
       resumeScroll,
+      getMessage,
+      addUserMessage,
+      addBotMessage,
+      getBotStep,
       addBotStep,
       updateBotStep,
       completeBotMessageStep,
@@ -381,14 +382,18 @@ export function Container() {
       setCopyId,
       setFunctionCallsCount,
       addFunctionCallOutput,
-      // scrollToEnd,
-      // pauseScroll,
-      // resumeScroll,
-      // addBotStep,
-      // updateBotStep,
-      // completeBotMessageStep,
-      // updateBotAction,
-      // findLastUserMessage,
+      scrollToEnd,
+      pauseScroll,
+      resumeScroll,
+      getMessage,
+      addUserMessage,
+      addBotMessage,
+      getBotStep,
+      addBotStep,
+      updateBotStep,
+      completeBotMessageStep,
+      updateBotAction,
+      findLastUserMessage,
     ],
   )
 
@@ -403,7 +408,7 @@ export function Container() {
       <Header containerRef={containerRef}>
         {__env__ === "development" ? (
           <TestMenu
-            setUserInput={setUserInput}
+            setInput={setInput}
             addMessage={addUserMessage}
             hasNotification={hasNotification}
           />
@@ -431,7 +436,7 @@ export function Container() {
           }
           faq={<FAQ />}
         />
-        <button onClick={handleTest}>Test File Indexer</button>
+        {/* <button onClick={handleTest}>Test File Indexer</button> */}
         <div className="relative self-start w-full sm:max-w-[85%] my-2 pb-2">
           {testData ? (
             // <FileUploader

@@ -92,15 +92,15 @@ export function SelectionIcon({
   }
 }
 
-export interface ZoteroIconProps {
-  pulsing?: boolean
+interface ZoteroIconProps {
+  isLoading?: boolean
 }
 
-export function ZoteroIcon({ pulsing = false }: ZoteroIconProps) {
+export function ZoteroIcon({ isLoading = false }: ZoteroIconProps) {
   return (
     <span className="mx-0.5">
       <img
-        className={`align-middle ${pulsing ? "saturation-pulse" : ""}`}
+        className={`align-middle ${isLoading ? "animate-pulse" : ""}`}
         src="chrome://zotero/skin/zotero-new-z-16px.png"
       ></img>
     </span>

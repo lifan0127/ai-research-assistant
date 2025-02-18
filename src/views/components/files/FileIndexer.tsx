@@ -45,48 +45,48 @@ export function FileIndexer({ onComplete, onUpdate, files }: FileIndexerProps) {
       })
 
       // Simulate an async file indexing:
-      await new Promise<void>((resolve) => {
-        setTimeout(
-          () => {
-            if (isCancelled) return
-            const response = {
-              id: file as string,
-              object: "vector_store.file" as const,
-              created_at: 1699061776,
-              usage_bytes: 1234,
-              vector_store_id: assistant.currentVectorStore as string,
-              status: "completed" as const,
-              last_error: null,
-            }
-            setStatus((prev) => {
-              const newArr = [...prev]
-              newArr[i] = "COMPLETED"
-              return newArr
-            })
-            setIndexResponses((prev) => {
-              const newArr = [...prev]
-              newArr[i] = response
-              return newArr
-            })
-            resolve()
-          },
-          Math.random() * 2000 + 1000,
-        )
-      })
+      // await new Promise<void>((resolve) => {
+      //   setTimeout(
+      //     () => {
+      //       if (isCancelled) return
+      //       const response = {
+      //         id: file as string,
+      //         object: "vector_store.file" as const,
+      //         created_at: 1699061776,
+      //         usage_bytes: 1234,
+      //         vector_store_id: assistant.currentVectorStore as string,
+      //         status: "completed" as const,
+      //         last_error: null,
+      //       }
+      //       setStatus((prev) => {
+      //         const newArr = [...prev]
+      //         newArr[i] = "COMPLETED"
+      //         return newArr
+      //       })
+      //       setIndexResponses((prev) => {
+      //         const newArr = [...prev]
+      //         newArr[i] = response
+      //         return newArr
+      //       })
+      //       resolve()
+      //     },
+      //     Math.random() * 2000 + 1000,
+      //   )
+      // })
 
       // Real file uploading logic
-      // const response = await assistant.indexFile(file as string)
-      // setStatus((prev) => {
-      //   const newArr = [...prev]
-      //   newArr[i] = "COMPLETED"
-      //   return newArr
-      // })
-      // setIndexResponses((prev) => {
-      //   const newArr = [...prev]
-      //   newArr[i] = response
-      //   return newArr
-      // })
-      // assistant.registerIndexedFile(item)
+      const response = await assistant.indexFile(file as string)
+      setStatus((prev) => {
+        const newArr = [...prev]
+        newArr[i] = "COMPLETED"
+        return newArr
+      })
+      setIndexResponses((prev) => {
+        const newArr = [...prev]
+        newArr[i] = response
+        return newArr
+      })
+      assistant.registerIndexedFile(item)
       // log("Indexed file: ", file, response)
     }
     concurrencyPool(files, indexWorker).catch((err) => {

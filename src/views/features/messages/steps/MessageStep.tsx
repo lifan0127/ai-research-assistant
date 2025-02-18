@@ -15,8 +15,9 @@ import { SearchAction } from "../actions/SearchAction"
 import { QAAction, QAActionContent } from "../actions/QAAction"
 import { ErrorAction } from "../actions/ErrorAction"
 import { step as log } from "../../../../utils/loggers"
-import { Action } from "../../../../typings/actions"
+import { ActionType } from "../../../../typings/actions"
 import { TextMessageContent } from "../../../../typings/steps"
+import { SearchResultsWidget } from "../widgets/SearchResultsWidget"
 
 export interface MessageStepProps {
   content: MessageStepContent
@@ -24,20 +25,20 @@ export interface MessageStepProps {
 }
 
 export function MessageStep({
-  content: { id, messageId, status, messages = [] },
+  content: { id, messageId, status, params },
   control: { updateBotAction, ...restControl },
 }: MessageStepProps) {
-  log("Render message step", { id, messageId, status, messages })
+  log("Render message step", { id, messageId, status, params })
   // Ref to store the last successfully parsed values for each item in the array
   const lastValidMessagesRef = useRef<
-    Map<number, { message: string; context?: object; actions?: Action[] }>
+    Map<number, { message: string; context?: object; actions?: ActionType[] }>
   >(new Map())
   const [output, setOutput] = useState<any>([])
 
   function renderTextMessage(
     messageId: string,
     stepId: string,
-    { message = "", context = {}, actions = [] }: TextMessageContent["text"],
+    { message = "", context = {}, actions = [] }: TextMessageContent["params"],
   ) {
     return (
       <>
@@ -46,132 +47,20 @@ export function MessageStep({
             {message}
           </MarkdownReact>
         </div>
-        {status === "COMPLETED" && (actions.length || context) ? (
-          <div className="px-2">
-            {
-              actions.map((action: Action) => {
-                // return (
-                //   <CodeHighlighter language="json" code={stringify(action)} />
-                // )
-                switch (action.widget) {
-                  // case "markdown": {
-                  //   return (
-                  //     <Markdown.Component
-                  //       content={
-                  //         {
-                  //           status: "IN_PROGRESS",
-                  //           ...action.content,
-                  //         } as Markdown.Content
-                  //       }
-                  //       control={restControl}
-                  //     />
-                  //   )
-                  // }
-                  case "search": {
-                    return (
-                      // <CodeHighlighter
-                      //   language="json"
-                      //   code={stringify({ action, context })}
-                      // />
-                      <SearchAction
-                        content={
-                          {
-                            messageId,
-                            stepId,
-                            id: action.id,
-                            status: action.status,
-                            output: action.output,
-                          } as Search.Content
-                        }
-                        context={context}
-                        control={{
-                          ...restControl,
-                          updateBotAction,
-                        }}
-                      />
-                    )
-                  }
-                  case "qa": {
-                    log("Invoke QA action", { action, context })
-                    return (
-                      // <CodeHighlighter
-                      //   language="json"
-                      //   code={stringify(action)}
-                      // />
-                      <QAAction
-                        content={
-                          {
-                            id: action.id,
-                            messageId,
-                            stepId,
-                            status: "IN_PROGRESS",
-                            input: action.input,
-                            output: action.output,
-                          } as QAActionContent
-                        }
-                        context={context}
-                        control={{
-                          ...restControl,
-                          updateBotAction,
-                        }}
-                      />
-                    )
-                  }
-                  // case "error": {
-                  //   return (
-                  //     <ErrorAction
-                  //       input={
-                  //         {
-                  //           status: "IN_PROGRESS",
-                  //           ...action.content,
-                  //         } as Error.Content
-                  //       }
-                  //       control={{
-                  //         ...restControl,
-                  //       }}
-                  //     />
-                  //   )
-                  // }
-                  // default: {
-                  //     return (
-                  //       <ErrorAction
-                  //         input={
-                  //           {
-                  //             status: "COMPLETED",
-                  //             error: new Error(`Invalid widget: ${action.widget}`),
-                  //           } as Error.Content
-                  //         }
-                  //         control={{
-                  //           ...restControl,
-                  //         }}
-                  //       />
-                  //     )
-                  // }
-                }
-              })
-              // <Widget
-              //   widget={action.widget}
-              //   input={{ status: "IN_PROGRESS", ...action.input }}
-              //   context={context}
-              //   control={{
-              //     ...restControl,
-              //     updateBotAction,
-              //     save: saveStepWidget,
-              //   }}
-              // />
-            }
-          </div>
-        ) : null}
       </>
     )
   }
 
+  if (!params.messages || params.messages.length === 0) {
+    return null
+  }
+
   return (
     <div>
-      {messages.map((item, index) => {
+      {params.messages.map((item, index) => {
         switch (item.type) {
           case "TEXT": {
-            const { raw, ...structuredMessage } = item.text
+            const { raw, ...structuredMessage } = item.params
             if (structuredMessage.message) {
               return renderTextMessage(messageId, id, structuredMessage)
             }
@@ -185,14 +74,41 @@ export function MessageStep({
                 return renderTextMessage(messageId, id, {
                   message: lastValidValue.message,
                   context: {},
-                  actions: [],
+                  workflows: [],
                 })
               }
             }
             return null
           }
           case "IMAGE": {
-            return <p>Image File ID: {item.image}</p>
+            return <p>Image File ID: {item.params}</p>
+          }
+          case "WIDGET": {
+            switch (item.params.widget) {
+              case "search": {
+                return (
+                  // <CodeHighlighter
+                  //   code={stringify(item.params)}
+                  //   language="json"
+                  // />
+                  <SearchResultsWidget
+                    content={{ messageId, ...item }}
+                    control={restControl}
+                  />
+                )
+              }
+              default: {
+                return (
+                  <div>
+                    <p>Widget: {item.params.widget}</p>
+                    <CodeHighlighter
+                      code={stringify(item.params)}
+                      language="json"
+                    />
+                  </div>
+                )
+              }
+            }
           }
         }
       })}

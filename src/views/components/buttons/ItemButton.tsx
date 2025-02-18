@@ -1,6 +1,6 @@
 import React, { useRef } from "react"
 import { ItemIcon } from "../../icons/zotero"
-import { ItemInfo, AttachmentInfo } from "../../../apis/zotero/item"
+import { ItemInfo, AttachmentInfo } from "../../../typings/zotero"
 import { useDialog } from "../../../hooks/useDialog"
 
 interface ItemButtonProps {
@@ -21,13 +21,13 @@ export function ItemButton({ item, mode, text }: ItemButtonProps) {
     mode: "item" | "attachment",
   ) {
     event.preventDefault()
-    if (dialog.mode === "NORMAL") {
-      dialog.minimize()
-      setTimeout(() => {
-        console.log({ ref })
-        ref.current?.scrollIntoView()
-      }, 50)
-    }
+    // if (dialog.mode === "NORMAL") {
+    //   dialog.minimize()
+    //   setTimeout(() => {
+    //     console.log({ ref })
+    //     ref.current?.scrollIntoView()
+    //   }, 50)
+    // }
     switch (mode) {
       case "attachment":
         return Zotero.getActiveZoteroPane().viewAttachment(item.id)

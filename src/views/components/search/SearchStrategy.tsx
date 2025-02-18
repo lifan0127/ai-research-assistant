@@ -3,7 +3,7 @@ import { CSSTransition } from "react-transition-group"
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline"
 import { SearchParameters } from "../../../apis/zotero/search"
 import { openAdvancedSearch } from "../../../apis/zotero/controls/search"
-import { Query } from "../../../typings/actions"
+import { QueryType } from "../../../typings/actions"
 
 interface SearchParametersBlockProps {
   query: SearchParameters
@@ -100,7 +100,7 @@ function SearchParametersBlock({ query }: SearchParametersBlockProps) {
 }
 
 export interface SearchStrategyProps {
-  query: Query
+  query: QueryType
   internal?: boolean
 }
 
@@ -118,7 +118,7 @@ export function SearchStrategy({ query, internal }: SearchStrategyProps) {
             <>
               <SearchStrategy
                 key={i}
-                query={subquery as Query}
+                query={subquery as QueryType}
                 internal={true}
               />
               {i < subqueries.length - 1 ? (

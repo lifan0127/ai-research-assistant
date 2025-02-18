@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { parseDataTransfer } from "../../../models/utils/dataTransfer"
-import { ItemInfo } from "../../../apis/zotero/item"
 import {
   StateName,
   StateSelection,
@@ -10,7 +9,8 @@ import {
 } from "../../../models/utils/states"
 import { useDialog } from "../../../hooks/useDialog"
 import { useDragging } from "../../../hooks/useDragging"
-import { escapeTitle, MentionValue } from "../../../models/utils/states"
+import { escapeTitle } from "../../../models/utils/states"
+import { MentionValue } from "../../../typings/input"
 
 export interface DragAreaProps {
   id?: string

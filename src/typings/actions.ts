@@ -1,38 +1,68 @@
 import { z } from "zod"
-import { SearchActionSchema, QAActionSchema } from "../models/schemas/routing"
-import { QuerySchema } from "../models/schemas/routing"
+import { SearchWorkflowSchema, QAWorkflowSchema, QuerySchema } from "../models/schemas/routing"
 import { useMessages } from "../hooks/useMessages"
+import type { recursiveSearchAndCompileResults } from "../apis/zotero/search"
 
 export type ActionStatus = "IN_PROGRESS" | "COMPLETED"
 
-const BaseAction = {
-  id: z.string(),
-  timestamp: z.string(),
-  output: z.any().optional(),
+export type SearchActionType = z.infer<typeof SearchWorkflowSchema> & {
+  mode: "search" | "qa" | "fulltext"
+  output: Awaited<ReturnType<typeof recursiveSearchAndCompileResults>>
 }
 
-const Actions = z.union([
-  SearchActionSchema.extend(BaseAction),
-  QAActionSchema.extend(BaseAction),
-])
-
-export type Action = z.infer<typeof Actions> & {
-  status: ActionStatus
+export type QAActionType = z.infer<typeof QAWorkflowSchema> & {
+  input: any
+  output: any
 }
 
-export type Query = NonNullable<z.infer<typeof QuerySchema>>
+export type RetryActionType = {
+  type: "retry"
+  input: {
+    message: string
+    prompt: string
+  }
+  output: any
+}
 
-interface BaseActionControl {
+export type FileActionType = {
+  type: "file"
+  input: {
+    searchResultsStepId: string
+  }
+  output: any
+}
+
+export type ActionType = SearchActionType | QAActionType | RetryActionType
+
+export type QueryType = NonNullable<z.infer<typeof QuerySchema>>
+
+interface BaseActionStepControl {
   scrollToEnd: () => void
   pauseScroll: () => void
   resumeScroll: () => void
   updateBotAction: ReturnType<typeof useMessages>["updateBotAction"]
 }
 
-export interface SearchActionControl extends BaseActionControl {
-
+export interface SearchActionStepControl extends BaseActionStepControl {
+  getBotStep: ReturnType<typeof useMessages>["getBotStep"]
+  addBotStep: ReturnType<typeof useMessages>["addBotStep"]
+  updateBotStep: ReturnType<typeof useMessages>["updateBotStep"]
 }
 
-export interface QAActionControl extends BaseActionControl { }
+export interface FileActionStepControl extends BaseActionStepControl {
+  getBotStep: ReturnType<typeof useMessages>["getBotStep"]
+  addBotStep: ReturnType<typeof useMessages>["addBotStep"]
+  updateBotStep: ReturnType<typeof useMessages>["updateBotStep"]
+  completeBotMessageStep: ReturnType<typeof useMessages>["completeBotMessageStep"]
+}
 
-export interface ErrorActionControl extends BaseActionControl { }
+export interface QAActionStepControl extends BaseActionStepControl {
+  updateBotStep: ReturnType<typeof useMessages>["updateBotStep"]
+}
+
+export interface RetryActionStepControl extends BaseActionStepControl {
+  addUserMessage: ReturnType<typeof useMessages>["addUserMessage"]
+  addBotMessage: ReturnType<typeof useMessages>["addBotMessage"]
+}
+
+export interface ErrorActionStepControl extends BaseActionStepControl { }

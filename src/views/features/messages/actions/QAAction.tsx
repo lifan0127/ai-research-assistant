@@ -19,11 +19,10 @@ import {
   copyButtonDef,
   noteButtonDef,
 } from "../../../components/buttons/types"
-import { QAActionControl, Query } from "../../../../typings/actions"
+import { QAActionStepControl, QueryType } from "../../../../typings/actions"
 import stringify from "json-stringify-pretty-compact"
 import { CodeHighlighter } from "../../../components/code/CodeHighlighter"
 import { useAssistant } from "../../../../hooks/useAssistant"
-import { BotMessageStatus } from "../../../../typings/legacyMessages"
 import {
   AnnotatedText,
   Markdown,
@@ -39,68 +38,35 @@ import { FileUploadIcon, FileIndexIcon } from "../../../icons/file"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid"
 import { FileStatus } from "../../../components/files/FileStatus"
 import { FilePreparation } from "../../../components/files/FirePreparation"
-
-type StepContent = MessageStepContent | ToolStepContent | ErrorStepContent
-
-export interface QAActionContent {
-  status: "COMPLETED" | "IN_PROGRESS"
-  id: string
-  messageId: string
-  stepId: string
-  input: {
-    question: string
-    fulltext: boolean
-  }
-  output?: any
-}
+import { QAActionStepContent } from "../../../../typings/steps"
 
 export interface QAActionProps {
-  content: QAActionContent
-  context: { query: Query }
-  control: QAActionControl
+  content: QAActionStepContent
+  context: { query: QueryType }
+  control: QAActionStepControl
 }
 
 export const QAAction = memo(function QAActionComponent({
   content: {
     messageId,
-    stepId,
     id,
-    input: { question, fulltext },
-    output,
+    params: {
+      action: {
+        input: { question, fulltext },
+        output,
+      },
+      workflow,
+    },
   },
-  context: { query },
-  control: { scrollToEnd, updateBotAction, pauseScroll },
+  control: { scrollToEnd, updateBotStep, pauseScroll },
 }: QAActionProps) {
   const { assistant } = useAssistant()
-  const [fulltextReady, setFullTextReady] = useState(false)
-  const [useFulltext, setUseFulltext] = useState(fulltext)
-  const [files, setFiles] = useState<FileForIndexing[]>()
-
-  useEffect(() => {
-    async function searchZotero(query: Query | undefined) {
-      if (query) {
-        const itemIds = await recursiveSearch(query)
-        const results = await getItemsAndIndexAttachments(
-          itemIds,
-          assistant.currentVectorStore!,
-        )
-        setFiles(results)
-      }
-    }
-    if (!output) {
-      searchZotero(query as Query)
-    }
-  }, [query])
-
+  log("QA Output", output)
   useEffect(() => {
     if (output) {
       return
     }
 
-    if (fulltext && !fulltextReady) {
-      return
-    }
-    log("create QA stream")
     const stream = assistant.streamQA(question)
 
     const handleMessageCreated = (message: OpenAIMessage) => {
@@ -111,10 +77,22 @@ export const QAAction = memo(function QAActionComponent({
       _delta: MessageDelta,
       snapshot: OpenAIMessage,
     ) => {
-      updateBotAction(messageId, stepId, id, {
-        output: snapshot.content,
+      updateBotStep(messageId, id, {
+        params: {
+          action: {
+            type: "qa",
+            input: { question, fulltext },
+            output: snapshot.content,
+          },
+        },
       })
-      log(stringify({ messageId, stepId, id, output: snapshot.content }))
+      snapshot.content
+        .filter((x) => x.type === "text")
+        .map((x) => {
+          assistant
+            .parseAnnotatedText(x.text)
+            .then((parsed) => log("Parse Annotated Text", parsed))
+        })
       // _messageContent = snapshot.content
       // setMessage(_messageContent)
     }
@@ -122,6 +100,12 @@ export const QAAction = memo(function QAActionComponent({
     const handleMessageDone = () => {
       // setStatus("done")
       log("QA stream done")
+      updateBotStep(messageId, id, {
+        status: "COMPLETED",
+      })
+      updateBotStep(workflow.messageId, workflow.stepId, {
+        status: "COMPLETED",
+      })
     }
 
     stream
@@ -136,11 +120,7 @@ export const QAAction = memo(function QAActionComponent({
         .off("messageDelta", handleMessageDelta)
         .off("messageDone", handleMessageDone)
     }
-  }, [question, fulltext, fulltextReady])
-
-  function handleFullTextComplete() {
-    setFullTextReady(true)
-  }
+  }, [question, fulltext])
 
   // if (!searchResults) {
   //   return (
@@ -152,123 +132,29 @@ export const QAAction = memo(function QAActionComponent({
   // }
   // log("Search results", searchResults)
 
-  if (fulltext && Array.isArray(files) && files.length === 0) {
-    return <Markdown content={"No available files to answer this question."} />
-  }
-
   // log("QA output", output)
   // return <pre>{JSON.stringify(output)}</pre>
+
+  if (!output) {
+    return (
+      <div className="p-[15px]">
+        <div className="dot-flashing "></div>
+      </div>
+    )
+  }
+
   return (
-    <div>
-      {fulltext && !fulltextReady && files ? (
-        <FilePreparation
-          files={files}
-          onComplete={handleFullTextComplete}
-          pauseScroll={pauseScroll}
-        />
-      ) : null}
-      {/* <CodeHighlighter
-        code={stringify({ ...output })}
-        language="json"
-        className="text-sm"
-      /> */}
-      {output ? (
-        <div>
-          {output.map((item: MessageContent, index: number) => {
-            switch (item.type) {
-              case "text": {
-                return <AnnotatedText key={index} textContent={item.text} />
-              }
-              default: {
-                new Error(`Unsupported message type: ${item.type}`)
-              }
-            }
-          })}
-        </div>
-      ) : null}
+    <div className="bg-white px-4 py-2 border border-neutral-500 rounded shadow-md text-black break-words my-2">
+      {output.map((item: MessageContent, index: number) => {
+        switch (item.type) {
+          case "text": {
+            return <AnnotatedText key={index} textContent={item.text} />
+          }
+          default: {
+            new Error(`Unsupported message type: ${item.type}`)
+          }
+        }
+      })}
     </div>
   )
 })
-
-export function compileContent({
-  input: { answer, sources = [] },
-}: QAActionProps) {
-  const textContent =
-    sources.length === 0
-      ? answer
-      : `
-${answer}
-
-#### References
-
-${sources.map(({ bib }) => bib).join("\n")}
-  `.trim()
-  const htmlContent = marked(textContent)
-  return { textContent, htmlContent }
-}
-
-function copy(props: QAActionProps) {
-  const { textContent, htmlContent } = compileContent(props)
-  return new ztoolkit.Clipboard()
-    .addText(textContent, "text/unicode")
-    .addText(htmlContent, "text/html")
-    .copy()
-}
-
-async function createNote({ input: { answer, sources } }: QAActionProps) {
-  const sourceIds = sources.map(({ item }) => item.id)
-  const sourceItems = await Zotero.Items.getAsync(sourceIds)
-  const citations = sourceItems.map((item) => ({
-    uris: [Zotero.URI.getItemURI(item)],
-    itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
-  }))
-  const sourcesContent = `
-  <ol>
-${sourceItems
-  .map((item, i) => {
-    const citation = {
-      uris: [Zotero.URI.getItemURI(item)],
-      itemData: (Zotero.Utilities as any).Item.itemToCSLJSON(item),
-    }
-    const citationPreview = Zotero.EditorInstanceUtilities.formatCitation({
-      citationItems: [citation],
-    })
-    const citationData = {
-      citationItems: [{ uris: citation.uris }],
-      properties: {},
-    }
-    const citationKey = `<span class="citation" data-citation="${encodeURIComponent(
-      JSON.stringify(citationData),
-    )}">(<span class="citation-item">${citationPreview}</span>)</span>`
-    return `<li>${citationKey} ${sources[i].bib.replace(/\(\d+\)\s+/, "")}</li>`
-  })
-  .join("\n")}
-</ol>
-  `.trim()
-  const content =
-    sources.length === 0
-      ? marked(answer)
-      : `
-${marked(answer)}
-
-<h2>References</h2>
-
-${sourcesContent}`.trim()
-  const note =
-    '<div data-schema-version="8">' +
-    `<h1>New Q&A Response from ${config.addonName} - ${new Date().toLocaleString()}</h1>` +
-    content +
-    "</div>"
-  return note
-}
-
-export const buttonDefs = [
-  {
-    name: "COPY",
-    utils: { copy },
-  } as copyButtonDef,
-  {
-    name: "NOTE",
-    utils: { createNote },
-  } as noteButtonDef,
-]
