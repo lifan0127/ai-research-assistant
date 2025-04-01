@@ -1,5 +1,5 @@
 import React from "react"
-import { StateName } from "../../models/utils/states"
+import { StateName } from "../../typings/input"
 import "./style.css"
 
 interface IconProps {
@@ -28,15 +28,18 @@ function BaseIcon({ category, type, enlarged = false }: BaseIconProps) {
 }
 
 interface ItemIconProps extends IconProps {
-  type?: Zotero.Item.ItemType
+  type: _ZoteroTypes.Item.ItemType
 }
 
 export function ItemIcon({ type }: ItemIconProps) {
-  // return <ZoteroIcon category="treeitem" {...props} />
+  const iconType = type
+    .replace("pdf", "PDF")
+    .replace("epub", "EPUB")
+    .replace(/-(.)/g, (_: string, g1: string) => g1.toUpperCase())
   return (
     <span
       className="icon icon-css icon-item-type cell-icon"
-      data-item-type={type}
+      data-item-type={iconType}
     ></span>
   )
 }
@@ -70,11 +73,11 @@ export function SelectionIcon({
 }: {
   name: StateName
   id?: number
-  type?: Zotero.Item.ItemType | "collection" | "creator" | "tag" | "image"
+  type?: _ZoteroTypes.Item.ItemType | "collection" | "creator" | "tag" | "image"
 }) {
   switch (name) {
     case "items": {
-      return <ItemIcon key={id} type={type as Zotero.Item.ItemType} />
+      return <ItemIcon key={id} type={type as _ZoteroTypes.Item.ItemType} />
     }
     case "collections": {
       return <CollectionIcon />
