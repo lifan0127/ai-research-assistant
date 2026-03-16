@@ -1,54 +1,36 @@
 import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  createContext,
-  useContext,
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
 } from "react"
-import { useMessages, ConversationInfo } from "../hooks/useMessages"
+import { useAssistant } from "../hooks/useAssistant"
 import { useDragging } from "../hooks/useDragging"
+import { useFeedback } from "../hooks/useFeedback"
+import { useFunctionCalls } from "../hooks/useFunctionCalls"
+import { ConversationInfo, useMessages } from "../hooks/useMessages"
+import { useNotification } from "../hooks/useNotification"
+import { useScroll } from "../hooks/useScroll"
+import { useZoom } from "../hooks/useZoom"
+import { simplifyStates } from "../models/utils/states"
+import { UserInput } from "../typings/input"
+import { getPref } from "../utils/prefs"
+import { FileRetriever } from "./components/files/FileRetriever"
+import { Feedback } from "./features/Feedback"
+import { Header } from "./features/Header"
+import { FAQ } from "./features/infoPanel/FAQ"
+import { InfoPanel } from "./features/infoPanel/InfoPanel"
+import { PromptLibrary } from "./features/infoPanel/PromptLibrary"
+import { Input } from "./features/input/Input"
+import { MainMenu } from "./features/menus/MainMenu"
 import { TestMenu } from "./features/menus/TestMenu"
-import { ResearchAssistant } from "../models/assistant"
-import {
-  ClarificationActionResponse,
-  ErrorActionResponse,
-  ExecutorActionResponse,
-} from "../models/utils/actions"
+import { BotMessage, BotMessageControl } from "./features/messages/BotMessage"
 import {
   UserMessage,
   UserMessageControl,
 } from "./features/messages/UserMessage"
-import { BotMessage, BotMessageControl } from "./features/messages/BotMessage"
-import { Header } from "./features/Header"
-import { MainMenu } from "./features/menus/MainMenu"
-import { Input } from "./features/input/Input"
-import { Version } from "./components/Version"
 import "./style.css"
-import { areStatesEmpty, simplifyStates } from "../models/utils/states"
-import { UserInput } from "../typings/input"
-import { Feedback } from "./features/Feedback"
-import { useFeedback } from "../hooks/useFeedback"
-import { InfoPanel } from "./features/infoPanel/InfoPanel"
-import { PromptLibrary } from "./features/infoPanel/PromptLibrary"
-import { FAQ } from "./features/infoPanel/FAQ"
-import { config } from "../../package.json"
-import { getPref, setPref } from "../utils/prefs"
-import { debounce, set } from "lodash"
-import { useZoom } from "../hooks/useZoom"
-import { useNotification } from "../hooks/useNotification"
-import { useAssistant } from "../hooks/useAssistant"
-import { useScroll } from "../hooks/useScroll"
-import { AssistantStream } from "openai/lib/AssistantStream"
-import { useFunctionCalls } from "../hooks/useFunctionCalls"
-import { recursiveSearchAndCompileResults } from "../apis/zotero/search"
-import { SearchStrategy } from "./components/search/SearchStrategy"
-import { FilePreparation } from "./components/files/FirePreparation"
-import { getItemsAndIndexAttachments } from "../apis/zotero/item"
-import { FileUploader } from "./components/files/FileUploader"
-import { FileIndexer } from "./components/files/FileIndexer"
-import { FileRetriever } from "./components/files/FileRetriever"
 
 export function log(...messages: any) {
   if (__env__ === "development") {
@@ -399,7 +381,7 @@ export function Container() {
 
   return (
     <div
-      className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 flex flex-col"
+      className="fixed m-0 h-full px-3 bg-gradient-170 from-red-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-gray-100 flex flex-col"
       style={zoom.style}
       onDragEnter={() => setIsDragging(isDragging + 1)}
       onDragLeave={() => setIsDragging(isDragging - 1)}
